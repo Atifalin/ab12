@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="AB12" />
+  <meta name="theme-color" content="#ff5c8a" />
+  <title>AB12</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <link rel="icon" href="icon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- HOME -->
+  <section id="home" class="screen active">
+    <div class="clouds"><span>☁️</span><span>☁️</span><span>☁️</span></div>
+    <h1 class="title"><span>A</span><span>B</span><span>1</span><span>2</span></h1>
+    <div class="menu">
+      <button class="mode-card learn" data-mode="learn">
+        <div class="big">123<br/>ABC</div>
+        <div class="label">Letters &amp; Numbers</div>
+      </button>
+      <button class="mode-card smash" data-mode="smash">
+        <div class="big">💥</div>
+        <div class="label">Smash!</div>
+      </button>
+    </div>
+    <p class="hint">Desktop: type on the keyboard · Phone: tap the big buttons<br/>Hold the ⭐ in the corner for 2 seconds to come back here</p>
+  </section>
+
+  <!-- LEARN -->
+  <section id="learn" class="screen">
+    <div class="trail" id="trail"></div>
+    <div class="stage" id="learn-stage">
+      <div class="hero" id="hero">
+        <div class="glyph" id="glyph">A</div>
+        <div class="pic" id="pic">🍎</div>
+        <div class="word" id="word">Apple</div>
+      </div>
+      <div class="idle" id="learn-idle">Press any letter or number!</div>
+    </div>
+    <div class="pad" id="pad"></div>
+  </section>
+
+  <!-- SMASH -->
+  <section id="smash" class="screen">
+    <div class="smash-idle" id="smash-idle">Tap or smash the keys!</div>
+    <div id="smash-layer"></div>
+  </section>
+
+  <button id="home-btn" class="home-btn" aria-label="Hold to go home">⭐<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17"/></svg></button>
+  <div id="unlock-toast" class="toast">Hold ⭐ to go home</div>
+
+  <script src="app.js"></script>
+</body>
+</html>

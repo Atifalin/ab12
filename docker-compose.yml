@@ -1,0 +1,31 @@
+# Production stack for EZserver (Nginx Proxy Manager + Watchtower auto-updates).
+# Static site served by nginx on port 80 inside the container.
+# No host port is published — NPM routes traffic to the container over proxy-network.
+services:
+  ab12:
+    image: ghcr.io/atifalin/ab12:latest
+    container_name: ab12
+    restart: unless-stopped
+    expose:
+      - "80"
+    networks:
+      - proxy-network
+    labels:
+      # Only containers with this label are auto-updated by the scoped Watchtower below
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  # Watches ONLY the labelled ab12 container; pulls new images every 60s and restarts.
+  # Uses the actively-maintained fork (containrrr/watchtower is abandoned and too old
+  # for modern Docker API >= 1.44, which the server's Docker v29 requires).
+  ab12-watchtower:
+    image: ghcr.io/nicholas-fedor/watchtower:latest
+    container_name: ab12-watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 60 --label-enable --cleanup
+
+networks:
+  proxy-network:
+    external: true
+    name: proxy-network
