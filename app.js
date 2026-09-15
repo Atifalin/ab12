@@ -39,38 +39,77 @@
   const isTouch = window.matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
   if (isTouch) document.body.classList.add('touch');
 
+  // ---------- settings ----------
+  const settings = { sfx: true, voice: true, words: true, volume: 0.8 };
+  try { Object.assign(settings, JSON.parse(localStorage.getItem('ab12-settings') || '{}')); } catch (e) {}
+  const saveSettings = () => localStorage.setItem('ab12-settings', JSON.stringify(settings));
+
   // ---------- audio ----------
+  // All synth tones run through one lowpass-filtered master gain so they stay
+  // soft, and every new sound stops the previous one — nothing ever overlaps.
   let ctx = null;
+  let master = null;
+  const live = new Set();
   function audio() {
-    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (!ctx) {
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 3500;
+      lp.Q.value = 0.4;
+      master = ctx.createGain();
+      master.gain.value = settings.volume;
+      master.connect(lp).connect(ctx.destination);
+    }
     if (ctx.state === 'suspended') ctx.resume();
     return ctx;
+  }
+  function stopSfx() {
+    if (!ctx) return;
+    const t = ctx.currentTime;
+    for (const n of live) {
+      try {
+        n.g.gain.cancelScheduledValues(t);
+        n.g.gain.setTargetAtTime(0.0001, t, 0.03);
+        n.o.stop(t + 0.15);
+      } catch (e) {}
+    }
+    live.clear();
   }
   function tone({ type = 'sine', f0 = 440, f1 = f0, dur = 0.25, gain = 0.25, delay = 0 }) {
     const ac = audio();
     const o = ac.createOscillator();
     const g = ac.createGain();
     const t = ac.currentTime + delay;
+    const atk = Math.min(0.04, dur * 0.2);
     o.type = type;
     o.frequency.setValueAtTime(f0, t);
     o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
     g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(gain, t + 0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(g).connect(ac.destination);
+    g.gain.exponentialRampToValueAtTime(gain, t + atk);
+    g.gain.setTargetAtTime(0.0001, t + dur * 0.6, dur * 0.25);
+    o.connect(g).connect(master);
     o.start(t);
-    o.stop(t + dur + 0.05);
+    o.stop(t + dur + 0.3);
+    const node = { o, g };
+    live.add(node);
+    o.onended = () => live.delete(node);
+  }
+  function playSfx(name) {
+    if (!settings.sfx) return;
+    stopSfx();
+    SFX[name]();
   }
   const SFX = {
-    pop: () => tone({ type: 'sine', f0: 600, f1: 1200, dur: 0.12, gain: 0.3 }),
-    boing: () => tone({ type: 'triangle', f0: 900, f1: 150, dur: 0.4 }),
-    slideUp: () => tone({ type: 'square', f0: 200, f1: 1400, dur: 0.45, gain: 0.12 }),
-    honk: () => { tone({ type: 'sawtooth', f0: 220, f1: 200, dur: 0.3, gain: 0.15 }); tone({ type: 'sawtooth', f0: 277, f1: 260, dur: 0.3, gain: 0.15 }); },
-    laser: () => tone({ type: 'sawtooth', f0: 1800, f1: 100, dur: 0.3, gain: 0.12 }),
-    bubbles: () => { for (let i = 0; i < 5; i++) tone({ type: 'sine', f0: rnd(500, 1500), f1: rnd(800, 2200), dur: 0.08, gain: 0.2, delay: i * 0.07 }); },
-    quack: () => { tone({ type: 'square', f0: 500, f1: 300, dur: 0.15, gain: 0.12 }); tone({ type: 'square', f0: 480, f1: 280, dur: 0.15, gain: 0.12, delay: 0.18 }); },
-    ding: () => { tone({ type: 'sine', f0: 880, f1: 880, dur: 0.5, gain: 0.25 }); tone({ type: 'sine', f0: 1320, f1: 1320, dur: 0.4, gain: 0.15, delay: 0.05 }); },
-    fanfare: () => { [523, 659, 784, 1047].forEach((f, i) => tone({ type: 'triangle', f0: f, f1: f, dur: 0.18, gain: 0.25, delay: i * 0.12 })); },
+    pop: () => tone({ type: 'sine', f0: 550, f1: 1050, dur: 0.14, gain: 0.22 }),
+    boing: () => tone({ type: 'triangle', f0: 750, f1: 160, dur: 0.42, gain: 0.18 }),
+    slideUp: () => tone({ type: 'triangle', f0: 240, f1: 1200, dur: 0.45, gain: 0.1 }),
+    honk: () => { tone({ type: 'triangle', f0: 220, f1: 200, dur: 0.28, gain: 0.13 }); tone({ type: 'triangle', f0: 277, f1: 260, dur: 0.28, gain: 0.11 }); },
+    laser: () => tone({ type: 'sine', f0: 1400, f1: 140, dur: 0.32, gain: 0.1 }),
+    bubbles: () => { for (let i = 0; i < 5; i++) tone({ type: 'sine', f0: rnd(450, 1300), f1: rnd(700, 1900), dur: 0.09, gain: 0.14, delay: i * 0.07 }); },
+    quack: () => { tone({ type: 'triangle', f0: 480, f1: 290, dur: 0.15, gain: 0.11 }); tone({ type: 'triangle', f0: 460, f1: 270, dur: 0.15, gain: 0.11, delay: 0.18 }); },
+    ding: () => { tone({ type: 'sine', f0: 880, f1: 880, dur: 0.55, gain: 0.18 }); tone({ type: 'sine', f0: 1320, f1: 1320, dur: 0.45, gain: 0.1, delay: 0.05 }); },
+    fanfare: () => { [523, 659, 784, 1047].forEach((f, i) => tone({ type: 'triangle', f0: f, f1: f, dur: 0.22, gain: 0.18, delay: i * 0.13 })); },
   };
   const SILLY = ['boing', 'slideUp', 'honk', 'laser', 'bubbles', 'quack', 'pop', 'ding'];
 
@@ -80,27 +119,35 @@
     const vs = speechSynthesis.getVoices();
     if (!vs.length) return;
     const en = vs.filter((v) => v.lang.startsWith('en'));
-    voice = en.find((v) => /Samantha|Karen|Google US English|Zira|Female/i.test(v.name)) || en[0] || vs[0];
+    voice =
+      en.find((v) => /natural|neural|premium|enhanced/i.test(v.name)) ||
+      en.find((v) => /Samantha|Google US English|Aria|Jenny|Karen|Zira|Susan|Female/i.test(v.name)) ||
+      en[0] || vs[0];
   }
   if ('speechSynthesis' in window) {
     pickVoice();
     speechSynthesis.onvoiceschanged = pickVoice;
   }
-  function say(text, { pitch = 1.4, rate = 0.95, interrupt = true } = {}) {
-    if (!('speechSynthesis' in window)) return;
-    if (interrupt) speechSynthesis.cancel();
+  function say(text, { pitch = 1.15, rate = 0.92, queue = false } = {}) {
+    if (!('speechSynthesis' in window) || !settings.voice) return;
+    if (!queue) speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     if (voice) u.voice = voice;
     u.pitch = pitch;
     u.rate = rate;
-    u.volume = 1;
+    u.volume = settings.volume;
     speechSynthesis.speak(u);
+  }
+  function stopAllAudio() {
+    stopSfx();
+    if ('speechSynthesis' in window) speechSynthesis.cancel();
   }
 
   // ---------- screens ----------
   let mode = 'home';
   const homeBtn = $('#home-btn');
   function show(next) {
+    stopAllAudio();
     document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('active', s.id === next));
     mode = next;
     homeBtn.classList.toggle('visible', next !== 'home');
@@ -116,7 +163,7 @@
   document.querySelectorAll('.mode-card').forEach((b) =>
     b.addEventListener('click', () => {
       audio();
-      SFX.fanfare();
+      playSfx('fanfare');
       say(b.dataset.mode === 'learn' ? "Let's learn letters and numbers!" : 'Smash time!');
       show(b.dataset.mode);
       if (!isTouch && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
@@ -165,15 +212,15 @@
       pic = n === 0 ? '🫧' : rand(COUNT_EMOJI).repeat(n);
       picEl.classList.toggle('many', n > 3);
       const count = n > 0 ? ' ' + NUMBER_WORDS.slice(1, n + 1).join(', ') + '!' : '';
-      speech = `${word}!${n > 1 && n <= 5 ? count : ''}`;
-      SFX.ding();
+      speech = settings.words ? `${word}!${n > 1 && n <= 5 ? count : ''}` : `${word}!`;
+      playSfx('ding');
     } else if (/[A-Z]/.test(ch)) {
       [word, pic] = LETTERS[ch];
       picEl.classList.remove('many');
-      speech = `${ch}! ${ch} is for ${word}!`;
-      SFX.pop();
+      speech = settings.words ? `${ch}! ${ch} is for ${word}!` : ch;
+      playSfx('pop');
     } else {
-      SFX[rand(SILLY)]();
+      playSfx(rand(SILLY));
       return;
     }
 
@@ -194,9 +241,9 @@
     trail.appendChild(chip);
     while (trail.children.length > 60) trail.firstElementChild.remove();
 
-    const pitch = rnd(1.2, 1.8);
-    say(speech, { pitch, rate: 0.9 });
-    if (Math.random() < 0.3) say(rand(CHEERS), { pitch: 1.7, rate: 1.05, interrupt: false });
+    say(speech, { pitch: rnd(1.05, 1.35), rate: 0.9 });
+    // queued so it plays after the letter, never on top of it
+    if (Math.random() < 0.3) say(rand(CHEERS), { pitch: 1.4, rate: 1, queue: true });
   }
 
   // touch pad for phones/tablets
@@ -267,8 +314,8 @@
 
     if (Math.random() < 0.35) confetti(x, y);
     document.body.style.background = rand(BG);
-    SFX[rand(SILLY)]();
-    if (Math.random() < 0.6) say(name + '!', { pitch: rnd(0.6, 2), rate: rnd(0.8, 1.3) });
+    playSfx(rand(SILLY));
+    if (Math.random() < 0.6) say(name + '!', { pitch: rnd(0.9, 1.4), rate: rnd(0.9, 1.1) });
   }
   function smashRandom(label) {
     const W = window.innerWidth, H = window.innerHeight;
@@ -300,4 +347,52 @@
   document.addEventListener('gesturestart', (e) => e.preventDefault());
   document.addEventListener('dblclick', (e) => e.preventDefault());
   window.addEventListener('beforeunload', (e) => { if (mode !== 'home') { e.preventDefault(); e.returnValue = ''; } });
+
+  // ---------- settings panel ----------
+  const panel = $('#settings');
+  const syncSettingsUI = () => {
+    $('#set-sfx').setAttribute('aria-pressed', settings.sfx);
+    $('#set-voice').setAttribute('aria-pressed', settings.voice);
+    document.querySelectorAll('#set-words .seg-btn').forEach((b) =>
+      b.classList.toggle('on', (b.dataset.words === '1') === settings.words));
+    $('#set-volume').value = Math.round(settings.volume * 100);
+  };
+  $('#settings-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    syncSettingsUI();
+    panel.hidden = false;
+  });
+  const closeSettings = () => { panel.hidden = true; };
+  $('#settings-close').addEventListener('click', closeSettings);
+  panel.addEventListener('pointerdown', (e) => { if (e.target === panel) closeSettings(); });
+
+  $('#set-sfx').addEventListener('click', () => {
+    settings.sfx = !settings.sfx;
+    saveSettings();
+    syncSettingsUI();
+    if (settings.sfx) playSfx('ding');
+    else stopSfx();
+  });
+  $('#set-voice').addEventListener('click', () => {
+    settings.voice = !settings.voice;
+    saveSettings();
+    syncSettingsUI();
+    if (settings.voice) say('Voice on!');
+    else if ('speechSynthesis' in window) speechSynthesis.cancel();
+  });
+  document.querySelectorAll('#set-words .seg-btn').forEach((b) =>
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      settings.words = b.dataset.words === '1';
+      saveSettings();
+      syncSettingsUI();
+      say(settings.words ? 'A is for Apple!' : 'A', { queue: false });
+    })
+  );
+  $('#set-volume').addEventListener('input', (e) => {
+    settings.volume = e.target.value / 100;
+    if (master) master.gain.value = settings.volume;
+    saveSettings();
+  });
+  $('#set-volume').addEventListener('change', () => playSfx('ding'));
 })();

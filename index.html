@@ -31,7 +31,40 @@
       </button>
     </div>
     <p class="hint">Desktop: type on the keyboard · Phone: tap the big buttons<br/>Hold the ⭐ in the corner for 2 seconds to come back here</p>
+    <button id="settings-btn" class="settings-btn" aria-label="Open settings">⚙️</button>
   </section>
+
+  <!-- SETTINGS -->
+  <div id="settings" class="settings" hidden>
+    <div class="settings-card">
+      <h2>Settings</h2>
+
+      <button class="set-row" id="set-sfx" aria-pressed="true">
+        <span class="set-label">🔊 Sound effects</span>
+        <span class="pill"></span>
+      </button>
+
+      <button class="set-row" id="set-voice" aria-pressed="true">
+        <span class="set-label">🗣️ Voice</span>
+        <span class="pill"></span>
+      </button>
+
+      <div class="set-row set-seg" id="set-words">
+        <span class="set-label">💬 Voice says</span>
+        <span class="seg">
+          <button data-words="1" class="seg-btn">A is for 🍎</button>
+          <button data-words="0" class="seg-btn">A only</button>
+        </span>
+      </div>
+
+      <div class="set-row set-vol">
+        <span class="set-label">🔉 Volume</span>
+        <input type="range" id="set-volume" min="0" max="100" value="80" />
+      </div>
+
+      <button class="set-close" id="settings-close">Done</button>
+    </div>
+  </div>
 
   <!-- LEARN -->
   <section id="learn" class="screen">
