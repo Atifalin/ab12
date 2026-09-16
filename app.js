@@ -4,7 +4,7 @@
   // ---------- content ----------
   const LETTERS = {
     A: ['Apple', '🍎'], B: ['Banana', '🍌'], C: ['Cat', '🐱'], D: ['Dog', '🐶'], E: ['Elephant', '🐘'],
-    F: ['Fish', '🐟'], G: ['Grapes', '🍇'], H: ['Horse', '🐴'], I: ['Ice cream', '🍦'], J: ['Juice', '🧃'],
+    F: ['Fish', '🐟'], G: ['Grapes', '🍇'], H: ['Horse', '🐴'], I: ['Ice cream', '🍦'], J: ['Juice', '�'],
     K: ['Kite', '🪁'], L: ['Lion', '🦁'], M: ['Monkey', '🐵'], N: ['Nest', '🪺'], O: ['Orange', '🍊'],
     P: ['Parrot', '🦜'], Q: ['Queen', '👸'], R: ['Rabbit', '🐰'], S: ['Ship', '🚢'], T: ['Tiger', '🐯'],
     U: ['Umbrella', '☂️'], V: ['Violin', '🎻'], W: ['Whale', '🐳'], X: ['Xylophone', '🎼'], Y: ['Yo-yo', '🪀'],
@@ -422,7 +422,7 @@
   function smashAt(x, y, label) {
     $('#smash-idle').classList.add('hidden');
     const [emoji, name] = rand(SMASH);
-    const size = rnd(22, 42);
+    const size = rnd(16, 30);
     const half = (size / 100) * Math.min(window.innerWidth, window.innerHeight) * 0.55;
     x = Math.min(Math.max(x, half), window.innerWidth - half);
     y = Math.min(Math.max(y, half), window.innerHeight - half * 1.4);

@@ -205,7 +205,7 @@ body.touch .stage .word { font-size: 5vmin; }
 .pop {
   position: absolute; transform: translate(-50%, -50%); line-height: 1; pointer-events: none;
   animation: popIn .55s cubic-bezier(.3,1.8,.5,1) both, squish .4s ease-in-out .55s, popOut .6s ease-in 2.4s both;
-  filter: drop-shadow(0 1vmin 1vmin rgba(0,0,0,.25));
+  filter: drop-shadow(0 .4vmin .6vmin rgba(0,0,0,.3));
 }
 @keyframes squish { 0%,100% { scale: 1 1; } 50% { scale: 1.12 .88; } }
 body.shake #smash-layer { animation: shake .18s linear; }
