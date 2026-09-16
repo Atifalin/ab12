@@ -18,7 +18,10 @@
 <body>
   <!-- HOME -->
   <section id="home" class="screen active">
-    <div class="clouds"><span>☁️</span><span>☁️</span><span>☁️</span></div>
+    <div class="clouds">
+      <span>☁️</span><span>☁️</span><span>☁️</span>
+      <span class="deco">🎈</span><span class="deco">⭐</span><span class="deco">🌈</span><span class="deco">🎈</span><span class="deco">✨</span>
+    </div>
     <h1 class="title"><span>A</span><span>B</span><span>1</span><span>2</span></h1>
     <div class="menu">
       <button class="mode-card learn" data-mode="learn">
@@ -60,6 +63,16 @@
       <div class="set-row set-vol">
         <span class="set-label">🔉 Volume</span>
         <input type="range" id="set-volume" min="0" max="100" value="80" />
+      </div>
+
+      <div class="set-row set-seg" id="set-theme">
+        <span class="set-label">🎨 Theme</span>
+        <span class="seg">
+          <button data-theme="auto" class="seg-btn">🌈 Mix</button>
+          <button data-theme="candy" class="seg-btn">🍬</button>
+          <button data-theme="ocean" class="seg-btn">🌊</button>
+          <button data-theme="forest" class="seg-btn">🌿</button>
+        </span>
       </div>
 
       <button class="set-close" id="settings-close">Done</button>

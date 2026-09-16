@@ -4,9 +4,9 @@
   // ---------- content ----------
   const LETTERS = {
     A: ['Apple', '🍎'], B: ['Banana', '🍌'], C: ['Cat', '🐱'], D: ['Dog', '🐶'], E: ['Elephant', '🐘'],
-    F: ['Fish', '🐟'], G: ['Grapes', '🍇'], H: ['Horse', '🐴'], I: ['Ice cream', '🍦'], J: ['Juice', '�'],
+    F: ['Fish', '🐟'], G: ['Grapes', '🍇'], H: ['Horse', '🐴'], I: ['Ice cream', '🍦'], J: ['Juice', '🧃'],
     K: ['Kite', '🪁'], L: ['Lion', '🦁'], M: ['Monkey', '🐵'], N: ['Nest', '🪺'], O: ['Orange', '🍊'],
-    P: ['Parrot', '🦜'], Q: ['Queen', '👸'], R: ['Rabbit', '�'], S: ['Ship', '🚢'], T: ['Tiger', '�'],
+    P: ['Parrot', '🦜'], Q: ['Queen', '👸'], R: ['Rabbit', '🐰'], S: ['Ship', '🚢'], T: ['Tiger', '🐯'],
     U: ['Umbrella', '☂️'], V: ['Violin', '🎻'], W: ['Whale', '🐳'], X: ['Xylophone', '🎼'], Y: ['Yo-yo', '🪀'],
     Z: ['Zebra', '🦓'],
   };
@@ -47,9 +47,22 @@
   if (isTouch) document.body.classList.add('touch');
 
   // ---------- settings ----------
-  const settings = { sfx: true, voice: true, words: true, volume: 0.8 };
+  const settings = { sfx: true, voice: true, words: true, volume: 0.8, theme: 'auto' };
   try { Object.assign(settings, JSON.parse(localStorage.getItem('ab12-settings') || '{}')); } catch (e) {}
   const saveSettings = () => localStorage.setItem('ab12-settings', JSON.stringify(settings));
+
+  const THEMES = {
+    auto: BG,
+    candy: ['#ff5c8a', '#ff77e9', '#f368e0', '#ff6b6b', '#ffb020', '#e5397a'],
+    ocean: ['#2fb8ff', '#00c9a7', '#118ab2', '#5c7cfa', '#06d6a0', '#5468ff'],
+    forest: ['#4cd964', '#20c997', '#3ddc84', '#a0d911', '#00c2a8', '#06d6a0'],
+  };
+  const pickBg = () => rand(THEMES[settings.theme] || BG);
+  const applyTheme = () => {
+    ['auto', 'candy', 'ocean', 'forest'].forEach((t) => document.body.classList.remove('theme-' + t));
+    document.body.classList.add('theme-' + settings.theme);
+  };
+  applyTheme();
 
   // ---------- audio ----------
   // All synth tones run through one lowpass-filtered master gain so they stay
@@ -117,8 +130,19 @@
     quack: () => { tone({ type: 'triangle', f0: 480, f1: 290, dur: 0.15, gain: 0.11 }); tone({ type: 'triangle', f0: 460, f1: 270, dur: 0.15, gain: 0.11, delay: 0.18 }); },
     ding: () => { tone({ type: 'sine', f0: 880, f1: 880, dur: 0.55, gain: 0.18 }); tone({ type: 'sine', f0: 1320, f1: 1320, dur: 0.45, gain: 0.1, delay: 0.05 }); },
     fanfare: () => { [523, 659, 784, 1047].forEach((f, i) => tone({ type: 'triangle', f0: f, f1: f, dur: 0.22, gain: 0.18, delay: i * 0.13 })); },
+    // gentle pentatonic note — climbs the scale on consecutive letter presses
+    scaleNote: () => {
+      const i = noteIdx % SCALE.length;
+      noteIdx++;
+      clearTimeout(noteTimer);
+      noteTimer = setTimeout(() => (noteIdx = 0), 2500);
+      tone({ type: 'triangle', f0: SCALE[i], f1: SCALE[i], dur: 0.5, gain: 0.15 });
+      tone({ type: 'sine', f0: SCALE[i] * 2, f1: SCALE[i] * 2, dur: 0.35, gain: 0.06 });
+    },
   };
   const SILLY = ['boing', 'slideUp', 'honk', 'laser', 'bubbles', 'quack', 'pop', 'ding'];
+  const SCALE = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.7, 1318.5];
+  let noteIdx = 0, noteTimer = null;
 
   // ---------- speech ----------
   let voice = null;
@@ -199,13 +223,14 @@
     document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('active', s.id === next));
     mode = next;
     homeBtn.classList.toggle('visible', next !== 'home');
-    document.body.style.background = next === 'home' ? '' : rand(BG);
+    document.body.style.background = next === 'home' ? '' : pickBg();
     if (next === 'smash') $('#smash-idle').classList.remove('hidden');
     if (next === 'learn') {
       $('#learn-idle').classList.remove('hidden');
       $('#hero').classList.remove('show');
       $('#trail').innerHTML = '';
       lastGlyph = '';
+      lastSpeak = null;
     }
   }
   document.querySelectorAll('.mode-card').forEach((b) =>
@@ -241,6 +266,45 @@
   const wordEl = $('#word');
   let lastGlyph = '';
   let colorIdx = 0;
+  let lastSpeak = null;
+  let idleTimer = null;
+
+  function sparkleBurst(cx, cy, n = 7) {
+    for (let i = 0; i < n; i++) {
+      const s = document.createElement('div');
+      s.className = 'spark';
+      s.textContent = rand(['✨', '⭐', '💫']);
+      s.style.left = cx + 'px';
+      s.style.top = cy + 'px';
+      s.style.fontSize = rnd(2.5, 5) + 'vmin';
+      s.style.setProperty('--sx', rnd(-18, 18) + 'vmin');
+      s.style.setProperty('--sy', rnd(-16, 4) + 'vmin');
+      s.style.setProperty('--sr', rnd(-180, 180) + 'deg');
+      document.body.appendChild(s);
+      setTimeout(() => s.remove(), 950);
+    }
+  }
+  // subtle invitation to press something after a few quiet seconds
+  function pokeIdle() {
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      if (mode === 'learn' && hero.classList.contains('show')) {
+        hero.classList.remove('wiggle');
+        void hero.offsetWidth;
+        hero.classList.add('wiggle');
+      }
+    }, 6000);
+  }
+  // tap the hero to hear it again
+  hero.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    if (!lastSpeak) return;
+    hero.classList.remove('wiggle');
+    void hero.offsetWidth;
+    hero.classList.add('wiggle');
+    playSfx('pop');
+    say(lastSpeak.text, { clip: lastSpeak.clip });
+  });
 
   function learnInput(ch) {
     ch = ch.toUpperCase();
@@ -248,7 +312,7 @@
     let word, pic;
     const speakParts = [];
     const color = COLORS[colorIdx++ % COLORS.length];
-    document.body.style.background = rand(BG.filter((c) => c !== color));
+    document.body.style.background = pickBg();
 
     if (/[0-9]/.test(ch)) {
       let n = +ch;
@@ -271,13 +335,14 @@
       speakParts.push(settings.words
         ? { text: `${PHON[ch]}! ${PHON[ch]} is for ${word}!`, clip: `phrase_${ch}` }
         : { text: PHON[ch], clip: `letter_${ch}` });
-      playSfx('pop');
+      playSfx('scaleNote');
     } else {
       playSfx(rand(SILLY));
       return;
     }
 
     lastGlyph = display;
+    lastSpeak = speakParts[0];
     $('#learn-idle').classList.add('hidden');
     hero.classList.remove('show');
     void hero.offsetWidth; // restart animations
@@ -286,11 +351,23 @@
     glyphEl.style.color = '#fff';
     picEl.textContent = pic;
     wordEl.textContent = word;
+    const hr = hero.getBoundingClientRect();
+    sparkleBurst(hr.left + hr.width / 2, hr.top + hr.height / 2);
+    pokeIdle();
 
     const chip = document.createElement('span');
     chip.className = 'chip';
     chip.style.setProperty('--chip', color);
     chip.textContent = display;
+    const chipSpeak = speakParts[0];
+    chip.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      chip.style.transform = 'scale(1.3) rotate(8deg)';
+      setTimeout(() => (chip.style.transform = ''), 200);
+      playSfx('pop');
+      say(chipSpeak.text, { clip: chipSpeak.clip });
+    });
     trail.appendChild(chip);
     while (trail.children.length > 60) trail.firstElementChild.remove();
 
@@ -328,6 +405,7 @@
 
   // ---------- smash mode ----------
   const layer = $('#smash-layer');
+  let smashStreak = 0, streakTimer = null;
   function confetti(x, y) {
     for (let i = 0; i < 14; i++) {
       const c = document.createElement('div');
@@ -368,9 +446,25 @@
     setTimeout(() => ring.remove(), 800);
 
     if (Math.random() < 0.35) confetti(x, y);
-    document.body.style.background = rand(BG);
-    playSfx(rand(SILLY));
-    if (Math.random() < 0.6) say(name + '!', { pitch: rnd(0.9, 1.4), rate: rnd(0.9, 1.1), clip: `smash_${slug(name)}` });
+    document.body.style.background = pickBg();
+    document.body.classList.add('shake');
+    setTimeout(() => document.body.classList.remove('shake'), 200);
+
+    // streak celebration — every 8th rapid smash gets a party
+    smashStreak++;
+    clearTimeout(streakTimer);
+    streakTimer = setTimeout(() => (smashStreak = 0), 1500);
+    if (smashStreak % 8 === 0) {
+      confetti(x, y);
+      confetti(x - 60, y - 40);
+      confetti(x + 60, y - 40);
+      playSfx('fanfare');
+      const ci = Math.floor(Math.random() * CHEERS.length);
+      say(CHEERS[ci], { pitch: 1.4, rate: 1, queue: true, clip: `cheer_${ci}` });
+    } else {
+      playSfx(rand(SILLY));
+      if (Math.random() < 0.6) say(name + '!', { pitch: rnd(0.9, 1.4), rate: rnd(0.9, 1.1), clip: `smash_${slug(name)}` });
+    }
   }
   function smashRandom(label) {
     const W = window.innerWidth, H = window.innerHeight;
@@ -410,6 +504,8 @@
     $('#set-voice').setAttribute('aria-pressed', settings.voice);
     document.querySelectorAll('#set-words .seg-btn').forEach((b) =>
       b.classList.toggle('on', (b.dataset.words === '1') === settings.words));
+    document.querySelectorAll('#set-theme .seg-btn').forEach((b) =>
+      b.classList.toggle('on', b.dataset.theme === settings.theme));
     $('#set-volume').value = Math.round(settings.volume * 100);
   };
   $('#settings-btn').addEventListener('click', (e) => {
@@ -443,6 +539,16 @@
       syncSettingsUI();
       say(settings.words ? 'ay! ay is for Apple!' : 'ay',
         { clip: settings.words ? 'phrase_A' : 'letter_A' });
+    })
+  );
+  document.querySelectorAll('#set-theme .seg-btn').forEach((b) =>
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      settings.theme = b.dataset.theme;
+      saveSettings();
+      applyTheme();
+      syncSettingsUI();
+      playSfx('pop');
     })
   );
   $('#set-volume').addEventListener('input', (e) => {
