@@ -15,6 +15,17 @@ A toddler keyboard toy: zero-dependency static site (HTML/CSS/JS, emoji art, Web
 python3 -m http.server 8080   # then open http://localhost:8080
 ```
 
+## Voice clips
+
+Speech uses pre-recorded `.m4a` clips in `audio/` (147 clips, generated with
+macOS `say`, voice **Tara** — Indian English). If a clip is missing the app
+falls back to browser TTS.
+
+- **Regenerate:** `python3 tools/gen_audio.py [VoiceName]` — any voice from `say -v '?'`
+- **Your own voice:** `tools/record.sh` (needs `brew install ffmpeg` or `sox`), or record
+  Voice Memos → export `.m4a` → rename per `tools/clips.txt` → drop into `audio/`
+- **Settings** (⚙️ on the home screen): sound effects, voice, "A is for 🍎" vs "A only", volume
+
 ## Deployment (CI/CD)
 
 Push-to-deploy, same pipeline as EzyImposter:

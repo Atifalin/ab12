@@ -1,0 +1,147 @@
+letter_A	ay
+phrase_A	ay! ay is for Apple!
+letter_B	bee
+phrase_B	bee! bee is for Banana!
+letter_C	see
+phrase_C	see! see is for Cat!
+letter_D	dee
+phrase_D	dee! dee is for Dog!
+letter_E	ee
+phrase_E	ee! ee is for Elephant!
+letter_F	eff
+phrase_F	eff! eff is for Fish!
+letter_G	jee
+phrase_G	jee! jee is for Grapes!
+letter_H	aitch
+phrase_H	aitch! aitch is for Horse!
+letter_I	eye
+phrase_I	eye! eye is for Ice cream!
+letter_J	jay
+phrase_J	jay! jay is for Juice!
+letter_K	kay
+phrase_K	kay! kay is for Kite!
+letter_L	ell
+phrase_L	ell! ell is for Lion!
+letter_M	em
+phrase_M	em! em is for Monkey!
+letter_N	en
+phrase_N	en! en is for Nest!
+letter_O	oh
+phrase_O	oh! oh is for Orange!
+letter_P	pee
+phrase_P	pee! pee is for Parrot!
+letter_Q	cue
+phrase_Q	cue! cue is for Queen!
+letter_R	ar
+phrase_R	ar! ar is for Rabbit!
+letter_S	ess
+phrase_S	ess! ess is for Ship!
+letter_T	tee
+phrase_T	tee! tee is for Tiger!
+letter_U	you
+phrase_U	you! you is for Umbrella!
+letter_V	vee
+phrase_V	vee! vee is for Violin!
+letter_W	double-you
+phrase_W	double-you! double-you is for Whale!
+letter_X	ex
+phrase_X	ex! ex is for Xylophone!
+letter_Y	why
+phrase_Y	why! why is for Yo-yo!
+letter_Z	zee
+phrase_Z	zee! zee is for Zebra!
+num_0	Zero!
+num_1	One!
+num_2	Two!
+num_3	Three!
+num_4	Four!
+num_5	Five!
+num_6	Six!
+num_7	Seven!
+num_8	Eight!
+num_9	Nine!
+num_10	Ten!
+count_2	One, Two!
+count_3	One, Two, Three!
+count_4	One, Two, Three, Four!
+count_5	One, Two, Three, Four, Five!
+cheer_0	Yay!
+cheer_1	Wow!
+cheer_2	Great job!
+cheer_3	Woohoo!
+cheer_4	Awesome!
+cheer_5	Hooray!
+cheer_6	Super!
+cheer_7	You did it!
+smash_apple	Apple!
+smash_banana	Banana!
+smash_watermelon	Watermelon!
+smash_strawberry	Strawberry!
+smash_carrot	Carrot!
+smash_broccoli	Broccoli!
+smash_corn	Corn!
+smash_grapes	Grapes!
+smash_pineapple	Pineapple!
+smash_avocado	Avocado!
+smash_lemon	Lemon!
+smash_cherries	Cherries!
+smash_dog	Dog!
+smash_cat	Cat!
+smash_mouse	Mouse!
+smash_bunny	Bunny!
+smash_fox	Fox!
+smash_bear	Bear!
+smash_panda	Panda!
+smash_koala	Koala!
+smash_tiger	Tiger!
+smash_lion	Lion!
+smash_cow	Cow!
+smash_pig	Pig!
+smash_frog	Frog!
+smash_monkey	Monkey!
+smash_chicken	Chicken!
+smash_penguin	Penguin!
+smash_duck	Duck!
+smash_owl	Owl!
+smash_bee	Bee!
+smash_butterfly	Butterfly!
+smash_turtle	Turtle!
+smash_octopus	Octopus!
+smash_crab	Crab!
+smash_whale	Whale!
+smash_giraffe	Giraffe!
+smash_zebra	Zebra!
+smash_unicorn	Unicorn!
+smash_elephant	Elephant!
+smash_dinosaur	Dinosaur!
+smash_car	Car!
+smash_taxi	Taxi!
+smash_bus	Bus!
+smash_ambulance	Ambulance!
+smash_fire_truck	Fire truck!
+smash_truck	Truck!
+smash_tractor	Tractor!
+smash_race_car	Race car!
+smash_train	Train!
+smash_airplane	Airplane!
+smash_helicopter	Helicopter!
+smash_rocket	Rocket!
+smash_scooter	Scooter!
+smash_bicycle	Bicycle!
+smash_boat	Boat!
+smash_police_car	Police car!
+smash_silly_face	Silly face!
+smash_wink	Wink!
+smash_clown	Clown!
+smash_ghost	Ghost!
+smash_robot	Robot!
+smash_monster	Monster!
+smash_balloon	Balloon!
+smash_rainbow	Rainbow!
+smash_star	Star!
+smash_party	Party!
+smash_teddy_bear	Teddy bear!
+smash_dino	Dino!
+intro_learn	Let's learn letters and numbers!
+intro_smash	Smash time!
+voice_on	Voice on!
