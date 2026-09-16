@@ -4,9 +4,9 @@
   // ---------- content ----------
   const LETTERS = {
     A: ['Apple', '🍎'], B: ['Banana', '🍌'], C: ['Cat', '🐱'], D: ['Dog', '🐶'], E: ['Elephant', '🐘'],
-    F: ['Fish', '🐟'], G: ['Grapes', '🍇'], H: ['Horse', '🐴'], I: ['Ice cream', '🍦'], J: ['Jellyfish', '🪼'],
+    F: ['Fish', '🐟'], G: ['Grapes', '🍇'], H: ['Horse', '🐴'], I: ['Ice cream', '🍦'], J: ['Juice', '�'],
     K: ['Kite', '🪁'], L: ['Lion', '🦁'], M: ['Monkey', '🐵'], N: ['Nest', '🪺'], O: ['Orange', '🍊'],
-    P: ['Pig', '🐷'], Q: ['Queen', '👸'], R: ['Rocket', '🚀'], S: ['Sun', '☀️'], T: ['Truck', '🚚'],
+    P: ['Parrot', '🦜'], Q: ['Queen', '👸'], R: ['Rabbit', '�'], S: ['Ship', '🚢'], T: ['Tiger', '�'],
     U: ['Umbrella', '☂️'], V: ['Violin', '🎻'], W: ['Whale', '🐳'], X: ['Xylophone', '🎼'], Y: ['Yo-yo', '🪀'],
     Z: ['Zebra', '🦓'],
   };
