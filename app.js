@@ -167,18 +167,19 @@
   // time: new speech stops the old; queue:true plays after, never on top.
   let clipEl = null;
   let ttsActive = false;
+  let voiceToken = 0; // bumped on every new voice action — stale callbacks are ignored
   const voiceQueue = [];
   const voiceBusy = () => ttsActive || !!clipEl;
 
-  function speakTts(text, pitch, rate) {
-    if (!('speechSynthesis' in window)) { flushQueue(); return; }
+  function speakTts(text, pitch, rate, my) {
+    if (!('speechSynthesis' in window)) { if (voiceToken === my) flushQueue(); return; }
     const u = new SpeechSynthesisUtterance(text);
     if (voice) u.voice = voice;
     u.pitch = pitch;
     u.rate = rate;
     u.volume = settings.volume;
     ttsActive = true;
-    u.onend = u.onerror = () => { ttsActive = false; flushQueue(); };
+    u.onend = u.onerror = () => { if (voiceToken === my) { ttsActive = false; flushQueue(); } };
     speechSynthesis.speak(u);
   }
   function flushQueue() {
@@ -186,16 +187,18 @@
     if (next) startVoice(next);
   }
   function startVoice({ text, clip, pitch, rate }) {
+    const my = ++voiceToken;
     if (clip) {
       const a = new Audio(`audio/${clip}.m4a`);
       a.volume = settings.volume;
       clipEl = a;
-      a.onended = () => { clipEl = null; flushQueue(); };
-      const fail = () => { clipEl = null; speakTts(text, pitch, rate); };
+      a.onended = () => { if (voiceToken === my) { clipEl = null; flushQueue(); } };
+      const fail = () => { if (voiceToken === my) { clipEl = null; speakTts(text, pitch, rate, my); } };
       a.onerror = fail;
-      a.play().catch(fail);
+      // if a newer sound superseded us while play() was still pending, kill it
+      a.play().then(() => { if (voiceToken !== my) a.pause(); }).catch(fail);
     } else {
-      speakTts(text, pitch, rate);
+      speakTts(text, pitch, rate, my);
     }
   }
   function say(text, { pitch = 1.15, rate = 0.92, queue = false, clip = null } = {}) {
@@ -205,8 +208,14 @@
     startVoice({ text, clip, pitch, rate });
   }
   function stopVoice() {
+    voiceToken++;
     voiceQueue.length = 0;
-    if (clipEl) { clipEl.onended = clipEl.onerror = null; clipEl.pause(); clipEl = null; }
+    if (clipEl) {
+      clipEl.onended = clipEl.onerror = null;
+      clipEl.pause();
+      try { clipEl.removeAttribute('src'); clipEl.load(); } catch (e) {}
+      clipEl = null;
+    }
     ttsActive = false;
     if ('speechSynthesis' in window) speechSynthesis.cancel();
   }
@@ -218,11 +227,13 @@
   // ---------- screens ----------
   let mode = 'home';
   const homeBtn = $('#home-btn');
+  const undoBtn = $('#undo-btn');
   function show(next) {
     stopAllAudio();
     document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('active', s.id === next));
     mode = next;
     homeBtn.classList.toggle('visible', next !== 'home');
+    undoBtn.classList.toggle('visible', next === 'learn');
     document.body.style.background = next === 'home' ? '' : pickBg();
     if (next === 'smash') $('#smash-idle').classList.remove('hidden');
     if (next === 'learn') {
@@ -257,6 +268,7 @@
   homeBtn.addEventListener('pointerleave', cancelHold);
   homeBtn.addEventListener('pointercancel', cancelHold);
   homeBtn.addEventListener('contextmenu', (e) => e.preventDefault());
+  undoBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); audio(); undoLast(); });
 
   // ---------- learn mode ----------
   const trail = $('#trail');
@@ -359,6 +371,8 @@
     chip.className = 'chip';
     chip.style.setProperty('--chip', color);
     chip.textContent = display;
+    chip._data = { display, word, pic, many: picEl.classList.contains('many'),
+      text: speakParts[0].text, clip: speakParts[0].clip };
     const chipSpeak = speakParts[0];
     chip.addEventListener('pointerdown', (e) => {
       e.stopPropagation();
@@ -376,6 +390,33 @@
     // queued so it plays after the letter, never on top of it
     const ci = Math.floor(Math.random() * CHEERS.length);
     if (Math.random() < 0.3) say(CHEERS[ci], { pitch: 1.4, rate: 1, queue: true, clip: `cheer_${ci}` });
+  }
+
+  // ⌫ undo — drop the last trail chip and revert the hero to the previous entry
+  function undoLast() {
+    stopVoice();
+    const last = trail.lastElementChild;
+    if (!last) { playSfx('boing'); return; }
+    last.remove();
+    playSfx('pop');
+    const prev = trail.lastElementChild;
+    if (prev && prev._data) {
+      const d = prev._data;
+      hero.classList.remove('show');
+      void hero.offsetWidth;
+      hero.classList.add('show');
+      glyphEl.textContent = d.display;
+      picEl.textContent = d.pic;
+      wordEl.textContent = d.word;
+      picEl.classList.toggle('many', d.many);
+      lastGlyph = d.display;
+      lastSpeak = { text: d.text, clip: d.clip };
+    } else {
+      hero.classList.remove('show');
+      $('#learn-idle').classList.remove('hidden');
+      lastGlyph = '';
+      lastSpeak = null;
+    }
   }
 
   // touch pad for phones/tablets
@@ -400,6 +441,13 @@
       });
       pad.appendChild(row);
     });
+    const bk = document.createElement('button');
+    bk.className = 'key wide';
+    bk.textContent = '⌫';
+    bk.setAttribute('aria-label', 'Backspace');
+    bk.style.setProperty('--k', '#8892b0');
+    bk.addEventListener('pointerdown', (e) => { e.preventDefault(); audio(); undoLast(); });
+    pad.lastElementChild.appendChild(bk);
   }
   buildPad();
 
@@ -485,6 +533,7 @@
     if (e.repeat) return;
     audio();
     if (mode === 'learn') {
+      if (e.key === 'Backspace' || e.key === 'Delete') { undoLast(); return; }
       learnInput(e.key.length === 1 ? e.key : ' ');
     } else if (mode === 'smash') {
       const label = /^[a-z0-9]$/i.test(e.key) ? e.key.toUpperCase() : '';
