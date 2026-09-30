@@ -240,7 +240,10 @@ body.touch .stage .word { font-size: 5vmin; }
   .find-prompt .find-big { font-size: 10vw; }
   .find-stars { font-size: 6vw; min-height: 7vw; }
   .find-target { font-size: 5.5vw; }
-  .slot { -webkit-text-stroke-width: .55vw; }
+  .slot { -webkit-text-stroke-width: max(2px, .55vw); }
+  body.touch #spell-pad { margin-top: auto; align-self: stretch; width: 100%; }
+  body.touch .spell-top { margin-top: 3vw; }
+  body.touch .trail { padding: 2vmin 15vw 0; max-height: calc(2vmin + 20vw); }
   .slot.cur::after { border-bottom-width: .5vw; }
   .spell-track { width: 42vw; height: 34vw; border-radius: 6vw; }
   .spell-track .st-big { font-size: 8vw; }
@@ -365,7 +368,7 @@ body.shake #smash-layer { animation: shake .18s linear; }
 }
 .slot {
   display: inline-block; font-weight: 700; position: relative;
-  color: transparent; -webkit-text-stroke: .45vmin rgba(255,255,255,.9);
+  color: rgba(255,255,255,.22); -webkit-text-stroke: max(2px, .45vmin) #fff;
 }
 .slot.gap { width: .5em; -webkit-text-stroke: 0; }
 .slot.sep { color: rgba(255,255,255,.7); -webkit-text-stroke: 0; }
