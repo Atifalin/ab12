@@ -142,6 +142,168 @@ smash_star	Star!
 smash_party	Party!
 smash_teddy_bear	Teddy bear!
 smash_dino	Dino!
+word_cat	Cat! You spelled Cat!
+word_dog	Dog! You spelled Dog!
+word_cow	Cow! You spelled Cow!
+word_pig	Pig! You spelled Pig!
+word_hen	Hen! You spelled Hen!
+word_fox	Fox! You spelled Fox!
+word_bee	Bee! You spelled Bee!
+word_owl	Owl! You spelled Owl!
+word_fish	Fish! You spelled Fish!
+word_duck	Duck! You spelled Duck!
+word_frog	Frog! You spelled Frog!
+word_bus	Bus! You spelled Bus!
+word_car	Car! You spelled Car!
+word_sun	Sun! You spelled Sun!
+word_moon	Moon! You spelled Moon!
+word_star	Star! You spelled Star!
+word_ball	Ball! You spelled Ball!
+word_book	Book! You spelled Book!
+word_cake	Cake! You spelled Cake!
+word_milk	Milk! You spelled Milk!
+word_egg	Egg! You spelled Egg!
+word_apple	Apple! You spelled Apple!
+word_hat	Hat! You spelled Hat!
+word_bed	Bed! You spelled Bed!
+word_box	Box! You spelled Box!
+word_toy	Toy! You spelled Toy!
+word_red	Red! You spelled Red!
+word_blue	Blue! You spelled Blue!
+word_mom	Mom! You spelled Mom!
+word_mama	Mama! You spelled Mama!
+word_dad	Dad! You spelled Dad!
+word_dada	Dada! You spelled Dada!
+word_baby	Baby! You spelled Baby!
+word_love	Love! You spelled Love!
+word_zoo	Zoo! You spelled Zoo!
+word_yes	Yes! You spelled Yes!
+word_ezdan	Ezdan! You spelled Ezdan! That's you!
+word_zohaan	Zohaan! You spelled Zohaan!
+word_ahad	Ahad! You spelled Ahad!
+word_ayat	Ayat! You spelled Ayat!
+word_ayzal	Ayzal! You spelled Ayzal!
+word_ali	Ali! You spelled Ali!
+word_atif	Atif! You spelled Atif!
+word_salma	Salma! You spelled Salma!
+word_saqib	Saqib! You spelled Saqib!
+word_heena	Heena! You spelled Heena!
+word_aqib	Aqib! You spelled Aqib!
+word_wasif	Wasif! You spelled Wasif!
+word_tahreen	Tahreen! You spelled Tahreen!
+word_arif	Arif! You spelled Arif!
+word_noor_jahan	Noor Jahan! You spelled Noor Jahan!
+find_A	Find ay!
+find_B	Find bee!
+find_C	Find see!
+find_D	Find dee!
+find_E	Find ee!
+find_F	Find eff!
+find_G	Find jee!
+find_H	Find aitch!
+find_I	Find eye!
+find_J	Find jay!
+find_K	Find kay!
+find_L	Find ell!
+find_M	Find em!
+find_N	Find en!
+find_O	Find oh!
+find_P	Find pee!
+find_Q	Find cue!
+find_R	Find ar!
+find_S	Find ess!
+find_T	Find tee!
+find_U	Find you!
+find_V	Find vee!
+find_W	Find double-you!
+find_X	Find ex!
+find_Y	Find why!
+find_Z	Find zee!
+find_0	Find Zero!
+find_1	Find One!
+find_2	Find Two!
+find_3	Find Three!
+find_4	Find Four!
+find_5	Find Five!
+find_6	Find Six!
+find_7	Find Seven!
+find_8	Find Eight!
+find_9	Find Nine!
+sword_apple	Let's spell Apple!
+sdone_apple	ay, pee, pee, ell, ee. Apple!
+sword_banana	Let's spell Banana!
+sdone_banana	bee, ay, en, ay, en, ay. Banana!
+sword_cat	Let's spell Cat!
+sdone_cat	see, ay, tee. Cat!
+sword_dog	Let's spell Dog!
+sdone_dog	dee, oh, jee. Dog!
+sword_elephant	Let's spell Elephant!
+sdone_elephant	ee, ell, ee, pee, aitch, ay, en, tee. Elephant!
+sword_fish	Let's spell Fish!
+sdone_fish	eff, eye, ess, aitch. Fish!
+sword_grapes	Let's spell Grapes!
+sdone_grapes	jee, ar, ay, pee, ee, ess. Grapes!
+sword_horse	Let's spell Horse!
+sdone_horse	aitch, oh, ar, ess, ee. Horse!
+sword_ice_cream	Let's spell Ice cream!
+sdone_ice_cream	eye, see, ee, see, ar, ee, ay, em. Ice cream!
+sword_juice	Let's spell Juice!
+sdone_juice	jay, you, eye, see, ee. Juice!
+sword_kite	Let's spell Kite!
+sdone_kite	kay, eye, tee, ee. Kite!
+sword_lion	Let's spell Lion!
+sdone_lion	ell, eye, oh, en. Lion!
+sword_monkey	Let's spell Monkey!
+sdone_monkey	em, oh, en, kay, ee, why. Monkey!
+sword_nest	Let's spell Nest!
+sdone_nest	en, ee, ess, tee. Nest!
+sword_orange	Let's spell Orange!
+sdone_orange	oh, ar, ay, en, jee, ee. Orange!
+sword_parrot	Let's spell Parrot!
+sdone_parrot	pee, ay, ar, ar, oh, tee. Parrot!
+sword_queen	Let's spell Queen!
+sdone_queen	cue, you, ee, ee, en. Queen!
+sword_rabbit	Let's spell Rabbit!
+sdone_rabbit	ar, ay, bee, bee, eye, tee. Rabbit!
+sword_ship	Let's spell Ship!
+sdone_ship	ess, aitch, eye, pee. Ship!
+sword_tiger	Let's spell Tiger!
+sdone_tiger	tee, eye, jee, ee, ar. Tiger!
+sword_umbrella	Let's spell Umbrella!
+sdone_umbrella	you, em, bee, ar, ee, ell, ell, ay. Umbrella!
+sword_violin	Let's spell Violin!
+sdone_violin	vee, eye, oh, ell, eye, en. Violin!
+sword_whale	Let's spell Whale!
+sdone_whale	double-you, aitch, ay, ell, ee. Whale!
+sword_xylophone	Let's spell Xylophone!
+sdone_xylophone	ex, why, ell, oh, pee, aitch, oh, en, ee. Xylophone!
+sword_yo_yo	Let's spell Yo-yo!
+sdone_yo_yo	why, oh, why, oh. Yo-yo!
+sword_zebra	Let's spell Zebra!
+sdone_zebra	zee, ee, bee, ar, ay. Zebra!
+sword_one	Let's spell One!
+sdone_one	oh, en, ee. One!
+sword_two	Let's spell Two!
+sdone_two	tee, double-you, oh. Two!
+sword_three	Let's spell Three!
+sdone_three	tee, aitch, ar, ee, ee. Three!
+sword_four	Let's spell Four!
+sdone_four	eff, oh, you, ar. Four!
+sword_five	Let's spell Five!
+sdone_five	eff, eye, vee, ee. Five!
+sword_six	Let's spell Six!
+sdone_six	ess, eye, ex. Six!
+sword_seven	Let's spell Seven!
+sdone_seven	ess, ee, vee, ee, en. Seven!
+sword_eight	Let's spell Eight!
+sdone_eight	ee, eye, jee, aitch, tee. Eight!
+sword_nine	Let's spell Nine!
+sdone_nine	en, eye, en, ee. Nine!
+sword_ten	Let's spell Ten!
+sdone_ten	tee, ee, en. Ten!
 intro_learn	Let's learn letters and numbers!
 intro_smash	Smash time!
+find_intro	Let's play find it!
+find_ten	You found ten! Amazing!
+try_again	Try again!
 voice_on	Voice on!

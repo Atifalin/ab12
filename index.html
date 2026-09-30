@@ -8,12 +8,12 @@
   <meta name="apple-mobile-web-app-title" content="AB12" />
   <meta name="theme-color" content="#ff5c8a" />
   <title>AB12</title>
-  <link rel="manifest" href="manifest.webmanifest?v=5" />
+  <link rel="manifest" href="manifest.webmanifest?v=6" />
   <link rel="apple-touch-icon" href="icon.svg" />
   <link rel="icon" href="icon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=5" />
+  <link rel="stylesheet" href="style.css?v=6" />
 </head>
 <body>
   <!-- HOME -->
@@ -32,8 +32,17 @@
         <div class="big">💥</div>
         <div class="label">Smash!</div>
       </button>
+      <button class="mode-card find" data-mode="find">
+        <div class="big">🔍</div>
+        <div class="label">Find it!</div>
+      </button>
+      <button class="mode-card spell" data-mode="spell">
+        <div class="big">✏️</div>
+        <div class="label">Spell it!</div>
+      </button>
     </div>
     <p class="hint">Desktop: type on the keyboard · Phone: tap the big buttons<br/>Hold the ⭐ in the corner for 2 seconds to come back here</p>
+    <p class="made-by">Made for Ezdan with love from Daddy Atif Ali ❤️</p>
     <button id="settings-btn" class="settings-btn" aria-label="Open settings">⚙️</button>
   </section>
 
@@ -83,6 +92,7 @@
   <section id="learn" class="screen">
     <div class="trail" id="trail"></div>
     <div class="stage" id="learn-stage">
+      <div id="word-banner" class="word-banner"><span class="wb-emoji"></span><span class="wb-text"></span></div>
       <div class="hero" id="hero">
         <div class="glyph" id="glyph">A</div>
         <div class="pic" id="pic">🍎</div>
@@ -100,9 +110,43 @@
     <div id="smash-layer"></div>
   </section>
 
+  <!-- FIND IT! -->
+  <section id="find" class="screen">
+    <div class="find-stars" id="find-stars"></div>
+    <button class="find-prompt" id="find-prompt" aria-label="Hear it again">
+      <span class="find-big">🔊</span><span class="find-target" id="find-target"></span>
+    </button>
+    <div class="find-bubbles" id="find-bubbles"></div>
+  </section>
+
+  <!-- SPELL IT! -->
+  <section id="spell" class="screen">
+    <div class="spell-picker" id="spell-picker">
+      <button class="spell-track" data-track="az">
+        <span class="st-big">🔤 A to Z</span>
+        <span class="st-prog" id="spell-prog-az"></span>
+      </button>
+      <button class="spell-track" data-track="num">
+        <span class="st-big">🔢 1 to 10</span>
+        <span class="st-prog" id="spell-prog-num"></span>
+      </button>
+    </div>
+    <div class="spell-game" id="spell-game" hidden>
+      <div class="spell-top">
+        <button class="spell-nav" id="spell-prev" aria-label="Previous word">◀</button>
+        <button class="spell-nav" id="spell-tracks" aria-label="Pick a track">☰</button>
+        <button class="spell-nav" id="spell-next" aria-label="Next word">▶</button>
+        <div class="spell-count" id="spell-count"></div>
+      </div>
+      <button class="spell-pic" id="spell-pic" aria-label="Hear the word"></button>
+      <div class="spell-word" id="spell-word"></div>
+      <div class="pad" id="spell-pad"></div>
+    </div>
+  </section>
+
   <button id="home-btn" class="home-btn" aria-label="Hold to go home">⭐<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17"/></svg></button>
   <div id="unlock-toast" class="toast">Hold ⭐ to go home</div>
 
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>

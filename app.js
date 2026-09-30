@@ -38,6 +38,19 @@
   const COLORS = ['#ff5c8a', '#ff9f1c', '#ffe94d', '#4cd964', '#2fb8ff', '#8a63ff', '#ff6b6b', '#00c9a7', '#ff77e9', '#5c7cfa', '#f77f00', '#06d6a0', '#e63946', '#118ab2'];
   const BG = ['#ff5c8a', '#ff8c42', '#ffd23f', '#3ddc84', '#2fb8ff', '#8a63ff', '#ff4f79', '#00c2a8', '#f368e0', '#5468ff', '#ff6f3c', '#20c997'];
   const CHEERS = ['Yay!', 'Wow!', 'Great job!', 'Woohoo!', 'Awesome!', 'Hooray!', 'Super!', 'You did it!'];
+  const WORDS = [
+    ['Cat','🐱'],['Dog','🐶'],['Cow','🐮'],['Pig','🐷'],['Hen','🐔'],['Fox','🦊'],['Bee','🐝'],['Owl','🦉'],
+    ['Fish','🐟'],['Duck','🦆'],['Frog','🐸'],['Bus','🚌'],['Car','🚗'],['Sun','☀️'],['Moon','🌙'],['Star','⭐'],
+    ['Ball','⚽'],['Book','📖'],['Cake','🎂'],['Milk','🥛'],['Egg','🥚'],['Apple','🍎'],['Hat','🎩'],['Bed','🛏️'],
+    ['Box','📦'],['Toy','🧸'],['Red','🔴'],['Blue','🔵'],['Mom','👩'],['Mama','👩'],['Dad','👨'],['Dada','👨'],
+    ['Baby','👶'],['Love','❤️'],['Zoo','🦁'],['Yes','👍'],
+  ];
+  const FAMILY = ['Ezdan','Zohaan','Ahad','Ayat','Ayzal','Ali','Atif','Salma','Saqib','Heena','Aqib','Wasif','Tahreen','Arif','Noor Jahan'];
+  const WORD_MAP = new Map();
+  for (const [w, e] of WORDS)
+    WORD_MAP.set(w.toUpperCase().replace(/\s+/g, ''), { display: w, emoji: e, family: false, clip: 'word_' + slug(w) });
+  for (const w of FAMILY)
+    WORD_MAP.set(w.toUpperCase().replace(/\s+/g, ''), { display: w, emoji: '💖', family: true, clip: 'word_' + slug(w) });
 
   const $ = (s) => document.querySelector(s);
   const rand = (a) => a[Math.floor(Math.random() * a.length)];
@@ -278,14 +291,32 @@
       lastGlyph = '';
       lastSpeak = null;
     }
+    if (next === 'find') {
+      clearTimeout(findTimer);
+      findLocked = false;
+      findWrong = 0;
+      findTarget = '';
+      findTargetEl.classList.remove('show');
+      renderStars();
+    }
+    if (next === 'spell') spellShowPicker();
   }
   document.querySelectorAll('.mode-card').forEach((b) =>
     b.addEventListener('click', () => {
+      b.blur(); // keep Enter from re-triggering the card on a physical keyboard
       audio();
       playSfx('fanfare');
-      say(b.dataset.mode === 'learn' ? "Let's learn letters and numbers!" : 'Smash time!',
-        { clip: b.dataset.mode === 'learn' ? 'intro_learn' : 'intro_smash' });
-      show(b.dataset.mode);
+      if (b.dataset.mode === 'find') {
+        show('find');
+        say("Let's play find it!", { clip: 'find_intro' });
+        findRound(true); // prompt queued behind the intro
+      } else if (b.dataset.mode === 'spell') {
+        show('spell');
+      } else {
+        say(b.dataset.mode === 'learn' ? "Let's learn letters and numbers!" : 'Smash time!',
+          { clip: b.dataset.mode === 'learn' ? 'intro_learn' : 'intro_smash' });
+        show(b.dataset.mode);
+      }
       if (!isTouch && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
     })
   );
@@ -315,6 +346,73 @@
   let colorIdx = 0;
   let lastSpeak = null;
   let idleTimer = null;
+
+  const wordBanner = $('#word-banner');
+  const wbEmoji = wordBanner.querySelector('.wb-emoji');
+  const wbText = wordBanner.querySelector('.wb-text');
+  let wbTimer = null;
+  let wordIdCtr = 0;
+  function showWordBanner(entry) {
+    wbEmoji.textContent = entry.emoji;
+    wbText.textContent = entry.display === 'Ezdan' ? 'Ezdan! 💖' : entry.display + '!';
+    wordBanner.classList.toggle('family', entry.family);
+    wordBanner.classList.remove('show');
+    void wordBanner.offsetWidth;
+    wordBanner.classList.add('show');
+    clearTimeout(wbTimer);
+    wbTimer = setTimeout(() => wordBanner.classList.remove('show'), 2200);
+  }
+  // did the trailing letters just complete a known word/name?
+  function checkWordHit() {
+    const chips = [];
+    for (let el = trail.lastElementChild;
+         el && el.classList.contains('chip') && el._data && /^[A-Z]$/.test(el._data.display) && chips.length < 10;
+         el = el.previousElementSibling)
+      chips.unshift(el);
+    for (let len = Math.min(chips.length, 10); len >= 3; len--) {
+      const s = chips.slice(-len).map((c) => c._data.display).join('');
+      const entry = WORD_MAP.get(s);
+      if (entry) return { entry, chips: chips.slice(-len) };
+    }
+    return null;
+  }
+  function celebrateWord(hit) {
+    const wid = ++wordIdCtr;
+    for (const c of hit.chips) { c.classList.add('word-hit'); c._wordId = wid; }
+    playSfx('fanfare');
+    showWordBanner(hit.entry);
+    const r = wordBanner.getBoundingClientRect();
+    sparkleBurst(r.left + r.width / 2, r.top + r.height / 2, 8);
+    say(hit.entry.display, { clip: hit.entry.clip });
+  }
+  function trimTrail() {
+    while (trail.children.length > 60) trail.firstElementChild.remove();
+    // a trailing .break adds an invisible empty flex line — exclude it from the height check
+    let tail = null;
+    if (trail.lastElementChild && trail.lastElementChild.classList.contains('break')) {
+      tail = trail.lastElementChild;
+      tail.remove();
+    }
+    // offsetTop/offsetHeight are pure layout — scrollHeight also counts animating
+    // transforms, which would fake an overflow mid-animation
+    const base = trail.offsetTop;
+    while (trail.children.length > 1 &&
+           trail.lastElementChild.offsetTop + trail.lastElementChild.offsetHeight - base > trail.clientHeight)
+      trail.firstElementChild.remove();
+    if (tail) trail.appendChild(tail);
+    if (trail.firstElementChild && trail.firstElementChild.classList.contains('break')) trail.firstElementChild.remove();
+  }
+  function newLine() {
+    const last = trail.lastElementChild;
+    if (!last || last.classList.contains('break')) { playSfx('pop'); return; }
+    const b = document.createElement('div');
+    b.className = 'break';
+    trail.appendChild(b);
+    trimTrail();
+    lastGlyph = '';
+    playSfx('slideUp');
+    stopVoice();
+  }
 
   const sparkLive = document.getElementsByClassName('spark');
   function sparkleBurst(cx, cy, n = 5) {
@@ -420,13 +518,18 @@
       say(chipSpeak.text, { clip: chipSpeak.clip });
     });
     trail.appendChild(chip);
-    while (trail.children.length > 60) trail.firstElementChild.remove();
+    trimTrail();
 
-    say(speakParts[0].text, { clip: speakParts[0].clip, pitch: rnd(1.05, 1.35), rate: 0.9 });
-    for (const p of speakParts.slice(1)) say(p.text, { clip: p.clip, queue: true });
-    // queued so it plays after the letter, never on top of it
-    const ci = Math.floor(Math.random() * CHEERS.length);
-    if (Math.random() < 0.3) say(CHEERS[ci], { pitch: 1.4, rate: 1, queue: true, clip: `cheer_${ci}` });
+    const hit = /[A-Z]/.test(ch) ? checkWordHit() : null;
+    if (hit) {
+      celebrateWord(hit);
+    } else {
+      say(speakParts[0].text, { clip: speakParts[0].clip, pitch: rnd(1.05, 1.35), rate: 0.9 });
+      for (const p of speakParts.slice(1)) say(p.text, { clip: p.clip, queue: true });
+      // queued so it plays after the letter, never on top of it
+      const ci = Math.floor(Math.random() * CHEERS.length);
+      if (Math.random() < 0.3) say(CHEERS[ci], { pitch: 1.4, rate: 1, queue: true, clip: `cheer_${ci}` });
+    }
   }
 
   // ⌫ undo — drop the last trail chip and revert the hero to the previous entry
@@ -436,8 +539,14 @@
     if (!last) { playSfx('boing'); return; }
     last.remove();
     playSfx('pop');
-    const prev = trail.lastElementChild;
-    if (prev && prev._data) {
+    if (last.classList.contains('break')) return;
+    if (last._wordId)
+      trail.querySelectorAll('.chip.word-hit').forEach((c) => {
+        if (c._wordId === last._wordId) c.classList.remove('word-hit');
+      });
+    let prev = trail.lastElementChild;
+    while (prev && !prev._data) prev = prev.previousElementSibling;
+    if (prev) {
       const d = prev._data;
       hero.classList.remove('show');
       void hero.offsetWidth;
@@ -456,37 +565,43 @@
     }
   }
 
-  // touch pad for phones/tablets
-  function buildPad() {
-    const pad = $('#pad');
-    const rows = [
-      '1234567890'.split(''),
-      'ABCDEFGHI'.split(''),
-      'JKLMNOPQR'.split(''),
-      'STUVWXYZ'.split(''),
-    ];
+  // touch pad for phones/tablets — learn gets digits + ⌫/⏎, spell gets letters only
+  function buildPad(container, onKey, { digits = true, extras = [] } = {}) {
+    const rows = [];
+    if (digits) rows.push('1234567890'.split(''));
+    rows.push('ABCDEFGHI'.split(''), 'JKLMNOPQR'.split(''), 'STUVWXYZ'.split(''));
     rows.forEach((keys, r) => {
       const row = document.createElement('div');
       row.className = 'row';
       keys.forEach((k, i) => {
         const b = document.createElement('button');
         b.className = 'key';
+        b.dataset.k = k;
         b.textContent = k;
         b.style.setProperty('--k', COLORS[(i + r * 3) % COLORS.length]);
-        b.addEventListener('pointerdown', (e) => { e.preventDefault(); audio(); learnInput(k); });
+        b.addEventListener('pointerdown', (e) => { e.preventDefault(); audio(); onKey(k); });
         row.appendChild(b);
       });
-      pad.appendChild(row);
+      container.appendChild(row);
     });
-    const bk = document.createElement('button');
-    bk.className = 'key wide';
-    bk.textContent = '⌫';
-    bk.setAttribute('aria-label', 'Backspace');
-    bk.style.setProperty('--k', '#8892b0');
-    bk.addEventListener('pointerdown', (e) => { e.preventDefault(); audio(); undoLast(); });
-    pad.lastElementChild.appendChild(bk);
+    for (const x of extras) {
+      const b = document.createElement('button');
+      b.className = 'key wide';
+      b.textContent = x.text;
+      b.setAttribute('aria-label', x.aria);
+      b.style.setProperty('--k', x.color);
+      b.addEventListener('pointerdown', (e) => { e.preventDefault(); audio(); onKey(x.k); });
+      container.lastElementChild.appendChild(b);
+    }
   }
-  buildPad();
+  buildPad($('#pad'), (k) => {
+    if (k === 'Backspace') undoLast();
+    else if (k === 'Enter') newLine();
+    else learnInput(k);
+  }, { extras: [
+    { text: '⌫', aria: 'Backspace', k: 'Backspace', color: '#8892b0' },
+    { text: '⏎', aria: 'New line', k: 'Enter', color: '#5c7cfa' },
+  ] });
 
   // ---------- smash mode ----------
   const layer = $('#smash-layer');
@@ -571,6 +686,273 @@
     smashAt(e.clientX, e.clientY);
   });
 
+  // ---------- find it! mode ----------
+  const findEl = $('#find');
+  const findStars = $('#find-stars');
+  const findPrompt = $('#find-prompt');
+  const findTargetEl = $('#find-target');
+  const findBubblesEl = $('#find-bubbles');
+  const findBubbles = [];
+  let findStreak = 0, findTarget = '', findPrev = '', findLocked = false, findWrong = 0, findTimer = null;
+  for (let i = 0; i < 6; i++) {
+    const b = document.createElement('button');
+    b.className = 'find-bubble';
+    b.hidden = true;
+    b.addEventListener('pointerdown', (e) => { e.preventDefault(); audio(); findPick(b); });
+    findBubblesEl.appendChild(b);
+    findBubbles.push(b);
+  }
+  const findPool = () => {
+    const p = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+    if (findStreak >= 12) p.push(...'0123456789'.split(''));
+    return p;
+  };
+  const findCount = () => (findStreak < 5 ? 3 : findStreak < 12 ? 4 : 6);
+  const findSpoken = (ch) => (/[0-9]/.test(ch) ? NUMBER_WORDS[+ch] : PHON[ch]);
+  function renderStars() { findStars.textContent = '⭐'.repeat(findStreak % 10); }
+  function findRound(queuePrompt = false) {
+    clearTimeout(findTimer);
+    findLocked = false;
+    findWrong = 0;
+    const pool = findPool();
+    let target = rand(pool);
+    while (target === findPrev) target = rand(pool);
+    findPrev = findTarget = target;
+    const choices = new Set([target]);
+    while (choices.size < findCount()) choices.add(rand(pool));
+    const arr = [...choices].sort(() => Math.random() - 0.5);
+    findBubbles.forEach((b, i) => {
+      if (i < arr.length) {
+        b.hidden = false;
+        b.textContent = arr[i];
+        b.dataset.ch = arr[i];
+        b.style.setProperty('--k', COLORS[colorIdx++ % COLORS.length]);
+        b.classList.remove('correct', 'wobble', 'hint');
+      } else b.hidden = true;
+    });
+    findEl.dataset.target = target;
+    findTargetEl.textContent = 'Find: ' + target;
+    findTargetEl.classList.toggle('show', !settings.voice);
+    say('Find ' + findSpoken(target) + '!', { clip: 'find_' + target, queue: queuePrompt });
+  }
+  findPrompt.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    audio();
+    if (!findTarget) findRound();
+    else say('Find ' + findSpoken(findTarget) + '!', { clip: 'find_' + findTarget });
+  });
+  function findPick(b) {
+    if (findLocked || b.hidden || !findTarget) return;
+    if (b.dataset.ch === findTarget) {
+      findLocked = true;
+      b.classList.remove('wobble', 'hint');
+      b.classList.add('correct');
+      const r = b.getBoundingClientRect();
+      sparkleBurst(r.left + r.width / 2, r.top + r.height / 2);
+      playSfx('scaleNote');
+      findStreak++;
+      renderStars();
+      if (findStreak % 10 === 0) {
+        findStars.textContent = '';
+        playSfx('fanfare');
+        say('You found ten! Amazing!', { clip: 'find_ten' });
+        sparkleBurst(window.innerWidth / 2, Math.max(60, window.innerHeight * 0.1), 8);
+        findTimer = setTimeout(() => findRound(), 2200);
+      } else {
+        const ci = Math.floor(Math.random() * CHEERS.length);
+        say(CHEERS[ci], { pitch: 1.4, rate: 1, queue: true, clip: `cheer_${ci}` });
+        findTimer = setTimeout(() => findRound(), 1300);
+      }
+    } else {
+      b.classList.remove('wobble');
+      void b.offsetWidth;
+      b.classList.add('wobble');
+      playSfx('boing');
+      say('Try again!', { clip: 'try_again' });
+      findWrong++;
+      if (findWrong >= 2) {
+        const tb = findBubbles.find((x) => !x.hidden && x.dataset.ch === findTarget);
+        if (tb) tb.classList.add('hint');
+        findTargetEl.classList.add('show');
+      }
+    }
+  }
+
+  // ---------- spell it! mode ----------
+  const SPELL_TRACKS = {
+    az: Object.entries(LETTERS).map(([ch, [w, e]]) => ({ word: w, pic: e, key: ch })),
+    num: NUMBER_WORDS.slice(1).map((w, i) => ({ word: w, n: i + 1, key: String(i + 1) })),
+  };
+  const spellEl = $('#spell');
+  const spellPicker = $('#spell-picker');
+  const spellGame = $('#spell-game');
+  const spellPic = $('#spell-pic');
+  const spellWord = $('#spell-word');
+  const spellCount = $('#spell-count');
+  let spellProg = { az: { idx: 0, done: [] }, num: { idx: 0, done: [] } };
+  try {
+    const p = JSON.parse(localStorage.getItem('ab12-spell') || '{}');
+    for (const t of ['az', 'num']) if (p[t]) spellProg[t] = { idx: p[t].idx | 0, done: Array.isArray(p[t].done) ? p[t].done : [] };
+  } catch (e) {}
+  const saveSpell = () => localStorage.setItem('ab12-spell', JSON.stringify(spellProg));
+  let spellTrack = null, spellIdx = 0, spellSlots = [], spellCursor = 0;
+  let spellWrong = 0, spellDone = false, spellLock = false;
+  let spellIdleT = null, spellAdvT = null;
+  const spellList = () => SPELL_TRACKS[spellTrack];
+
+  function spellRenderPicker() {
+    for (const t of ['az', 'num']) {
+      const total = SPELL_TRACKS[t].length;
+      $('#spell-prog-' + t).textContent = `${spellProg[t].done.length} / ${total} ⭐`;
+    }
+  }
+  function spellShowPicker() {
+    spellTrack = null;
+    spellLock = false;
+    clearTimeout(spellIdleT);
+    clearTimeout(spellAdvT);
+    spellRenderPicker();
+    spellGame.hidden = true;
+    spellPicker.hidden = false;
+  }
+  function spellStart(track) {
+    spellTrack = track;
+    spellIdx = Math.min(spellProg[track].idx, spellList().length - 1);
+    spellPicker.hidden = true;
+    spellGame.hidden = false;
+    spellShow();
+  }
+  function spellPadHint(ch) {
+    const k = spellGame.querySelector(`.key[data-k="${ch}"]`);
+    if (k) k.classList.add('hint');
+  }
+  function spellClearHints() {
+    spellGame.querySelectorAll('.key.hint').forEach((k) => k.classList.remove('hint'));
+    const cur = spellSlots[spellCursor];
+    if (cur) cur.el.classList.remove('gold');
+  }
+  function spellIdleSoon() {
+    clearTimeout(spellIdleT);
+    spellIdleT = setTimeout(() => {
+      const cur = spellSlots[spellCursor];
+      if (mode === 'spell' && !spellDone && cur) spellPadHint(cur.ch);
+    }, 5000);
+  }
+  function spellShow() {
+    clearTimeout(spellAdvT);
+    clearTimeout(spellIdleT);
+    spellLock = false;
+    spellDone = false;
+    spellWrong = 0;
+    spellClearHints();
+    const list = spellList();
+    const item = list[spellIdx];
+    spellCount.textContent = `${spellProg[spellTrack].done.length} / ${list.length}`;
+    if (spellTrack === 'num') {
+      const n = item.n;
+      spellPic.innerHTML = `<span class="sp-digit">${n}</span><span class="sp-emoji${n > 3 ? ' many' : ''}">${rand(COUNT_EMOJI).repeat(n)}</span>`;
+    } else {
+      spellPic.innerHTML = `<span class="sp-emoji">${item.pic}</span>`;
+    }
+    spellWord.innerHTML = '';
+    spellWord.style.setProperty('--slots', item.word.length);
+    spellSlots = [];
+    for (const c of item.word) {
+      const s = document.createElement('span');
+      s.className = 'slot';
+      if (c === ' ') s.classList.add('gap');
+      else if (c === '-') { s.classList.add('sep'); s.textContent = '-'; }
+      else s.textContent = c.toUpperCase();
+      spellWord.appendChild(s);
+      spellSlots.push({ el: s, ch: /^[A-Z]$/i.test(c) ? c.toUpperCase() : null });
+    }
+    spellCursor = spellSlots.findIndex((s) => s.ch && !s.el.classList.contains('filled'));
+    spellMarkCursor();
+    say(`Let's spell ${item.word}!`, { clip: `sword_${slug(item.word)}` });
+    spellIdleSoon();
+  }
+  function spellMarkCursor() {
+    spellSlots.forEach((s, i) => s.el.classList.toggle('cur', i === spellCursor));
+  }
+  function spellNav(d) {
+    if (!spellTrack) return;
+    const list = spellList();
+    spellIdx = (spellIdx + d + list.length) % list.length;
+    spellProg[spellTrack].idx = spellIdx;
+    saveSpell();
+    playSfx('pop');
+    spellShow();
+  }
+  function spellInput(k) {
+    if (!spellTrack || spellLock || spellDone) return;
+    k = String(k).toUpperCase();
+    if (!/^[A-Z]$/.test(k)) return;
+    spellClearHints();
+    const cur = spellSlots[spellCursor];
+    if (!cur) return;
+    if (k === cur.ch) {
+      spellWrong = 0;
+      cur.el.classList.add('filled');
+      cur.el.style.color = COLORS[colorIdx++ % COLORS.length];
+      playSfx('scaleNote');
+      say(PHON[k], { clip: `letter_${k}` });
+      const r = cur.el.getBoundingClientRect();
+      sparkleBurst(r.left + r.width / 2, r.top + r.height / 2, 4);
+      let next = -1;
+      for (let i = spellCursor + 1; i < spellSlots.length; i++)
+        if (spellSlots[i].ch && !spellSlots[i].el.classList.contains('filled')) { next = i; break; }
+      spellCursor = next;
+      if (next === -1) spellComplete();
+      else spellMarkCursor();
+    } else {
+      cur.el.classList.remove('wobble');
+      void cur.el.offsetWidth;
+      cur.el.classList.add('wobble');
+      playSfx('boing');
+      spellWrong++;
+      if (spellWrong >= 2) { spellPadHint(cur.ch); cur.el.classList.add('gold'); }
+    }
+    spellIdleSoon();
+  }
+  function spellComplete() {
+    spellDone = true;
+    spellLock = true;
+    spellMarkCursor();
+    const item = spellList()[spellIdx];
+    spellSlots.forEach((s, i) => { s.el.style.animationDelay = (i * 0.07) + 's'; s.el.classList.add('win'); });
+    playSfx('fanfare');
+    const r = spellWord.getBoundingClientRect();
+    sparkleBurst(r.left + r.width / 2, r.top + r.height / 2, 8);
+    say(`${item.word}!`, { clip: `sdone_${slug(item.word)}` });
+    const prog = spellProg[spellTrack];
+    if (!prog.done.includes(item.key)) prog.done.push(item.key);
+    spellCount.textContent = `${prog.done.length} / ${spellList().length}`;
+    const last = spellIdx === spellList().length - 1;
+    if (last) {
+      sparkleBurst(r.left + r.width * 0.3, r.top + r.height / 2, 8);
+      sparkleBurst(r.left + r.width * 0.7, r.top + r.height / 2, 8);
+    }
+    spellAdvT = setTimeout(() => {
+      spellIdx = (spellIdx + 1) % spellList().length;
+      spellProg[spellTrack].idx = spellIdx;
+      saveSpell();
+      spellShow();
+    }, 3000);
+  }
+  spellPicker.querySelectorAll('.spell-track').forEach((b) =>
+    b.addEventListener('click', () => { audio(); playSfx('ding'); spellStart(b.dataset.track); }));
+  $('#spell-prev').addEventListener('click', () => { audio(); spellNav(-1); });
+  $('#spell-next').addEventListener('click', () => { audio(); spellNav(1); });
+  $('#spell-tracks').addEventListener('click', () => { audio(); playSfx('pop'); spellShowPicker(); });
+  spellPic.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    if (!spellTrack) return;
+    audio();
+    const item = spellList()[spellIdx];
+    say(`Let's spell ${item.word}!`, { clip: `sword_${slug(item.word)}` });
+  });
+  buildPad($('#spell-pad'), (k) => spellInput(k), { digits: false });
+
   // ---------- keyboard ----------
   window.addEventListener('keydown', (e) => {
     if (mode === 'home') return;
@@ -580,7 +962,19 @@
     audio();
     if (mode === 'learn') {
       if (e.key === 'Backspace' || e.key === 'Delete') { undoLast(); return; }
+      if (e.key === 'Enter') { newLine(); return; }
       learnInput(e.key.length === 1 ? e.key : ' ');
+    } else if (mode === 'find') {
+      if (e.key.length === 1) {
+        const k = e.key.toUpperCase();
+        const b = findBubbles.find((x) => !x.hidden && x.dataset.ch === k);
+        if (b) findPick(b);
+      }
+    } else if (mode === 'spell') {
+      if (!spellTrack) return;
+      if (e.key === 'Enter' || e.key === 'ArrowRight') { if (spellDone) spellNav(1); return; }
+      if (e.key === 'ArrowLeft') { spellNav(-1); return; }
+      spellInput(e.key);
     } else if (mode === 'smash') {
       const label = /^[a-z0-9]$/i.test(e.key) ? e.key.toUpperCase() : '';
       smashRandom(label);
@@ -596,6 +990,11 @@
   function suspend() {
     stopAllAudio();
     if (ctx) ctx.suspend();
+    clearTimeout(findTimer);
+    findLocked = false;
+    clearTimeout(spellIdleT);
+    clearTimeout(spellAdvT);
+    spellLock = false;
     layer.replaceChildren();
     document.querySelectorAll('.spark').forEach((s) => s.remove());
   }
