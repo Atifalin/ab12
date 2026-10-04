@@ -11,10 +11,13 @@
          background: linear-gradient(160deg,#3aa7ff,#8fd8ff 55%,#c9ffe9); }
   .wrap { max-width: 860px; margin: 0 auto; padding: 2vmin 3vmin 6vmin; }
   h1 { text-align:center; color:#fff; font-size:6vmin; text-shadow:0 .5vmin 0 rgba(0,0,0,.2); margin:1vmin 0 2vmin; }
-  .tabs { display:flex; gap:1.5vmin; justify-content:center; margin-bottom:2vmin; }
+  .tabs { display:flex; gap:1.5vmin; justify-content:center; margin-bottom:1vmin; flex-wrap:wrap; }
   .tab { font:inherit; border:0; border-radius:3vmin; padding:1.4vmin 4vmin; font-size:3.4vmin;
          background:rgba(255,255,255,.35); color:var(--ink); cursor:pointer; }
   .tab.on { background:#8a63ff; color:#fff; }
+  .pack-tools { display:flex; gap:1.5vmin; justify-content:center; margin-bottom:2vmin; min-height:4vmin; }
+  .pack-tools button { font:inherit; border:0; border-radius:2vmin; padding:.8vmin 2.4vmin; font-size:2.6vmin;
+                       background:rgba(255,255,255,.45); color:var(--ink); cursor:pointer; }
   .chips { display:flex; flex-wrap:wrap; gap:1vmin; justify-content:center; margin-bottom:2vmin; }
   .chip { font:inherit; border:0; border-radius:2vmin; padding:1vmin 2vmin; font-size:2.6vmin;
           background:rgba(255,255,255,.5); cursor:pointer; }
@@ -44,12 +47,14 @@
   .take .fname { flex:1; opacity:.75; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .take button { font:inherit; border:0; border-radius:1.6vmin; padding:.8vmin 2vmin; cursor:pointer; font-size:2.6vmin; }
   .take .play { background:#4cd964; color:#fff; }
+  .take .play.playing { background:#e63946; }
   .take .del { background:#ff6b6b; color:#fff; }
   .post { display:flex; gap:1.5vmin; justify-content:center; margin:1.5vmin 0; flex-wrap:wrap; }
   .post button { font:inherit; border:0; border-radius:2.4vmin; padding:1.4vmin 3.4vmin; font-size:3.2vmin; cursor:pointer; }
   #save-btn { background:#4cd964; color:#fff; }
   #redo-btn { background:#e3e0f2; }
   #play-btn { background:#2fb8ff; color:#fff; }
+  #play-btn.playing { background:#e63946; }
   #status { text-align:center; font-size:2.8vmin; min-height:4vmin; color:#7a1f3d; }
   .overall { text-align:center; font-size:2.8vmin; color:#fff; text-shadow:0 .3vmin 0 rgba(0,0,0,.2); margin-bottom:2vmin; }
   .hintline { text-align:center; font-size:2.4vmin; color:rgba(255,255,255,.9); margin-top:2vmin; }
@@ -57,6 +62,7 @@
     .prompt { font-size:6.5vw; } .sub { font-size:4vw; }
     .chip { font-size:3.6vw; } .nav button { font-size:4.2vw; }
     .post button { font-size:4.4vw; } #timer { font-size:6vw; }
+    .tab { font-size:4.6vw; }
   }
 </style>
 </head>
@@ -64,6 +70,7 @@
 <div class="wrap">
   <h1>🎙️ AB12 Voice Recorder</h1>
   <div class="tabs" id="tabs"></div>
+  <div class="pack-tools" id="pack-tools"></div>
   <div class="overall" id="overall"></div>
   <div class="chips" id="chips"></div>
   <div class="card">
@@ -90,9 +97,9 @@
   </div>
   <p class="hintline">Space = record/stop · P = play · Enter = save &amp; next · R = redo · ←/→ = navigate</p>
 </div>
+<audio id="player" preload="none"></audio>
 <script>
 'use strict';
-const VOICES = [['daddy','Daddy'],['ezdan','Ezdan'],['mommy','Mommy']];
 const GROUPS = [
   ['cheer', 'Cheers'], ['try', 'Try again'], ['letter_', 'Letters'], ['phrase_', 'A is for…'],
   ['num_', 'Numbers'], ['count_', 'Counting'], ['word_', 'Words & names'],
@@ -103,12 +110,13 @@ const POOL_IDEAS = {
   cheer: ['Yay!', 'Good job Ezdan!', 'Wow, so clever!', 'High five!', 'Super star!'],
   try: ['Oops! Try again!', 'Almost!', 'You can do it!', 'One more try!'],
 };
-let clips = [], manifest = {voices:{}}, voice = 'daddy', group = 'cheer', idx = 0;
-let media = null, rec = null, chunks = [], recStart = 0, recTimer = null, autoStop = null;
+let clips = [], manifest = {packs:{}, voices:{}}, voice = '', group = 'cheer', idx = 0;
+let media = null, rec = null, starting = false, chunks = [], recStart = 0, recTimer = null, autoStop = null;
 let pendingBlob = null, pendingUrl = null, ac = null;
+let playBtn = null; // button currently marked as playing
 const $ = (s) => document.querySelector(s);
+const player = $('#player');
 const takes = (v, k) => ((manifest.voices || {})[v] || {})[k] || [];
-const poolKey = (g) => g[0];
 const isPool = () => group === 'cheer' || group === 'try';
 const clipKey = () => isPool() ? group : clips[idx].key;
 
@@ -117,25 +125,45 @@ function groupOf(key) {
   return '';
 }
 function groupItems(g) {
-  const [p] = GROUPS.find(([pp]) => pp === g) || [''];
   if (g === 'cheer' || g === 'try') return [{key: g, text: ''}];
+  const [p] = GROUPS.find(([pp]) => pp === g) || [''];
   return clips.filter((c) => groupOf(c.key) === p);
 }
+function stopPlay() {
+  player.pause();
+  if (playBtn) { playBtn.classList.remove('playing'); playBtn.textContent = '▶'; playBtn = null; }
+}
+function playUrl(url, btn) {
+  if (playBtn === btn && !player.paused) { stopPlay(); return; }
+  stopPlay();
+  player.src = url;
+  playBtn = btn;
+  if (btn) { btn.classList.add('playing'); btn.textContent = '⏸'; }
+  player.play().catch(() => stopPlay());
+}
+player.addEventListener('ended', stopPlay);
+player.addEventListener('pause', () => { if (playBtn) { playBtn.classList.remove('playing'); playBtn.textContent = '▶'; playBtn = null; } });
+
 function draw() {
-  // tabs
-  $('#tabs').innerHTML = VOICES.map(([v, n]) =>
-    `<button class="tab ${v === voice ? 'on' : ''}" data-v="${v}">${n}</button>`).join('');
-  // chips with recorded/total for this voice
+  const packs = manifest.packs || {};
+  const slugs = Object.keys(packs);
+  if (!voice || !packs[voice]) voice = slugs[0] || '';
+  $('#tabs').innerHTML = slugs.map((s) =>
+    `<button class="tab ${s === voice ? 'on' : ''}" data-v="${s}">${packs[s].name || s}</button>`).join('') +
+    `<button class="tab" data-v="__new">＋ New pack</button>`;
+  const hasTakes = !!(manifest.voices || {})[voice];
+  $('#pack-tools').innerHTML = voice
+    ? `<button id="rename-pack">✎ Rename “${packs[voice].name || voice}”</button>` +
+      (hasTakes ? '' : '<button id="del-pack">🗑 Delete pack</button>')
+    : '';
   $('#chips').innerHTML = GROUPS.map(([p, label]) => {
-    const items = groupItems(p === '' ? '' : p);
+    const items = groupItems(p);
     const done = items.filter((c) => takes(voice, c.key).length).length;
-    return `<button class="chip ${p === group || (p === '' && group === '') ? 'on' : ''}" data-g="${p}">${label}<small>${done}/${items.length}</small></button>`;
+    return `<button class="chip ${p === group ? 'on' : ''}" data-g="${p}">${label}<small>${done}/${items.length}</small></button>`;
   }).join('');
-  // overall
   let d = 0, t = 0;
   for (const [p] of GROUPS) for (const c of groupItems(p)) { t++; if (takes(voice, c.key).length) d++; }
   $('#overall').textContent = `${d} / ${t} recorded`;
-  // item card
   if (isPool()) {
     $('#prompt').textContent = GROUPS.find(([p]) => p === group)[1] + ' — any phrase you like!';
     $('#sub').textContent = 'Ideas: ' + POOL_IDEAS[group].join(' · ');
@@ -148,7 +176,6 @@ function draw() {
     $('#keyname').textContent = c.key;
     $('#pos').textContent = `${idx + 1} / ${clips.length}`;
   }
-  // takes
   $('#takes').innerHTML = takes(voice, clipKey()).map((f) =>
     `<div class="take"><button class="play" data-f="${f}">▶</button><span class="fname">${f}</span><button class="del" data-f="${f}">🗑</button></div>`
   ).join('') || '<div style="opacity:.6">No takes yet — hit the big button!</div>';
@@ -157,11 +184,13 @@ function draw() {
 function setStatus(t, ok) { const s = $('#status'); s.textContent = t; s.style.color = ok ? '#1f7a3d' : '#7a1f3d'; }
 
 async function startRec() {
-  if (rec) return;
+  if (rec || starting) return;
+  starting = true; // set synchronously — double clicks/Space can't race the getUserMedia await
+  stopPlay();
   try {
     media = await navigator.mediaDevices.getUserMedia(
       {audio: {echoCancellation: true, noiseSuppression: true, autoGainControl: true}});
-  } catch (e) { setStatus('Mic blocked: ' + e.message); return; }
+  } catch (e) { setStatus('Mic blocked: ' + e.message); starting = false; return; }
   const mime = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4'
     : MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : '';
   chunks = [];
@@ -169,20 +198,25 @@ async function startRec() {
   rec.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
   rec.onstop = finishRec;
   rec.start();
+  starting = false;
   recStart = performance.now();
   $('#rec-btn').classList.add('rec');
   $('#rec-btn').textContent = '⏹';
+  $('#timer').textContent = '0.0s';
+  clearInterval(recTimer); clearTimeout(autoStop);
   recTimer = setInterval(() => { $('#timer').textContent = ((performance.now() - recStart) / 1000).toFixed(1) + 's'; }, 100);
   autoStop = setTimeout(stopRec, 8000);
   setStatus('Recording…');
 }
 function stopRec() {
   if (!rec) return;
-  clearInterval(recTimer); clearTimeout(autoStop);
+  clearInterval(recTimer); recTimer = null;
+  clearTimeout(autoStop); autoStop = null;
   rec.stop();
 }
 function stopMic() { if (media) { media.getTracks().forEach((t) => t.stop()); media = null; } }
 function discardPending() {
+  stopPlay();
   if (pendingUrl) URL.revokeObjectURL(pendingUrl);
   pendingBlob = null; pendingUrl = null;
   $('#post').style.display = 'none';
@@ -203,7 +237,7 @@ async function finishRec() {
     setStatus('Ready — play it back, then Save.');
   } catch (e) { setStatus('Could not process audio: ' + e.message); }
 }
-// decode -> mono -> trim silence (-45dBFS, 40ms pad) -> peak normalize -> WAV 16-bit
+// decode -> mono -> trim silence (-45dBFS, 40ms lead / 80ms tail pad) -> peak normalize -> WAV 16-bit
 async function processAudio(blob) {
   ac = ac || new (window.AudioContext || window.webkitAudioContext)();
   const buf = await ac.decodeAudioData(await blob.arrayBuffer());
@@ -214,11 +248,19 @@ async function processAudio(blob) {
     const d = buf.getChannelData(c);
     for (let i = 0; i < n; i++) mono[i] += d[i] / buf.numberOfChannels;
   }
-  const TH = Math.pow(10, -45 / 20), PAD = Math.round(sr * 0.04);
+  // silence = 20ms window RMS below -45dBFS (a per-sample peak test misses
+  // quiet noise tails with sparse breath/mic bumps above -45)
+  const TH2 = Math.pow(10, -45 / 10), WIN = Math.max(1, Math.round(sr * 0.02));
+  const LEAD = Math.round(sr * 0.04), TAIL = Math.round(sr * 0.08);
+  const loud = (i) => {
+    let s = 0; const j = Math.min(n, i + WIN);
+    for (let k = i; k < j; k++) s += mono[k] * mono[k];
+    return s / (j - i) >= TH2;
+  };
   let a = 0, b = n - 1;
-  while (a < n && Math.abs(mono[a]) < TH) a++;
-  while (b > a && Math.abs(mono[b]) < TH) b++;
-  a = Math.max(0, a - PAD); b = Math.min(n - 1, b + PAD);
+  while (a < n && !loud(a)) a += WIN;
+  while (b > a && !loud(Math.max(0, b - WIN))) b -= WIN;
+  a = Math.max(0, a - LEAD); b = Math.min(n - 1, b + TAIL);
   if (b <= a) throw new Error('too quiet / empty take');
   const len = b - a + 1;
   const out = new Float32Array(len);
@@ -226,7 +268,6 @@ async function processAudio(blob) {
   for (let i = 0; i < len; i++) { out[i] = mono[a + i]; if (Math.abs(out[i]) > peak) peak = Math.abs(out[i]); }
   const gain = peak > 0 ? Math.min(0.891 / peak, 8) : 1;
   for (let i = 0; i < len; i++) out[i] = Math.max(-1, Math.min(1, out[i] * gain));
-  // WAV encode
   const bytes = new ArrayBuffer(44 + len * 2), dv = new DataView(bytes);
   const ws = (o, s) => { for (let i = 0; i < s.length; i++) dv.setUint8(o + i, s.charCodeAt(i)); };
   ws(0, 'RIFF'); dv.setUint32(4, 36 + len * 2, true); ws(8, 'WAVEfmt ');
@@ -250,6 +291,7 @@ async function save() {
   if (!wasPool) nextMissing();
 }
 async function delTake(f) {
+  stopPlay();
   const r = await fetch(`/api/take?voice=${voice}&file=${encodeURIComponent(f)}`, {method: 'DELETE'});
   const j = await r.json().catch(() => ({}));
   if (!r.ok) { setStatus('Delete failed: ' + (j.error || r.status)); return; }
@@ -259,6 +301,7 @@ function nav(d) {
   if (isPool()) group = '';
   idx = (idx + d + clips.length) % clips.length;
   group = groupOf(clips[idx].key);
+  stopPlay();
   draw();
 }
 function nextMissing() {
@@ -271,16 +314,51 @@ function nextMissing() {
     if (!takes(voice, clips[j].key).length) { idx = j; group = groupOf(clips[j].key); draw(); return; }
   }
 }
+async function newPack() {
+  const name = prompt('Name for the new voice pack (e.g. Nani):');
+  if (!name) return;
+  const r = await fetch('/api/packs', {method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({name})});
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) { setStatus('Could not create pack: ' + (j.error || r.status)); return; }
+  manifest = j.manifest; voice = j.slug; draw();
+}
+async function renamePack() {
+  const cur = (manifest.packs[voice] || {}).name || voice;
+  const name = prompt('Rename pack:', cur);
+  if (!name || name === cur) return;
+  const r = await fetch(`/api/packs/${voice}`, {method: 'PATCH', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({name})});
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) { setStatus('Rename failed: ' + (j.error || r.status)); return; }
+  manifest = j.manifest; draw();
+}
+async function delPack() {
+  if (!confirm(`Delete the empty pack “${(manifest.packs[voice] || {}).name || voice}”?`)) return;
+  const r = await fetch(`/api/packs/${voice}`, {method: 'DELETE'});
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) { setStatus('Delete failed: ' + (j.error || r.status)); return; }
+  manifest = j.manifest; voice = ''; draw();
+}
 
-$('#tabs').addEventListener('click', (e) => { const v = e.target.dataset.v; if (v) { voice = v; draw(); } });
+$('#tabs').addEventListener('click', (e) => {
+  const v = e.target.dataset.v; if (!v) return;
+  e.target.blur();
+  if (v === '__new') newPack(); else { voice = v; draw(); }
+});
+$('#pack-tools').addEventListener('click', (e) => {
+  if (e.target.id === 'rename-pack') renamePack();
+  else if (e.target.id === 'del-pack') delPack();
+});
 $('#chips').addEventListener('click', (e) => {
   const g = e.target.closest('.chip'); if (!g) return;
+  e.target.blur();
   group = g.dataset.g;
-  if (!isPool()) { const items = groupItems(group); const first = items[0]; idx = clips.findIndex((c) => c.key === first.key); }
+  if (!isPool()) { const first = groupItems(group)[0]; idx = clips.findIndex((c) => c.key === first.key); }
   draw();
 });
-$('#rec-btn').addEventListener('click', () => (rec ? stopRec() : startRec()));
-$('#play-btn').addEventListener('click', () => { if (pendingUrl) new Audio(pendingUrl).play(); });
+$('#rec-btn').addEventListener('click', (e) => { e.target.blur(); rec ? stopRec() : startRec(); });
+$('#play-btn').addEventListener('click', (e) => { e.target.blur(); if (pendingUrl) playUrl(pendingUrl, e.target); });
 $('#save-btn').addEventListener('click', save);
 $('#redo-btn').addEventListener('click', discardPending);
 $('#prev-btn').addEventListener('click', () => nav(-1));
@@ -288,20 +366,22 @@ $('#next-btn').addEventListener('click', () => nav(1));
 $('#missing-btn').addEventListener('click', nextMissing);
 $('#takes').addEventListener('click', (e) => {
   const f = e.target.dataset.f; if (!f) return;
-  if (e.target.classList.contains('play')) new Audio(`/audio/voices/${voice}/${f}`).play();
+  e.target.blur();
+  if (e.target.classList.contains('play')) playUrl(`/audio/voices/${voice}/${f}`, e.target);
   else if (e.target.classList.contains('del') && confirm('Delete ' + f + '?')) delTake(f);
 });
 document.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT' || e.repeat) return;
   if (e.code === 'Space') { e.preventDefault(); rec ? stopRec() : startRec(); }
-  else if (e.key === 'p' || e.key === 'P') { if (pendingUrl) new Audio(pendingUrl).play(); }
+  else if (e.key === 'p' || e.key === 'P') { if (pendingUrl) playUrl(pendingUrl, $('#play-btn')); }
   else if (e.key === 'Enter') save();
   else if (e.key === 'r' || e.key === 'R') discardPending();
   else if (e.key === 'ArrowLeft') nav(-1);
   else if (e.key === 'ArrowRight') nav(1);
 });
-window.addEventListener('pagehide', () => { if (rec) rec.stop(); stopMic(); });
-document.addEventListener('visibilitychange', () => { if (document.hidden) { if (rec) rec.stop(); stopMic(); } });
+function shutdownAudio() { stopPlay(); if (rec) stopRec(); else stopMic(); }
+window.addEventListener('pagehide', shutdownAudio);
+document.addEventListener('visibilitychange', () => { if (document.hidden) shutdownAudio(); });
 
 (async () => {
   const r = await fetch('/api/clips');

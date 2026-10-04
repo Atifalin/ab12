@@ -464,6 +464,7 @@ body.shake #smash-layer { animation: shake .18s linear; }
 }
 
 .seg { display: flex; gap: .8vmin; flex: 0 0 auto; }
+#set-voicepack .seg { flex: 0 1 auto; flex-wrap: wrap; justify-content: flex-end; }
 .seg-btn {
   font: inherit; font-size: 2.8vmin; border: 0; border-radius: 1.8vmin; padding: 1.2vmin 1.8vmin;
   background: #e3e0f2; color: var(--ink); cursor: pointer; transition: background .15s, color .15s;

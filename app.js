@@ -216,22 +216,37 @@
   // Recorded takes live in audio/voices/<voice>/<clip>~<id>.m4a with a manifest.
   // The session voice is chosen once per page load; missing takes fall back to
   // the bundled Tara clips, then TTS.
-  const VOICE_PACKS = { daddy: 'Daddy', ezdan: 'Ezdan', mommy: 'Mommy' };
-  let voiceManifest = { voices: {} };
+  let voiceManifest = { packs: {}, voices: {} };
   let sessionVoice = null;
   const lastTake = new Map(); // clip key -> last take file played
+  const packName = (s) =>
+    (voiceManifest.packs && voiceManifest.packs[s] && voiceManifest.packs[s].name) || s;
+  const packsWithTakes = () => Object.keys(voiceManifest.voices || {}).filter((s) =>
+    Object.values(voiceManifest.voices[s] || {}).some((t) => t.length));
   fetch(`audio/voices/manifest.json?v=${Date.now()}`, { cache: 'no-store' })
     .then((r) => (r.ok ? r.json() : null))
     .then((j) => {
       if (j && j.voices) voiceManifest = j;
       pickSessionVoice();
+      renderVoicePackPicker();
       syncVoiceLabel();
     })
     .catch(() => {});
   function pickSessionVoice() {
-    if (settings.voicePack !== 'surprise') { sessionVoice = settings.voicePack; return; }
-    const avail = Object.keys(VOICE_PACKS).filter((v) => voiceManifest.voices[v]);
+    const avail = packsWithTakes();
+    // a saved pack that vanished or has no takes behaves like surprise
+    if (settings.voicePack !== 'surprise' && avail.includes(settings.voicePack)) {
+      sessionVoice = settings.voicePack;
+      return;
+    }
     sessionVoice = avail.length ? rand(avail) : null;
+  }
+  function renderVoicePackPicker() {
+    const seg = document.querySelector('#set-voicepack .seg');
+    if (!seg) return;
+    const opts = [['surprise', '🎲'], ...packsWithTakes().map((s) => [s, packName(s)])];
+    seg.innerHTML = opts.map(([v, n]) =>
+      `<button data-pack="${v}" class="seg-btn${v === settings.voicePack ? ' on' : ''}">${n}</button>`).join('');
   }
   function voiceClipUrls(key) {
     const urls = [];
@@ -255,10 +270,7 @@
   }
   function syncVoiceLabel() {
     const el = document.getElementById('pack-note');
-    if (el)
-      el.textContent = 'Today: ' + (settings.voicePack === 'surprise'
-        ? (sessionVoice ? VOICE_PACKS[sessionVoice] : 'Tara')
-        : VOICE_PACKS[settings.voicePack]);
+    if (el) el.textContent = 'Today: ' + (sessionVoice ? packName(sessionVoice) : 'Tara');
   }
 
   function speakTts(text, pitch, rate, my) {
@@ -1065,8 +1077,7 @@
       b.classList.toggle('on', (b.dataset.words === '1') === settings.words));
     document.querySelectorAll('#set-theme .seg-btn').forEach((b) =>
       b.classList.toggle('on', b.dataset.theme === settings.theme));
-    document.querySelectorAll('#set-voicepack .seg-btn').forEach((b) =>
-      b.classList.toggle('on', b.dataset.pack === settings.voicePack));
+    renderVoicePackPicker();
     syncVoiceLabel();
     $('#set-volume').value = Math.round(settings.volume * 100);
   };
@@ -1113,16 +1124,16 @@
       playSfx('pop');
     })
   );
-  document.querySelectorAll('#set-voicepack .seg-btn').forEach((b) =>
-    b.addEventListener('click', (e) => {
-      e.stopPropagation();
-      settings.voicePack = b.dataset.pack;
-      saveSettings();
-      pickSessionVoice();
-      syncSettingsUI();
-      playSfx('pop');
-    })
-  );
+  $('#set-voicepack').addEventListener('click', (e) => {
+    const b = e.target.closest('.seg-btn');
+    if (!b) return;
+    e.stopPropagation();
+    settings.voicePack = b.dataset.pack;
+    saveSettings();
+    pickSessionVoice();
+    syncSettingsUI();
+    playSfx('pop');
+  });
   $('#set-volume').addEventListener('input', (e) => {
     settings.volume = e.target.value / 100;
     if (master) master.gain.value = settings.volume;
