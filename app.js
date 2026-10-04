@@ -60,7 +60,7 @@
   if (isTouch) document.body.classList.add('touch');
 
   // ---------- settings ----------
-  const settings = { sfx: true, voice: true, words: true, volume: 0.8, theme: 'auto' };
+  const settings = { sfx: true, voice: true, words: true, volume: 0.8, theme: 'auto', voicePack: 'surprise' };
   try { Object.assign(settings, JSON.parse(localStorage.getItem('ab12-settings') || '{}')); } catch (e) {}
   const saveSettings = () => localStorage.setItem('ab12-settings', JSON.stringify(settings));
 
@@ -188,28 +188,77 @@
   let voiceToken = 0; // bumped on every new voice action — stale callbacks are ignored
   const voiceQueue = [];
   const voiceBusy = () => voiceActive;
-  const bufCache = new Map(); // LRU of decoded AudioBuffers, max 30
+  const bufCache = new Map(); // LRU of decoded AudioBuffers, max 30 — keyed by URL
   const inflight = new Map(); // dedupe concurrent loads
-  function loadClip(name) {
-    const hit = bufCache.get(name);
+  function loadClip(url) {
+    const hit = bufCache.get(url);
     if (hit) {
-      bufCache.delete(name);
-      bufCache.set(name, hit);
+      bufCache.delete(url);
+      bufCache.set(url, hit);
       return Promise.resolve(hit);
     }
-    if (inflight.has(name)) return inflight.get(name);
-    const p = fetch(`audio/${name}.m4a`)
+    if (inflight.has(url)) return inflight.get(url);
+    const p = fetch(url)
       .then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
       .then((ab) => new Promise((res, rej) => audio().decodeAudioData(ab, res, rej)))
       .then((buf) => {
-        inflight.delete(name);
-        bufCache.set(name, buf);
+        inflight.delete(url);
+        bufCache.set(url, buf);
         if (bufCache.size > 30) bufCache.delete(bufCache.keys().next().value);
         return buf;
       })
-      .catch((e) => { inflight.delete(name); throw e; });
-    inflight.set(name, p);
+      .catch((e) => { inflight.delete(url); throw e; });
+    inflight.set(url, p);
     return p;
+  }
+
+  // ---------- family voice packs ----------
+  // Recorded takes live in audio/voices/<voice>/<clip>~<id>.m4a with a manifest.
+  // The session voice is chosen once per page load; missing takes fall back to
+  // the bundled Tara clips, then TTS.
+  const VOICE_PACKS = { daddy: 'Daddy', ezdan: 'Ezdan', mommy: 'Mommy' };
+  let voiceManifest = { voices: {} };
+  let sessionVoice = null;
+  const lastTake = new Map(); // clip key -> last take file played
+  fetch(`audio/voices/manifest.json?v=${Date.now()}`, { cache: 'no-store' })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((j) => {
+      if (j && j.voices) voiceManifest = j;
+      pickSessionVoice();
+      syncVoiceLabel();
+    })
+    .catch(() => {});
+  function pickSessionVoice() {
+    if (settings.voicePack !== 'surprise') { sessionVoice = settings.voicePack; return; }
+    const avail = Object.keys(VOICE_PACKS).filter((v) => voiceManifest.voices[v]);
+    sessionVoice = avail.length ? rand(avail) : null;
+  }
+  function voiceClipUrls(key) {
+    const urls = [];
+    if (sessionVoice) {
+      const v = voiceManifest.voices[sessionVoice] || {};
+      let takes = v[key];
+      if ((!takes || !takes.length) && /^cheer_\d+$/.test(key) && v.cheer && v.cheer.length) takes = v.cheer;
+      if ((!takes || !takes.length) && key === 'try_again' && v.try && v.try.length) takes = v.try;
+      if (takes && takes.length) {
+        let f = rand(takes);
+        if (takes.length > 1) {
+          const prev = lastTake.get(key);
+          while (f === prev) f = rand(takes);
+        }
+        lastTake.set(key, f);
+        urls.push(`audio/voices/${sessionVoice}/${f}`);
+      }
+    }
+    urls.push(`audio/${key}.m4a`);
+    return urls;
+  }
+  function syncVoiceLabel() {
+    const el = document.getElementById('pack-note');
+    if (el)
+      el.textContent = 'Today: ' + (settings.voicePack === 'surprise'
+        ? (sessionVoice ? VOICE_PACKS[sessionVoice] : 'Tara')
+        : VOICE_PACKS[settings.voicePack]);
   }
 
   function speakTts(text, pitch, rate, my) {
@@ -231,7 +280,8 @@
     const my = ++voiceToken;
     voiceActive = true;
     if (clip) {
-      loadClip(clip).then((buf) => {
+      const urls = voiceClipUrls(clip);
+      const tryPlay = (i) => loadClip(urls[i]).then((buf) => {
         if (voiceToken !== my) return;
         const src = ctx.createBufferSource();
         src.buffer = buf;
@@ -242,7 +292,12 @@
         };
         curSrc = src;
         src.start();
-      }).catch(() => { if (voiceToken === my) speakTts(text, pitch, rate, my); });
+      }).catch(() => {
+        if (voiceToken !== my) return;
+        if (i + 1 < urls.length) tryPlay(i + 1);
+        else speakTts(text, pitch, rate, my);
+      });
+      tryPlay(0);
     } else {
       speakTts(text, pitch, rate, my);
     }
@@ -1010,6 +1065,9 @@
       b.classList.toggle('on', (b.dataset.words === '1') === settings.words));
     document.querySelectorAll('#set-theme .seg-btn').forEach((b) =>
       b.classList.toggle('on', b.dataset.theme === settings.theme));
+    document.querySelectorAll('#set-voicepack .seg-btn').forEach((b) =>
+      b.classList.toggle('on', b.dataset.pack === settings.voicePack));
+    syncVoiceLabel();
     $('#set-volume').value = Math.round(settings.volume * 100);
   };
   $('#settings-btn').addEventListener('click', (e) => {
@@ -1051,6 +1109,16 @@
       settings.theme = b.dataset.theme;
       saveSettings();
       applyTheme();
+      syncSettingsUI();
+      playSfx('pop');
+    })
+  );
+  document.querySelectorAll('#set-voicepack .seg-btn').forEach((b) =>
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      settings.voicePack = b.dataset.pack;
+      saveSettings();
+      pickSessionVoice();
       syncSettingsUI();
       playSfx('pop');
     })

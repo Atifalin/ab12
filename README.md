@@ -26,6 +26,15 @@ names (`word_*`), and Find it! prompts (`find_*`, `try_again`).
 
 - **Regenerate:** `python3 tools/gen_audio.py [VoiceName]` — any voice from `say -v '?'`
 - **Only new clips:** `python3 tools/gen_audio.py Tara --only-missing`
+
+### Record family voices
+
+`python3 tools/recorder.py` opens a local recorder at `http://127.0.0.1:8765/rec`
+(the app itself runs at `/` for testing). Record takes for Daddy / Ezdan / Mommy —
+saved to `audio/voices/<voice>/<clip>~<id>.m4a` with `manifest.json` rebuilt
+automatically (`python3 tools/recorder.py --rebuild` to rebuild by hand).
+Commit + push ships them; the app's ⚙️ **Voice pack** setting picks a voice or
+🎲 "surprise" (random per session), with Tara clips as per-clip fallback.
 - **Your own voice:** `tools/record.sh` (needs `brew install ffmpeg` or `sox`), or record
   Voice Memos → export `.m4a` → rename per `tools/clips.txt` → drop into `audio/`
 - **Settings** (⚙️ on the home screen): sound effects, voice, "A is for 🍎" vs "A only", volume

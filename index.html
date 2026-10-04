@@ -8,12 +8,12 @@
   <meta name="apple-mobile-web-app-title" content="AB12" />
   <meta name="theme-color" content="#ff5c8a" />
   <title>AB12</title>
-  <link rel="manifest" href="manifest.webmanifest?v=7" />
+  <link rel="manifest" href="manifest.webmanifest?v=8" />
   <link rel="apple-touch-icon" href="icon.svg" />
   <link rel="icon" href="icon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=7" />
+  <link rel="stylesheet" href="style.css?v=8" />
 </head>
 <body>
   <!-- HOME -->
@@ -68,6 +68,17 @@
           <button data-words="0" class="seg-btn">A only</button>
         </span>
       </div>
+
+      <div class="set-row set-seg" id="set-voicepack">
+        <span class="set-label">👪 Voice pack</span>
+        <span class="seg">
+          <button data-pack="surprise" class="seg-btn">🎲</button>
+          <button data-pack="daddy" class="seg-btn">Daddy</button>
+          <button data-pack="ezdan" class="seg-btn">Ezdan</button>
+          <button data-pack="mommy" class="seg-btn">Mommy</button>
+        </span>
+      </div>
+      <p id="pack-note" class="seg-note"></p>
 
       <div class="set-row set-vol">
         <span class="set-label">🔉 Volume</span>
@@ -147,6 +158,6 @@
   <button id="home-btn" class="home-btn" aria-label="Hold to go home">⭐<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17"/></svg></button>
   <div id="unlock-toast" class="toast">Hold ⭐ to go home</div>
 
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>

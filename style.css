@@ -470,6 +470,8 @@ body.shake #smash-layer { animation: shake .18s linear; }
 }
 .seg-btn.on { background: #8a63ff; color: #fff; }
 
+.seg-note { margin: -0.5vmin 0 0; font-size: 2.4vmin; opacity: .65; text-align: center; }
+
 .set-vol input[type="range"] {
   flex: 0 1 50%; accent-color: #8a63ff; height: 6vmin; cursor: pointer;
 }
