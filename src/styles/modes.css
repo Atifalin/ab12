@@ -251,3 +251,52 @@ body.shake #smash-layer { animation: shake .18s linear; }
   40% { transform: translateY(-2.5vmin) scale(1.2) rotate(-5deg); }
 }
 .pad .key.hint { animation: bubHint .9s ease-in-out infinite; }
+
+/* ---------- PEEKABOO ---------- */
+#peekaboo { background: linear-gradient(180deg, #7ed4ff 0%, #bfeaff 60%, #c9f2a8 100%); }
+.pk-stage { position: fixed; inset: 0; height: 100vh; height: 100dvh; overflow: hidden; }
+.pk-canvas { position: fixed; left: 0; top: 0; }
+.pk-banner {
+  position: absolute; left: 50%; top: 16%; transform: translateX(-50%);
+  display: flex; align-items: center; justify-content: center; gap: 2vmin;
+  max-width: 82vw; text-align: center;
+  line-height: 1.05; color: #fff;
+  text-shadow: 0 .7vmin 0 rgba(0,0,0,.25), 0 0 4vmin rgba(255,255,255,.4);
+  background: rgba(43, 27, 61, .38); border-radius: 5vmin; padding: 1.6vmin 3.5vmin;
+  pointer-events: none; z-index: 30; opacity: 0;
+}
+.pk-banner .pk-emoji { font-size: min(9vmin, 12vw); }
+.pk-banner .pk-lines { display: flex; flex-direction: column; align-items: center; }
+.pk-banner .pk-name { font-size: min(9vmin, 11vw); }
+.pk-banner .pk-title { font-size: min(4.5vmin, 5.5vw); opacity: .92; }
+.pk-banner.show { animation: wbPop .5s cubic-bezier(.34,1.56,.64,1) both; }
+.pk-hint {
+  position: absolute; left: 50%; bottom: max(3vmin, env(safe-area-inset-bottom)); transform: translateX(-50%);
+  font-size: 3vmin; color: #fff; text-shadow: 0 .4vmin 0 rgba(0,0,0,.25);
+  background: rgba(0,0,0,.25); padding: 1vmin 2.5vmin; border-radius: 3vmin; z-index: 25;
+}
+.pk-prompt {
+  position: absolute; left: 50%; top: max(3vmin, env(safe-area-inset-top)); transform: translateX(-50%);
+  font: inherit; border: 0; cursor: pointer; background: rgba(255,255,255,.3);
+  border-radius: 4vmin; padding: 1.5vmin 3.5vmin; display: flex; align-items: center; gap: 2vmin;
+  color: #fff; box-shadow: 0 .8vmin 0 rgba(0,0,0,.15); transition: transform .1s; z-index: 25;
+}
+.pk-prompt:active { transform: translateX(-50%) scale(.94); }
+.pk-prompt .pk-big { font-size: 6vmin; line-height: 1; }
+.pk-prompt .pk-who { font-size: 4vmin; }
+
+/* DOM fallback spots */
+.pk-dom-spot {
+  position: absolute; bottom: 12%; transform: translateX(-50%);
+  font: inherit; border: 0; background: none; cursor: pointer; padding: 0;
+  width: 24vmin; height: 26vmin;
+}
+.pk-dom-spot .pk-emoji-spot { font-size: 20vmin; line-height: 1; display: block; transition: transform .2s; }
+.pk-dom-spot:active .pk-emoji-spot { transform: scale(.94); }
+.pk-dom-spot .pk-member {
+  position: absolute; left: 50%; top: -6vmin; transform: translateX(-50%) scale(0);
+  font-size: 12vmin; transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+}
+.pk-dom-spot.open .pk-member { transform: translateX(-50%) scale(1); }
+.pk-dom-spot.peeking .pk-member { transform: translateX(-110%) scale(.7); }
+.pk-dom-spot.hinted .pk-emoji-spot { animation: bubHint .5s ease-in-out 3; }

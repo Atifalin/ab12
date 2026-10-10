@@ -123,11 +123,11 @@ function flushQueue() {
   const next = voiceQueue.shift();
   if (next) startVoice(next);
 }
-function startVoice({ text, clip, pitch, rate }) {
+function startVoice({ text, clip, urls, pitch, rate }) {
   const my = ++voiceToken;
   voiceActive = true;
-  if (clip) {
-    const urls = voiceClipUrls(clip);
+  if (clip && !urls) urls = voiceClipUrls(clip);
+  if (urls && urls.length) {
     const tryPlay = (i) => loadClip(urls[i]).then((buf) => {
       if (voiceToken !== my) return;
       const src = ctx.createBufferSource();
@@ -155,6 +155,15 @@ export function say(text, { pitch = 1.15, rate = 0.92, queue = false, clip = nul
   if (queue && voiceBusy()) { voiceQueue.push({ text, clip, pitch, rate }); return; }
   stopVoice();
   startVoice({ text, clip, pitch, rate });
+}
+// Same one-voice pipeline, but for an explicit list of URLs (e.g. family lines):
+// plays the first that loads, falling through to TTS.
+export function sayUrls(text, urls, { pitch = 1.15, rate = 0.92, queue = false } = {}) {
+  if (!settings.voice) return;
+  audio();
+  if (queue && voiceBusy()) { voiceQueue.push({ text, urls, pitch, rate }); return; }
+  stopVoice();
+  startVoice({ text, urls, pitch, rate });
 }
 export function stopVoice() {
   voiceToken++;

@@ -3,6 +3,7 @@ import {
 } from '../content.js';
 import { rand, rnd } from '../core/util.js';
 import { SILLY } from '../core/audio.js';
+import { playLine } from '../core/family.js';
 
 // ---------- learn mode ----------
 export default {
@@ -78,7 +79,8 @@ export default {
       showWordBanner(hit.entry);
       const r = wordBanner.getBoundingClientRect();
       sparkleBurst(r.left + r.width / 2, r.top + r.height / 2, 8);
-      say(hit.entry.display, { clip: hit.entry.clip });
+      if (hit.entry.member) playLine(hit.entry.member, 'name');
+      else say(hit.entry.display, { clip: hit.entry.clip });
     }
     function trimTrail() {
       while (trail.children.length > 60) trail.firstElementChild.remove();

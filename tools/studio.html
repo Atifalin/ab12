@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>AB12 Voice Recorder</title>
+<title>AB12 Studio</title>
 <style>
   :root { --ink: #2b1b3d; --font: 'Fredoka','Nunito','Arial Rounded MT Bold',ui-rounded,system-ui,sans-serif; }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -11,6 +11,10 @@
          background: linear-gradient(160deg,#3aa7ff,#8fd8ff 55%,#c9ffe9); }
   .wrap { max-width: 860px; margin: 0 auto; padding: 2vmin 3vmin 6vmin; }
   h1 { text-align:center; color:#fff; font-size:6vmin; text-shadow:0 .5vmin 0 rgba(0,0,0,.2); margin:1vmin 0 2vmin; }
+  .top-tabs { display:flex; gap:1.5vmin; justify-content:center; margin-bottom:2.5vmin; }
+  .top-tab { font:inherit; border:0; border-radius:3vmin; padding:1.6vmin 5vmin; font-size:4vmin;
+             background:rgba(255,255,255,.35); color:var(--ink); cursor:pointer; }
+  .top-tab.on { background:#ff5c8a; color:#fff; }
   .tabs { display:flex; gap:1.5vmin; justify-content:center; margin-bottom:1vmin; flex-wrap:wrap; }
   .tab { font:inherit; border:0; border-radius:3vmin; padding:1.4vmin 4vmin; font-size:3.4vmin;
          background:rgba(255,255,255,.35); color:var(--ink); cursor:pointer; }
@@ -58,21 +62,72 @@
   #status { text-align:center; font-size:2.8vmin; min-height:4vmin; color:#7a1f3d; }
   .overall { text-align:center; font-size:2.8vmin; color:#fff; text-shadow:0 .3vmin 0 rgba(0,0,0,.2); margin-bottom:2vmin; }
   .hintline { text-align:center; font-size:2.4vmin; color:rgba(255,255,255,.9); margin-top:2vmin; }
+
+  /* family */
+  #fam-grid { display:flex; flex-wrap:wrap; gap:2vmin; justify-content:center; margin-bottom:2vmin; }
+  .mem-card { font:inherit; border:0; cursor:pointer; background:rgba(255,255,255,.92); border-radius:3vmin;
+              padding:2vmin; width:22vmin; min-width:120px; display:flex; flex-direction:column; align-items:center;
+              gap:1vmin; box-shadow:0 .8vmin 2vmin rgba(0,0,0,.12); }
+  .mem-card.on { outline:.6vmin solid #8a63ff; }
+  .mem-card img, .mem-avatar { width:14vmin; height:14vmin; min-width:64px; min-height:64px; border-radius:50%;
+              object-fit:cover; background:#8a63ff; color:#fff; display:flex; align-items:center;
+              justify-content:center; font-size:7vmin; }
+  .mem-card .mname { font-size:3vmin; }
+  .mem-card .mtitle { font-size:2.2vmin; opacity:.6; }
+  .mem-card.add { background:rgba(255,255,255,.5); border:.5vmin dashed rgba(255,255,255,.9); font-size:2.6vmin; }
+  #fam-edit { background:rgba(255,255,255,.92); border-radius:3vmin; padding:2.5vmin; margin-bottom:2vmin;
+              display:flex; flex-direction:column; gap:1.5vmin; align-items:center; }
+  #fam-edit input[type=text] { font:inherit; font-size:3vmin; padding:1vmin 2vmin; border-radius:2vmin;
+              border:.3vmin solid #cfcbe0; width:min(60vmin,80%); }
+  #fam-edit .imgprev { width:12vmin; height:12vmin; border-radius:50%; object-fit:cover; background:#e3e0f2; }
+  #fam-edit .row { display:flex; gap:1.5vmin; flex-wrap:wrap; justify-content:center; }
+  #fam-edit button { font:inherit; border:0; border-radius:2vmin; padding:1.2vmin 3vmin; font-size:2.8vmin; cursor:pointer; }
+  .fam-lines { display:flex; flex-wrap:wrap; gap:1vmin; justify-content:center; margin-bottom:2vmin; }
   @media (orientation:portrait) {
     .prompt { font-size:6.5vw; } .sub { font-size:4vw; }
     .chip { font-size:3.6vw; } .nav button { font-size:4.2vw; }
     .post button { font-size:4.4vw; } #timer { font-size:6vw; }
-    .tab { font-size:4.6vw; }
+    .tab { font-size:4.6vw; } .top-tab { font-size:5vw; }
+    .mem-card { width:34vw; } .mem-card .mname { font-size:4.4vw; }
   }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>🎙️ AB12 Voice Recorder</h1>
-  <div class="tabs" id="tabs"></div>
-  <div class="pack-tools" id="pack-tools"></div>
-  <div class="overall" id="overall"></div>
-  <div class="chips" id="chips"></div>
+  <h1>🎛️ AB12 Studio</h1>
+  <div class="top-tabs">
+    <button class="top-tab on" data-view="voices">🎙️ Voices</button>
+    <button class="top-tab" data-view="family">💛 Family</button>
+  </div>
+
+  <div id="voices-pane">
+    <div class="tabs" id="tabs"></div>
+    <div class="pack-tools" id="pack-tools"></div>
+    <div class="overall" id="overall"></div>
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <div id="family-pane" style="display:none">
+    <div id="fam-grid"></div>
+    <div id="fam-edit" style="display:none">
+      <img class="imgprev" id="fe-img" alt="" />
+      <input type="file" id="fe-file" accept="image/*" style="display:none" />
+      <div class="row">
+        <button id="fe-pick">🖼 Pick image</button>
+        <button id="fe-clearimg">✕ No image</button>
+      </div>
+      <input type="text" id="fe-name" placeholder="Name (e.g. Nani)" maxlength="40" />
+      <input type="text" id="fe-title" placeholder="Fun title (e.g. the Cookie Queen)" maxlength="60" />
+      <div class="row">
+        <button id="fe-save" class="primary" style="background:#4cd964;color:#fff">✓ Save</button>
+        <button id="fe-del" style="background:#ff6b6b;color:#fff">🗑 Delete</button>
+        <button id="fe-cancel" style="background:#e3e0f2">Cancel</button>
+      </div>
+    </div>
+    <div class="fam-lines" id="fam-lines"></div>
+    <div class="pack-tools" id="fam-tools"></div>
+  </div>
+
   <div class="card">
     <div class="prompt" id="prompt">…</div>
     <div class="sub" id="sub"></div>
@@ -110,7 +165,18 @@ const POOL_IDEAS = {
   cheer: ['Yay!', 'Good job Ezdan!', 'Wow, so clever!', 'High five!', 'Super star!'],
   try: ['Oops! Try again!', 'Almost!', 'You can do it!', 'One more try!'],
 };
+const FAMILY_LINES = [
+  ['name', 'Name'], ['peekaboo', 'Peekaboo'], ['where', 'Where’s…?'], ['fun', 'Fun lines'],
+];
+const FAMILY_LINE_TEXT = {
+  name: (m) => `${m.name}!`,
+  peekaboo: (m) => `Peekaboo! It's ${m.name}!`,
+  where: (m) => `Where's ${m.name}?`,
+  fun: () => 'Any silly line — up to 10 takes!',
+};
+let view = 'voices';
 let clips = [], manifest = {packs:{}, voices:{}}, voice = '', group = 'cheer', idx = 0;
+let members = [], family = {members:[]}, curMember = '', curLine = 'name';
 let media = null, rec = null, starting = false, chunks = [], recStart = 0, recTimer = null, autoStop = null;
 let pendingBlob = null, pendingUrl = null, ac = null;
 let playBtn = null; // button currently marked as playing
@@ -119,6 +185,9 @@ const player = $('#player');
 const takes = (v, k) => ((manifest.voices || {})[v] || {})[k] || [];
 const isPool = () => group === 'cheer' || group === 'try';
 const clipKey = () => isPool() ? group : clips[idx].key;
+const member = () => members.find((m) => m.id === curMember) || null;
+const famMember = () => (family.members || []).find((m) => m.id === curMember) || null;
+const memTakes = (l) => ((famMember() || {}).lines || {})[l] || [];
 
 function groupOf(key) {
   for (const [p] of GROUPS) if (p && key.startsWith(p)) return p;
@@ -144,7 +213,26 @@ function playUrl(url, btn) {
 player.addEventListener('ended', stopPlay);
 player.addEventListener('pause', () => { if (playBtn) { playBtn.classList.remove('playing'); playBtn.textContent = '▶'; playBtn = null; } });
 
+function setStatus(t, ok) { const s = $('#status'); s.textContent = t; s.style.color = ok ? '#1f7a3d' : '#7a1f3d'; }
+
+// ---------- shared card (prompt / takes / nav) ----------
+function drawCard({prompt, sub, keyname, pos, takeFiles, takeUrl}) {
+  $('#prompt').textContent = prompt;
+  $('#sub').textContent = sub;
+  $('#keyname').textContent = keyname;
+  $('#pos').textContent = pos;
+  $('#takes').innerHTML = takeFiles.map((f) =>
+    `<div class="take"><button class="play" data-f="${f}">▶</button><span class="fname">${f}</span><button class="del" data-f="${f}">🗑</button></div>`
+  ).join('') || '<div style="opacity:.6">No takes yet — hit the big button!</div>';
+  $('#takes').dataset.url = takeUrl;
+  discardPending();
+}
+
 function draw() {
+  if (view === 'voices') drawVoices(); else drawFamily();
+}
+
+function drawVoices() {
   const packs = manifest.packs || {};
   const slugs = Object.keys(packs);
   if (!voice || !packs[voice]) voice = slugs[0] || '';
@@ -165,26 +253,58 @@ function draw() {
   for (const [p] of GROUPS) for (const c of groupItems(p)) { t++; if (takes(voice, c.key).length) d++; }
   $('#overall').textContent = `${d} / ${t} recorded`;
   if (isPool()) {
-    $('#prompt').textContent = GROUPS.find(([p]) => p === group)[1] + ' — any phrase you like!';
-    $('#sub').textContent = 'Ideas: ' + POOL_IDEAS[group].join(' · ');
-    $('#keyname').textContent = `pool: ${group} (up to 30 takes)`;
-    $('#pos').textContent = '';
+    drawCard({
+      prompt: GROUPS.find(([p]) => p === group)[1] + ' — any phrase you like!',
+      sub: 'Ideas: ' + POOL_IDEAS[group].join(' · '),
+      keyname: `pool: ${group} (up to 30 takes)`, pos: '',
+      takeFiles: takes(voice, group), takeUrl: `/audio/voices/${voice}/`,
+    });
   } else {
     const c = clips[idx];
-    $('#prompt').textContent = c.text || c.key;
-    $('#sub').textContent = takes(voice, c.key).length ? `✓ ${takes(voice, c.key).length} take(s)` : '';
-    $('#keyname').textContent = c.key;
-    $('#pos').textContent = `${idx + 1} / ${clips.length}`;
+    drawCard({
+      prompt: c.text || c.key,
+      sub: takes(voice, c.key).length ? `✓ ${takes(voice, c.key).length} take(s)` : '',
+      keyname: c.key, pos: `${idx + 1} / ${clips.length}`,
+      takeFiles: takes(voice, c.key), takeUrl: `/audio/voices/${voice}/`,
+    });
   }
-  $('#takes').innerHTML = takes(voice, clipKey()).map((f) =>
-    `<div class="take"><button class="play" data-f="${f}">▶</button><span class="fname">${f}</span><button class="del" data-f="${f}">🗑</button></div>`
-  ).join('') || '<div style="opacity:.6">No takes yet — hit the big button!</div>';
-  discardPending();
 }
-function setStatus(t, ok) { const s = $('#status'); s.textContent = t; s.style.color = ok ? '#1f7a3d' : '#7a1f3d'; }
 
+function drawFamily() {
+  if (curMember && !members.find((m) => m.id === curMember)) curMember = '';
+  if (!curMember && members.length) curMember = members[0].id;
+  $('#fam-grid').innerHTML = members.map((m) => {
+    const img = m.image ? `<img src="/family/img/${m.image}" alt="">` : `<div class="mem-avatar">${m.name[0].toUpperCase()}</div>`;
+    return `<button class="mem-card ${m.id === curMember ? 'on' : ''}" data-m="${m.id}">${img}` +
+      `<span class="mname">${m.name}</span><span class="mtitle">${m.title || ''}</span></button>`;
+  }).join('') + `<button class="mem-card add" data-m="__add">＋<span class="mname">Add family member</span></button>`;
+  const m = member();
+  $('#fam-tools').innerHTML = m
+    ? `<button id="edit-mem">✎ Edit “${m.name}”</button>` : '';
+  $('#fam-lines').innerHTML = m ? FAMILY_LINES.map(([l, label]) => {
+    const n = memTakes(l).length;
+    return `<button class="chip ${l === curLine ? 'on' : ''}" data-l="${l}">${label}<small>${n}</small></button>`;
+  }).join('') : '';
+  if (!m) {
+    drawCard({prompt: 'Add your family!', sub: 'Chibi images + their own voices → the Peekaboo game.',
+      keyname: '', pos: '', takeFiles: [], takeUrl: ''});
+    return;
+  }
+  const files = memTakes(curLine);
+  drawCard({
+    prompt: FAMILY_LINE_TEXT[curLine](m),
+    sub: files.length ? `✓ ${files.length} take(s)` :
+      (curLine !== 'fun' ? 'A Tara fallback exists — record your own to replace it!' : ''),
+    keyname: `${m.id} · ${curLine} (max ${curLine === 'fun' ? 10 : 5})`,
+    pos: `${FAMILY_LINES.findIndex(([l]) => l === curLine) + 1} / ${FAMILY_LINES.length}`,
+    takeFiles: files, takeUrl: `/family/audio/${curMember}/`,
+  });
+}
+
+// ---------- recording engine (shared) ----------
 async function startRec() {
   if (rec || starting) return;
+  if (view === 'family' && !member()) { setStatus('Add a family member first'); return; }
   starting = true; // set synchronously — double clicks/Space can't race the getUserMedia await
   stopPlay();
   try {
@@ -280,24 +400,37 @@ async function processAudio(blob) {
 }
 async function save() {
   if (!pendingBlob) return;
-  const r = await fetch(`/api/save?voice=${voice}&clip=${encodeURIComponent(clipKey())}`,
-    {method: 'POST', body: pendingBlob});
+  const url = view === 'voices'
+    ? `/api/save?voice=${voice}&clip=${encodeURIComponent(clipKey())}`
+    : `/api/family/${curMember}/lines/${curLine}`;
+  const r = await fetch(url, {method: 'POST', body: pendingBlob});
   const j = await r.json().catch(() => ({}));
   if (!r.ok) { setStatus('Save failed: ' + (j.error || r.status)); return; }
-  manifest = j.manifest;
+  if (view === 'voices') { manifest = j.manifest; } else { members = j.members; family = j.family; }
   setStatus('Saved ' + j.file, true);
-  const wasPool = isPool();
+  const wasPool = view === 'voices' && isPool();
   draw();
   if (!wasPool) nextMissing();
 }
 async function delTake(f) {
   stopPlay();
-  const r = await fetch(`/api/take?voice=${voice}&file=${encodeURIComponent(f)}`, {method: 'DELETE'});
+  const url = view === 'voices'
+    ? `/api/take?voice=${voice}&file=${encodeURIComponent(f)}`
+    : `/api/family/${curMember}/lines/${curLine}/${encodeURIComponent(f)}`;
+  const r = await fetch(url, {method: 'DELETE'});
   const j = await r.json().catch(() => ({}));
   if (!r.ok) { setStatus('Delete failed: ' + (j.error || r.status)); return; }
-  manifest = j.manifest; draw();
+  if (view === 'voices') { manifest = j.manifest; } else { members = j.members; family = j.family; }
+  draw();
 }
 function nav(d) {
+  if (view === 'family') {
+    const i = FAMILY_LINES.findIndex(([l]) => l === curLine);
+    curLine = FAMILY_LINES[(i + d + FAMILY_LINES.length) % FAMILY_LINES.length][0];
+    stopPlay();
+    draw();
+    return;
+  }
   if (isPool()) group = '';
   idx = (idx + d + clips.length) % clips.length;
   group = groupOf(clips[idx].key);
@@ -305,6 +438,12 @@ function nav(d) {
   draw();
 }
 function nextMissing() {
+  if (view === 'family') {
+    for (const [l] of FAMILY_LINES) {
+      if (!memTakes(l).length) { curLine = l; draw(); return; }
+    }
+    return;
+  }
   for (let i = 0; i < clips.length; i++) {
     const j = (idx + i) % clips.length;
     if (!takes(voice, clips[j].key).length && groupOf(clips[j].key) === group) { idx = j; draw(); return; }
@@ -341,6 +480,70 @@ async function delPack() {
   manifest = j.manifest; voice = ''; draw();
 }
 
+// ---------- family add/edit ----------
+let feImage = null; // base64 for the edit form
+function openEdit(m) {
+  feImage = null;
+  $('#fam-edit').style.display = 'flex';
+  $('#fe-name').value = m ? m.name : '';
+  $('#fe-title').value = m ? (m.title || '') : '';
+  $('#fe-img').src = m && m.image ? `/family/img/${m.image}` : '';
+  $('#fe-img').style.display = m && m.image ? '' : 'none';
+  $('#fe-del').style.display = m ? '' : 'none';
+  $('#fe-save').dataset.id = m ? m.id : '';
+}
+function closeEdit() { $('#fam-edit').style.display = 'none'; feImage = null; }
+async function saveMember() {
+  const id = $('#fe-save').dataset.id;
+  const body = {name: $('#fe-name').value.trim(), title: $('#fe-title').value.trim()};
+  if (feImage) body.image = feImage;
+  const r = await fetch(id ? `/api/family/${id}` : '/api/family', {
+    method: id ? 'PATCH' : 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(body)});
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) { setStatus('Save failed: ' + (j.error || r.status)); return; }
+  members = j.members; family = j.family;
+  curMember = j.member.id;
+  closeEdit(); draw();
+}
+async function delMember() {
+  const id = $('#fe-save').dataset.id;
+  const m = members.find((x) => x.id === id);
+  if (!m || !confirm(`Delete ${m.name} and all their files?`)) return;
+  const r = await fetch(`/api/family/${id}`, {method: 'DELETE'});
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) { setStatus('Delete failed: ' + (j.error || r.status)); return; }
+  members = j.members; family = j.family; curMember = '';
+  closeEdit(); draw();
+}
+$('#fe-pick').addEventListener('click', () => $('#fe-file').click());
+$('#fe-file').addEventListener('change', () => {
+  const f = $('#fe-file').files[0];
+  if (!f) return;
+  if (f.size > 8 * 1024 * 1024) { setStatus('Image too big (max 8 MB)'); return; }
+  const rd = new FileReader();
+  rd.onload = () => {
+    feImage = rd.result.split(',')[1];
+    $('#fe-img').src = rd.result;
+    $('#fe-img').style.display = '';
+  };
+  rd.readAsDataURL(f);
+});
+$('#fe-clearimg').addEventListener('click', () => { feImage = null; $('#fe-img').style.display = 'none'; });
+$('#fe-save').addEventListener('click', saveMember);
+$('#fe-del').addEventListener('click', delMember);
+$('#fe-cancel').addEventListener('click', closeEdit);
+
+// ---------- wiring ----------
+document.querySelectorAll('.top-tab').forEach((b) => b.addEventListener('click', (e) => {
+  e.target.blur();
+  view = e.target.dataset.view;
+  document.querySelectorAll('.top-tab').forEach((x) => x.classList.toggle('on', x === b));
+  $('#voices-pane').style.display = view === 'voices' ? '' : 'none';
+  $('#family-pane').style.display = view === 'family' ? '' : 'none';
+  stopPlay(); discardPending();
+  draw();
+}));
 $('#tabs').addEventListener('click', (e) => {
   const v = e.target.dataset.v; if (!v) return;
   e.target.blur();
@@ -357,6 +560,23 @@ $('#chips').addEventListener('click', (e) => {
   if (!isPool()) { const first = groupItems(group)[0]; idx = clips.findIndex((c) => c.key === first.key); }
   draw();
 });
+$('#fam-grid').addEventListener('click', (e) => {
+  const card = e.target.closest('.mem-card'); if (!card) return;
+  e.target.blur && e.target.blur();
+  if (card.dataset.m === '__add') { openEdit(null); return; }
+  if (card.dataset.m === curMember && !$('#fam-edit').style.display) closeEdit();
+  curMember = card.dataset.m;
+  draw();
+});
+$('#fam-tools').addEventListener('click', (e) => {
+  if (e.target.id === 'edit-mem') openEdit(member());
+});
+$('#fam-lines').addEventListener('click', (e) => {
+  const c = e.target.closest('.chip'); if (!c) return;
+  e.target.blur();
+  curLine = c.dataset.l;
+  draw();
+});
 $('#rec-btn').addEventListener('click', (e) => { e.target.blur(); rec ? stopRec() : startRec(); });
 $('#play-btn').addEventListener('click', (e) => { e.target.blur(); if (pendingUrl) playUrl(pendingUrl, e.target); });
 $('#save-btn').addEventListener('click', save);
@@ -367,14 +587,14 @@ $('#missing-btn').addEventListener('click', nextMissing);
 $('#takes').addEventListener('click', (e) => {
   const f = e.target.dataset.f; if (!f) return;
   e.target.blur();
-  if (e.target.classList.contains('play')) playUrl(`/audio/voices/${voice}/${f}`, e.target);
+  if (e.target.classList.contains('play')) playUrl($('#takes').dataset.url + f, e.target);
   else if (e.target.classList.contains('del') && confirm('Delete ' + f + '?')) delTake(f);
 });
 document.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT' || e.repeat) return;
   if (e.code === 'Space') { e.preventDefault(); rec ? stopRec() : startRec(); }
   else if (e.key === 'p' || e.key === 'P') { if (pendingUrl) playUrl(pendingUrl, $('#play-btn')); }
-  else if (e.key === 'Enter') save();
+  else if (e.key === 'Enter') { if ($('#fam-edit').style.display === 'none') save(); }
   else if (e.key === 'r' || e.key === 'R') discardPending();
   else if (e.key === 'ArrowLeft') nav(-1);
   else if (e.key === 'ArrowRight') nav(1);
@@ -387,6 +607,9 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) shutd
   const r = await fetch('/api/clips');
   const j = await r.json();
   clips = j.clips; manifest = j.manifest;
+  const fr = await fetch('/api/family');
+  const fj = await fr.json().catch(() => ({}));
+  members = fj.members || []; family = fj.family || {members: []};
   draw();
 })();
 </script>
