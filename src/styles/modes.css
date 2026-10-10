@@ -420,3 +420,93 @@ body.shake #smash-layer { animation: shake .18s linear; }
              background: rgba(43,27,61,.38); color: #fff; padding: 1.4vmin 3.5vmin;
              border-radius: 4vmin; z-index: 10; }
 .af-banner { top: 22%; }
+
+/* ---------- SORT IT ---------- */
+#sortit { background: linear-gradient(#cfe9ff, #f0f9ff 60%, #dff2d8); }
+.sort-sky { position: absolute; inset: 0; overflow: hidden; }
+.sort-cloud { position: absolute; top: 8%; left: 12%; font-size: 9vmin; opacity: .85; }
+.sort-cloud.c2 { left: 68%; top: 4%; font-size: 7vmin; }
+.sort-prompt { position: absolute; top: 7%; left: 50%; transform: translateX(-50%);
+               font-size: 6vmin; font-weight: 700; color: #fff; z-index: 5;
+               background: rgba(43,27,61,.38); padding: 1.2vmin 3vmin; border-radius: 4vmin;
+               max-width: 88vw; text-align: center; }
+.sort-drop { position: absolute; top: 20%; left: 50%; transform: translateX(-50%);
+             width: 24vmin; height: 24vmin; z-index: 10; }
+.sort-item { position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+             font-size: 19vmin; line-height: 1; text-align: center; cursor: grab;
+             display: flex; align-items: center; justify-content: center;
+             filter: drop-shadow(0 1vmin 1.5vmin rgba(0,0,0,.2)); }
+.sort-item.sort-glyph { font-weight: 800; color: #fff; background: var(--bub, #8a63ff);
+             border-radius: 3vmin; font-size: 12vmin;
+             box-shadow: inset 0 -.8vmin 0 rgba(0,0,0,.15), 0 1vmin 2vmin rgba(0,0,0,.2); }
+.sort-item.dropping { animation: sortDrop .55s cubic-bezier(.34,1.56,.64,1); }
+.sort-item.dragging { animation: none; }
+.sort-item.giggle { animation: wmGiggle .5s ease; }
+@keyframes sortDrop { from { transform: translateY(-60vh) scale(.8); } to { transform: none; } }
+.sort-baskets { position: absolute; left: 50%; transform: translateX(-50%); bottom: max(4vmin, env(safe-area-inset-bottom));
+                display: flex; gap: 5vmin; z-index: 5; }
+.sort-basket { position: relative; width: 26vmin; height: 24vmin; min-width: 96px; min-height: 88px;
+               background: linear-gradient(#c98a5c, #a06a42); border-radius: 3vmin 3vmin 4vmin 4vmin;
+               border: .8vmin solid var(--bc, #ffd23f); border-top-width: 1.6vmin;
+               display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+               overflow: hidden; padding-bottom: 1vmin; }
+.sort-basket .fill { position: absolute; left: 0; right: 0; bottom: 0; height: 8%;
+                     background: var(--bc, #ffd23f); opacity: .45; transition: height .3s; }
+.sort-basket .icon { font-size: 7vmin; z-index: 1; }
+.sort-basket .blabel { font-size: 3.4vmin; font-weight: 700; color: #fff; z-index: 1;
+                       text-shadow: 0 .3vmin 0 rgba(0,0,0,.3); }
+.sort-basket.wiggle { animation: wmJiggle .6s ease; }
+.sort-basket.hint { animation: bubHint .6s ease-in-out infinite; }
+.sort-basket.dance { animation: wmBounce .8s ease-in-out 2; }
+
+/* ---------- FEED THE MONSTER ---------- */
+#feed { background: linear-gradient(#ffe9d6, #fff6e8 55%, #ffe4ec); overflow: hidden; }
+.feed-room { position: absolute; inset: 0; }
+.feed-bubble { position: absolute; top: 5%; left: 50%; transform: translateX(-50%);
+               background: #fff; border-radius: 4vmin; padding: 1.6vmin 3.5vmin;
+               font-size: 5.4vmin; font-weight: 700; color: var(--ink); z-index: 8;
+               box-shadow: 0 .6vmin 1.8vmin rgba(0,0,0,.15); max-width: 86vw; text-align: center; }
+.feed-bubble::after { content: ''; position: absolute; bottom: -1.4vmin; left: 50%;
+                      border: 1.5vmin solid transparent; border-top-color: #fff; }
+.feed-mon { position: absolute; top: 22%; left: 50%; transform: translateX(-50%);
+            width: 34vmin; height: 34vmin; min-width: 130px; min-height: 130px;
+            background: var(--mc, #a78bfa); border-radius: 48% 52% 46% 54% / 55% 52% 48% 45%;
+            box-shadow: inset 0 -2vmin 0 rgba(0,0,0,.08), 0 1.5vmin 3vmin rgba(0,0,0,.15);
+            animation: afBreathe 3s ease-in-out infinite; z-index: 6; }
+.feed-eyes { position: absolute; top: 16%; left: 0; right: 0; display: flex; justify-content: center; gap: 14%; }
+.feye { width: 7.5vmin; height: 7.5vmin; min-width: 30px; min-height: 30px; background: #fff; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.feye i { width: 40%; height: 40%; background: var(--ink); border-radius: 50%; transition: transform .12s; }
+.feed-mouth { position: absolute; top: 44%; left: 50%; transform: translateX(-50%);
+              width: 13vmin; height: 6vmin; min-width: 52px; min-height: 22px;
+              background: #5c2e3e; border-radius: 0 0 10vmin 10vmin; overflow: hidden;
+              transition: height .15s, width .15s; }
+.feed-mouth.open { height: 11vmin; width: 16vmin; }
+@media (orientation: portrait) {
+  .feed-bubble { font-size: 6vw; }
+  .feed-mon { top: 32%; width: 56vw; height: 56vw; }
+}
+.ftongue { position: absolute; bottom: 0; left: 20%; width: 60%; height: 45%;
+           background: #ff8fa8; border-radius: 50% 50% 0 0; }
+.feed-tummy { position: absolute; bottom: 8%; left: 50%; transform: translateX(-50%);
+              width: 60%; height: 26%; background: rgba(255,255,255,.35); border-radius: 50%;
+              transform-origin: center 80%; transition: transform .3s; }
+.feed-mon.chomp .feed-mouth { animation: feedChomp .45s ease; }
+.feed-mon.blech { animation: wmGiggle .6s ease; }
+.feed-mon.blech .feed-mouth { height: 2.5vmin; width: 9vmin; }
+.feed-mon.dance { animation: wmBounce .9s ease-in-out 2; }
+@keyframes feedChomp { 0%,100%{transform:translateX(-50%) scaleY(1)} 40%{transform:translateX(-50%) scaleY(1.7)} 70%{transform:translateX(-50%) scaleY(.6)} }
+.feed-table { position: absolute; bottom: max(4vmin, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
+              width: 92vw; max-width: 640px; height: 24vmin; min-height: 96px;
+              background: linear-gradient(#d9a066, #b57f4a); border-radius: 3vmin;
+              box-shadow: inset 0 1vmin 0 rgba(255,255,255,.25), 0 1vmin 2vmin rgba(0,0,0,.15); z-index: 7; }
+.feed-food { position: absolute; bottom: 18%; width: 20vmin; height: 20vmin; min-width: 72px; min-height: 72px;
+             font-size: 15vmin; line-height: 1; cursor: grab; display: flex; align-items: center; justify-content: center;
+             filter: drop-shadow(0 .8vmin 1vmin rgba(0,0,0,.2)); }
+.feed-food.dragging { animation: none; }
+.feed-food.wiggle { animation: wmJiggle .6s ease infinite; }
+.feed-count { position: absolute; top: 16%; left: 50%; transform: translateX(-50%);
+              font-size: 4.5vmin; font-weight: 700; color: rgba(43,27,61,.6); z-index: 8; }
+.feed-crumb { position: absolute; width: 1.2vmin; height: 1.2vmin; border-radius: 50%;
+              background: #d9a066; animation: feedCrumb .8s ease-out forwards; }
+@keyframes feedCrumb { to { transform: translateY(6vmin) rotate(90deg); opacity: 0; } }

@@ -124,3 +124,105 @@ export const ANIMALS = [
   { id: 'goose',    name: 'Goose',    emoji: '🪿', scenes: ['sea', 'farm'], sound: 'honk' },
 ];
 export const AF_SCENES = ['farm', 'zoo', 'sea', 'jungle', 'mix'];
+
+// ---------- sort it ----------
+export const SORT_SETS = [
+  { id: 'colour', prompt: 'Put them in the right basket!',
+    baskets: [
+      { id: 'red',    label: 'Red',    icon: '🔴', color: '#ff6b6b' },
+      { id: 'yellow', label: 'Yellow', icon: '🟡', color: '#ffd23f' },
+      { id: 'blue',   label: 'Blue',   icon: '🔵', color: '#5c9dff' },
+      { id: 'green',  label: 'Green',  icon: '🟢', color: '#4cd964' },
+    ],
+    items: [
+      { id: 'apple',   emoji: '🍎', b: 'red' }, { id: 'strawberry', emoji: '🍓', b: 'red' },
+      { id: 'redcar',  emoji: '🚗', b: 'red' }, { id: 'rose',    emoji: '🌹', b: 'red' },
+      { id: 'heart',   emoji: '❤️', b: 'red' }, { id: 'banana',  emoji: '🍌', b: 'yellow' },
+      { id: 'sunflower',emoji: '🌻', b: 'yellow' }, { id: 'chick', emoji: '🐥', b: 'yellow' },
+      { id: 'star',    emoji: '⭐', b: 'yellow' }, { id: 'cheese', emoji: '🧀', b: 'yellow' },
+      { id: 'whale',   emoji: '🐳', b: 'blue' }, { id: 'blueberries', emoji: '🫐', b: 'blue' },
+      { id: 'blueheart',emoji: '💙', b: 'blue' }, { id: 'cap',   emoji: '🧢', b: 'blue' },
+      { id: 'butterfly',emoji: '🦋', b: 'blue' }, { id: 'frog2', emoji: '🐸', b: 'green' },
+      { id: 'broccoli',emoji: '🥦', b: 'green' }, { id: 'clover', emoji: '🍀', b: 'green' },
+      { id: 'dino',    emoji: '🦖', b: 'green' }, { id: 'greenapple', emoji: '🍏', b: 'green' },
+    ] },
+  { id: 'kind', prompt: 'Where do they belong?',
+    baskets: [
+      { id: 'animals',  label: 'Animals',  icon: '🐶', color: '#c98a5c' },
+      { id: 'food',     label: 'Food',     icon: '🍎', color: '#ff8c42' },
+      { id: 'vehicles', label: 'Vehicles', icon: '🚗', color: '#5c9dff' },
+    ],
+    items: [
+      { id: 'dog2',   emoji: '🐶', b: 'animals' }, { id: 'cat2',  emoji: '🐱', b: 'animals' },
+      { id: 'horse2', emoji: '🐴', b: 'animals' }, { id: 'hen2',  emoji: '🐔', b: 'animals' },
+      { id: 'sheep2', emoji: '🐑', b: 'animals' }, { id: 'pig2',  emoji: '🐷', b: 'animals' },
+      { id: 'apple2', emoji: '🍎', b: 'food' }, { id: 'banana2', emoji: '🍌', b: 'food' },
+      { id: 'pizza',  emoji: '🍕', b: 'food' }, { id: 'carrot', emoji: '🥕', b: 'food' },
+      { id: 'donut',  emoji: '🍩', b: 'food' }, { id: 'milk2',  emoji: '🥛', b: 'food' },
+      { id: 'car2',   emoji: '🚗', b: 'vehicles' }, { id: 'bus2',  emoji: '🚌', b: 'vehicles' },
+      { id: 'plane',  emoji: '✈️', b: 'vehicles' }, { id: 'ship', emoji: '🚢', b: 'vehicles' },
+      { id: 'bike',   emoji: '🚲', b: 'vehicles' }, { id: 'tractor', emoji: '🚜', b: 'vehicles' },
+    ] },
+  { id: 'size', prompt: 'Big things or small things?',
+    baskets: [
+      { id: 'big',   label: 'Big',   icon: '🐘', color: '#8a63ff' },
+      { id: 'small', label: 'Small', icon: '🐜', color: '#ff9fb8' },
+    ],
+    items: [
+      { id: 'elephant2', emoji: '🐘', b: 'big' }, { id: 'whale2',  emoji: '🐋', b: 'big' },
+      { id: 'tree2',     emoji: '🌳', b: 'big' }, { id: 'giraffe', emoji: '🦒', b: 'big' },
+      { id: 'house',     emoji: '🏠', b: 'big' }, { id: 'ant',     emoji: '🐜', b: 'small' },
+      { id: 'fish2',     emoji: '🐟', b: 'small' }, { id: 'sprout', emoji: '🌱', b: 'small' },
+      { id: 'mouse',     emoji: '🐁', b: 'small' }, { id: 'snail',  emoji: '🐌', b: 'small' },
+    ] },
+  { id: 'where', prompt: 'Where do they live?',
+    baskets: [
+      { id: 'sky',  label: 'Sky',  icon: '☁️', color: '#7ec8ff' },
+      { id: 'land', label: 'Land', icon: '🏞️', color: '#74c476' },
+      { id: 'sea',  label: 'Sea',  icon: '🌊', color: '#3e9ccf' },
+    ],
+    items: [
+      { id: 'bird2',  emoji: '🐦', b: 'sky' }, { id: 'plane2', emoji: '✈️', b: 'sky' },
+      { id: 'butterfly2', emoji: '🦋', b: 'sky' }, { id: 'kite2', emoji: '🪁', b: 'sky' },
+      { id: 'cow2',   emoji: '🐄', b: 'land' }, { id: 'car3',   emoji: '🚗', b: 'land' },
+      { id: 'dog3',   emoji: '🐕', b: 'land' }, { id: 'house2', emoji: '🏠', b: 'land' },
+      { id: 'fish3',  emoji: '🐟', b: 'sea' }, { id: 'octopus', emoji: '🐙', b: 'sea' },
+      { id: 'ship2',  emoji: '🚢', b: 'sea' }, { id: 'whale3', emoji: '🐳', b: 'sea' },
+    ] },
+  { id: 'letters', prompt: 'Letters or numbers?',
+    baskets: [
+      { id: 'letters', label: 'Letters', icon: '🔤', color: '#ff77a9' },
+      { id: 'numbers', label: 'Numbers', icon: '🔢', color: '#2fb8ff' },
+    ],
+    items: [
+      { id: 'la', emoji: 'A', b: 'letters' }, { id: 'lb', emoji: 'B', b: 'letters' },
+      { id: 'lc', emoji: 'C', b: 'letters' }, { id: 'ld', emoji: 'D', b: 'letters' },
+      { id: 'le', emoji: 'E', b: 'letters' }, { id: 'n2', emoji: '2', b: 'numbers' },
+      { id: 'n4', emoji: '4', b: 'numbers' }, { id: 'n5', emoji: '5', b: 'numbers' },
+      { id: 'n7', emoji: '7', b: 'numbers' }, { id: 'n9', emoji: '9', b: 'numbers' },
+    ] },
+];
+
+// ---------- feed the monster ----------
+export const FEED_FOODS = [
+  { id: 'apple',   emoji: '🍎', name: 'apple',      color: 'red' },
+  { id: 'banana',  emoji: '🍌', name: 'banana',     color: 'yellow' },
+  { id: 'carrot',  emoji: '🥕', name: 'carrot',     color: 'orange' },
+  { id: 'donut',   emoji: '🍩', name: 'donut',      color: 'pink' },
+  { id: 'egg',     emoji: '🥚', name: 'egg',        color: 'white' },
+  { id: 'fries',   emoji: '🍟', name: 'fries',      color: 'yellow' },
+  { id: 'grapes',  emoji: '🍇', name: 'grapes',     color: 'purple' },
+  { id: 'honey',   emoji: '🍯', name: 'honey',      color: 'yellow' },
+  { id: 'icecream',emoji: '🍦', name: 'ice cream',  color: 'white' },
+  { id: 'juice',   emoji: '🍹', name: 'juice',      color: 'orange' },
+  { id: 'kiwi',    emoji: '🥝', name: 'kiwi',       color: 'green' },
+  { id: 'lemon',   emoji: '🍋', name: 'lemon',      color: 'yellow' },
+  { id: 'melon',   emoji: '🍈', name: 'melon',      color: 'green' },
+  { id: 'noodles', emoji: '🍜', name: 'noodles',    color: 'yellow' },
+  { id: 'orange',  emoji: '🍊', name: 'orange',     color: 'orange' },
+  { id: 'pizza',   emoji: '🍕', name: 'pizza',      color: 'red' },
+  { id: 'strawberry', emoji: '🍓', name: 'strawberry', color: 'red' },
+  { id: 'tomato',  emoji: '🍅', name: 'tomato',     color: 'red' },
+  { id: 'watermelon', emoji: '🍉', name: 'watermelon', color: 'green' },
+];
+export const FEED_COLORS = ['red', 'yellow', 'green', 'orange', 'white', 'purple', 'pink'];

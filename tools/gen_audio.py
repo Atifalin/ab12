@@ -110,6 +110,58 @@ def build_manifest():
         clips.append((f"anisnd_{aid}", f"{sound.capitalize()}!"))
     clips.append(("farm_intro", "Let's visit the animals!"))
 
+    # Sort it! — baskets, prompts, item names, misc
+    sort_names = {
+        'apple': 'apple', 'strawberry': 'strawberry', 'redcar': 'red car',
+        'rose': 'rose', 'heart': 'heart', 'banana': 'banana', 'sunflower': 'sunflower',
+        'chick': 'chick', 'star': 'star', 'cheese': 'cheese', 'whale': 'whale',
+        'blueberries': 'blueberries', 'blueheart': 'blue heart', 'cap': 'cap',
+        'butterfly': 'butterfly', 'frog2': 'frog', 'broccoli': 'broccoli',
+        'clover': 'clover', 'dino': 'dinosaur', 'greenapple': 'green apple',
+        'dog2': 'dog', 'cat2': 'cat', 'horse2': 'horse', 'hen2': 'chicken',
+        'sheep2': 'sheep', 'pig2': 'pig', 'apple2': 'apple', 'banana2': 'banana',
+        'pizza': 'pizza', 'carrot': 'carrot', 'donut': 'donut', 'milk2': 'milk',
+        'car2': 'car', 'bus2': 'bus', 'plane': 'aeroplane', 'ship': 'ship',
+        'bike': 'bike', 'tractor': 'tractor',
+        'elephant2': 'elephant', 'whale2': 'whale', 'tree2': 'tree',
+        'giraffe': 'giraffe', 'house': 'house', 'ant': 'ant', 'fish2': 'fish',
+        'sprout': 'sprout', 'mouse': 'mouse', 'snail': 'snail',
+        'bird2': 'bird', 'plane2': 'aeroplane', 'butterfly2': 'butterfly',
+        'kite2': 'kite', 'cow2': 'cow', 'car3': 'car', 'dog3': 'dog',
+        'house2': 'house', 'fish3': 'fish', 'octopus': 'octopus',
+        'ship2': 'ship', 'whale3': 'whale',
+        'la': 'Ay', 'lb': 'Bee', 'lc': 'See', 'ld': 'Dee', 'le': 'Ee',
+        'n2': 'Two', 'n4': 'Four', 'n5': 'Five', 'n7': 'Seven', 'n9': 'Nine',
+    }
+    sort_block = src.split("const SORT_SETS = [")[1].split("];")[0]
+    for bid, label in extract(r"id: '([^']+)',\s*label: '([^']+)'", sort_block):
+        clips.append((f"sortb_{bid}", f"{label}!"))
+    for sid, prompt in extract(r"id: '([^']+)', prompt: '([^']+)'", sort_block):
+        clips.append((f"sortq_{sid}", prompt))
+    for iid in extract(r"id: '([^']+)',\s*emoji:", sort_block):
+        clips.append((f"sorti_{iid}", f"{sort_names.get(iid, iid)}!"))
+    clips.append(("sort_intro", "Let's sort everything into the right baskets!"))
+    clips.append(("sort_try", "Hmm, try another basket!"))
+    clips.append(("sort_done", "You sorted them all!"))
+
+    # Feed the Monster — requests, reactions
+    feed_block = src.split("const FEED_FOODS = [")[1].split("];")[0]
+    feed_colors = extract(r"color: '([^']+)'", feed_block)
+    for fid, name in extract(r"id: '([^']+)',.*name: '([^']+)'", feed_block):
+        clips.append((f"feedi_{fid}", f"{name}!"))
+    feed_letters = sorted({i[0] for i in extract(r"id: '([a-z]+)',.*name:", feed_block)})
+    for ch in feed_letters:
+        clips.append((f"feedq_l_{ch}", f"I want something that starts with {PHON[ch.upper()]}!"))
+    for c in sorted(set(feed_colors)):
+        clips.append((f"feedq_c_{c}", f"Feed me something {c}!"))
+    for n in range(2, 6):
+        clips.append((f"feedq_n_{n}", f"Feed me {numbers[n].lower()}!"))
+    for i, yum in enumerate(["Yum!", "Yummy yum yum!", "Mmm, delicious!"]):
+        clips.append((f"feed_yum{i + 1}", yum))
+    clips.append(("feed_blech", "Blech! Not that one!"))
+    clips.append(("feed_dance", "I'm so full and happy!"))
+    clips.append(("feed_intro", "Feed the hungry monster!"))
+
     clips.append(("intro_learn", "Let's learn letters and numbers!"))
     clips.append(("intro_smash", "Smash time!"))
     clips.append(("find_intro", "Let's play find it!"))

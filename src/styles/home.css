@@ -75,6 +75,11 @@ body.theme-forest #home { background: linear-gradient(180deg, #57cc8a, #a8ecbe 5
 .mode-card.smash, .cat-card.cat-play { background: linear-gradient(160deg, #ffd45c, #ff9f1c 60%, #ff6b00); }
 .mode-card.find { background: linear-gradient(160deg, #7ee8a6, #20c997 60%, #0ca678); }
 .mode-card.spell { background: linear-gradient(160deg, #b197fc, #8a63ff 60%, #6741d9); }
+.mode-card.wordmonsters { background: linear-gradient(160deg, #74c0fc, #339af0 60%, #1c7ed6); }
+.mode-card.animalfarm { background: linear-gradient(160deg, #a9e34b, #74b816 60%, #5c940d); }
+.mode-card.peekaboo { background: linear-gradient(160deg, #ffb3d9, #ff77b9 60%, #e6499b); }
+.mode-card.sortit { background: linear-gradient(160deg, #ffc078, #fd7e14 60%, #e8590c); }
+.mode-card.feed { background: linear-gradient(160deg, #da77f2, #be4bdb 60%, #9c36b5); }
 .cat-card.cat-think { background: linear-gradient(160deg, #7ee8a6, #20c997 60%, #0ca678); }
 .cat-card.cat-family { background: linear-gradient(160deg, #ffb3d9, #ff77b9 60%, #e6499b); }
 .mode-card .big { font-size: 7vmin; line-height: 1; text-shadow: 0 .5vmin 0 rgba(0,0,0,.2); }
@@ -113,4 +118,8 @@ body.theme-forest #home { background: linear-gradient(180deg, #57cc8a, #a8ecbe 5
   .hint { font-size: 3.2vw; padding: 0 4vw; }
   .made-by { font-size: 3.4vw; }
   .cat-back { width: 12vw; height: 12vw; font-size: 6vw; }
+  .home-view.cat-open { flex-direction: column; gap: 3vw; }
+  .home-view.cat-open .cat-back { align-self: flex-start; margin: 0 0 0 4vw; }
+  .home-view .menu { gap: 4vw; }
+  .home-view.cat-open .mode-card { width: 38vw; height: 38vw; }
 }

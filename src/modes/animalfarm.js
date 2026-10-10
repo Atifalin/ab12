@@ -94,9 +94,9 @@ export default {
     function pickShown(n) {
       const p = [...pool()];
       shown = [];
-      if (quiz && !p.includes(quiz.target)) p.splice(rnd(0, p.length - 1), 1, quiz.target);
+      if (quiz && !p.includes(quiz.target)) p.splice(Math.floor(Math.random() * p.length), 1, quiz.target);
       while (shown.length < n && p.length) {
-        const a = p.splice(rnd(0, p.length - 1), 1)[0];
+        const a = p.splice(Math.floor(Math.random() * p.length), 1)[0];
         if (!shown.includes(a)) shown.push(a);
       }
     }
@@ -166,7 +166,7 @@ export default {
       const p = pool();
       quiz.target = rand(p);
       pickShown(n);
-      if (!shown.includes(quiz.target)) shown[rnd(0, shown.length - 1)] = quiz.target;
+      if (!shown.includes(quiz.target)) shown[Math.floor(Math.random() * shown.length)] = quiz.target;
       layout();
       promptEl.hidden = false;
       promptEl.textContent = `Who says ${quiz.target.sound}?`;

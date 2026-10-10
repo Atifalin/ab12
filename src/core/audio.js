@@ -66,6 +66,8 @@ let noteIdx = 0, noteTimer = null;
 export const SFX = {
   pop: () => tone({ type: 'sine', f0: 550, f1: 1050, dur: 0.14, gain: 0.22 }),
   boing: () => tone({ type: 'triangle', f0: 750, f1: 160, dur: 0.42, gain: 0.18 }),
+  chomp: () => { tone({ type: 'square', f0: 160, f1: 70, dur: 0.16, gain: 0.2 }); tone({ type: 'square', f0: 140, f1: 60, dur: 0.14, gain: 0.16, delay: 0.14 }); },
+  burp: () => tone({ type: 'sawtooth', f0: 130, f1: 60, dur: 0.5, gain: 0.15, delay: 0.1 }),
   slideUp: () => tone({ type: 'triangle', f0: 240, f1: 1200, dur: 0.45, gain: 0.1 }),
   honk: () => { tone({ type: 'triangle', f0: 220, f1: 200, dur: 0.28, gain: 0.13 }); tone({ type: 'triangle', f0: 277, f1: 260, dur: 0.28, gain: 0.11 }); },
   laser: () => tone({ type: 'sine', f0: 1400, f1: 140, dur: 0.32, gain: 0.1 }),

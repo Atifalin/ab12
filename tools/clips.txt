@@ -489,6 +489,153 @@ anisay_goose	The goose says honk!
 aniq_goose	Who says honk?
 anisnd_goose	Honk!
 farm_intro	Let's visit the animals!
+sortb_red	Red!
+sortb_yellow	Yellow!
+sortb_blue	Blue!
+sortb_green	Green!
+sortb_animals	Animals!
+sortb_food	Food!
+sortb_vehicles	Vehicles!
+sortb_big	Big!
+sortb_small	Small!
+sortb_sky	Sky!
+sortb_land	Land!
+sortb_sea	Sea!
+sortb_letters	Letters!
+sortb_numbers	Numbers!
+sortq_colour	Put them in the right basket!
+sortq_kind	Where do they belong?
+sortq_size	Big things or small things?
+sortq_where	Where do they live?
+sortq_letters	Letters or numbers?
+sorti_apple	apple!
+sorti_strawberry	strawberry!
+sorti_redcar	red car!
+sorti_rose	rose!
+sorti_heart	heart!
+sorti_banana	banana!
+sorti_sunflower	sunflower!
+sorti_chick	chick!
+sorti_star	star!
+sorti_cheese	cheese!
+sorti_whale	whale!
+sorti_blueberries	blueberries!
+sorti_blueheart	blue heart!
+sorti_cap	cap!
+sorti_butterfly	butterfly!
+sorti_frog2	frog!
+sorti_broccoli	broccoli!
+sorti_clover	clover!
+sorti_dino	dinosaur!
+sorti_greenapple	green apple!
+sorti_dog2	dog!
+sorti_cat2	cat!
+sorti_horse2	horse!
+sorti_hen2	chicken!
+sorti_sheep2	sheep!
+sorti_pig2	pig!
+sorti_apple2	apple!
+sorti_banana2	banana!
+sorti_pizza	pizza!
+sorti_carrot	carrot!
+sorti_donut	donut!
+sorti_milk2	milk!
+sorti_car2	car!
+sorti_bus2	bus!
+sorti_plane	aeroplane!
+sorti_ship	ship!
+sorti_bike	bike!
+sorti_tractor	tractor!
+sorti_elephant2	elephant!
+sorti_whale2	whale!
+sorti_tree2	tree!
+sorti_giraffe	giraffe!
+sorti_house	house!
+sorti_ant	ant!
+sorti_fish2	fish!
+sorti_sprout	sprout!
+sorti_mouse	mouse!
+sorti_snail	snail!
+sorti_bird2	bird!
+sorti_plane2	aeroplane!
+sorti_butterfly2	butterfly!
+sorti_kite2	kite!
+sorti_cow2	cow!
+sorti_car3	car!
+sorti_dog3	dog!
+sorti_house2	house!
+sorti_fish3	fish!
+sorti_octopus	octopus!
+sorti_ship2	ship!
+sorti_whale3	whale!
+sorti_la	Ay!
+sorti_lb	Bee!
+sorti_lc	See!
+sorti_ld	Dee!
+sorti_le	Ee!
+sorti_n2	Two!
+sorti_n4	Four!
+sorti_n5	Five!
+sorti_n7	Seven!
+sorti_n9	Nine!
+sort_intro	Let's sort everything into the right baskets!
+sort_try	Hmm, try another basket!
+sort_done	You sorted them all!
+feedi_apple	apple!
+feedi_banana	banana!
+feedi_carrot	carrot!
+feedi_donut	donut!
+feedi_egg	egg!
+feedi_fries	fries!
+feedi_grapes	grapes!
+feedi_honey	honey!
+feedi_icecream	ice cream!
+feedi_juice	juice!
+feedi_kiwi	kiwi!
+feedi_lemon	lemon!
+feedi_melon	melon!
+feedi_noodles	noodles!
+feedi_orange	orange!
+feedi_pizza	pizza!
+feedi_strawberry	strawberry!
+feedi_tomato	tomato!
+feedi_watermelon	watermelon!
+feedq_l_a	I want something that starts with ay!
+feedq_l_b	I want something that starts with bee!
+feedq_l_c	I want something that starts with see!
+feedq_l_d	I want something that starts with dee!
+feedq_l_e	I want something that starts with ee!
+feedq_l_f	I want something that starts with eff!
+feedq_l_g	I want something that starts with jee!
+feedq_l_h	I want something that starts with aitch!
+feedq_l_i	I want something that starts with eye!
+feedq_l_j	I want something that starts with jay!
+feedq_l_k	I want something that starts with kay!
+feedq_l_l	I want something that starts with ell!
+feedq_l_m	I want something that starts with em!
+feedq_l_n	I want something that starts with en!
+feedq_l_o	I want something that starts with oh!
+feedq_l_p	I want something that starts with pee!
+feedq_l_s	I want something that starts with ess!
+feedq_l_t	I want something that starts with tee!
+feedq_l_w	I want something that starts with double-you!
+feedq_c_green	Feed me something green!
+feedq_c_orange	Feed me something orange!
+feedq_c_pink	Feed me something pink!
+feedq_c_purple	Feed me something purple!
+feedq_c_red	Feed me something red!
+feedq_c_white	Feed me something white!
+feedq_c_yellow	Feed me something yellow!
+feedq_n_2	Feed me two!
+feedq_n_3	Feed me three!
+feedq_n_4	Feed me four!
+feedq_n_5	Feed me five!
+feed_yum1	Yum!
+feed_yum2	Yummy yum yum!
+feed_yum3	Mmm, delicious!
+feed_blech	Blech! Not that one!
+feed_dance	I'm so full and happy!
+feed_intro	Feed the hungry monster!
 intro_learn	Let's learn letters and numbers!
 intro_smash	Smash time!
 find_intro	Let's play find it!
