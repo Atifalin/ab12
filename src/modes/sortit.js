@@ -1,5 +1,5 @@
 import { SORT_SETS } from '../content.js';
-import { makeDraggable } from '../core/drag.js';
+import { makeDraggable, flyFromDrop } from '../core/drag.js';
 import { rand, rnd } from '../core/util.js';
 
 // ---------- sort it ----------
@@ -116,10 +116,8 @@ export default {
       const bk = baskets.find((x) => x._el === zone);
       bk._fill = Math.min(85, (bk._fill || 8) + 14);
       zone.querySelector('.fill').style.height = bk._fill + '%';
-      const sr = zone.getBoundingClientRect(), mr = curEl.getBoundingClientRect();
-      curEl.style.transition = 'transform .3s ease, opacity .3s';
-      curEl.style.transform = `translate(${sr.left + sr.width / 2 - (mr.left + mr.width / 2)}px, ${sr.top + sr.height * 0.6 - (mr.top + mr.height / 2)}px) scale(.4)`;
-      curEl.style.opacity = '0';
+      const sr = zone.getBoundingClientRect();
+      flyFromDrop(curEl, sr.left + sr.width / 2, sr.top + sr.height * 0.6, { scale: 0.4, ms: 300, fade: true });
       const item = curItem;
       say('', { clip: 'sorti_' + item.id });
       const b = baskets.find((x) => x.id === item.b);

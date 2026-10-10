@@ -1,6 +1,6 @@
 import { WM_WORDS, LETTER_SOUNDS } from '../content.js';
 import { loadFamily, familyMembers, playLine } from '../core/family.js';
-import { makeDraggable } from '../core/drag.js';
+import { makeDraggable, flyFromDrop } from '../core/drag.js';
 import { rand, rnd } from '../core/util.js';
 
 // ---------- word monsters ----------
@@ -116,14 +116,30 @@ export default {
       // monsters scattered in the field
       field.innerHTML = '';
       const letters = [...w.w].sort(() => Math.random() - 0.5);
-      const fr = () => field.getBoundingClientRect();
+      // non-overlapping grid across the lower field, small jitter, clear of nav
+      const fre = field.getBoundingClientRect();
+      const mw = Math.min(fre.height * 0.9, Math.min(innerWidth, innerHeight) * 0.18, 150) + 10;
+      const mh = mw * 0.83;
+      const gap = Math.min(innerWidth, innerHeight) * 0.02;
+      const cols = Math.max(1, Math.min(letters.length, Math.floor((fre.width - gap) / (mw + gap))));
+      const rows = Math.ceil(letters.length / cols);
+      const gridW = cols * mw + (cols - 1) * gap;
+      const gridH = rows * mh + (rows - 1) * gap;
+      const navTop = el.querySelector('.wm-nav') ? el.querySelector('.wm-nav').getBoundingClientRect().top : fre.bottom;
+      const usableH = Math.max(mh, Math.min(fre.height, navTop - fre.top - 8));
+      const yOff = Math.max(0, (usableH - gridH) / 2); // field-relative (field starts at left/top 0 of its box)
+      const jx = Math.min(gap * 0.6, 8);
       letters.forEach((ch, i) => {
         const m = document.createElement('div');
         m.className = 'wm-mon wm-in';
         m.dataset.ch = ch;
         m.style.setProperty('--c', PASTELS[(i + wi) % PASTELS.length]);
-        m.style.left = (8 + (i % 5) * 19 + rnd(-2, 2)) + '%';
-        m.style.top = (10 + Math.floor(i / 5) * 52 + rnd(-4, 10)) + '%';
+        const col = i % cols, row = Math.floor(i / cols);
+        const rowN = row === rows - 1 ? letters.length - row * cols : cols;
+        const rowW = rowN * mw + (rowN - 1) * gap;
+        const rx = fre.left + (fre.width - rowW) / 2 + col * (mw + gap);
+        m.style.left = (rx + rnd(-jx, jx)) + 'px';
+        m.style.top = (yOff + row * (mh + gap) + rnd(-jx / 2, jx / 2)) + 'px';
         m.innerHTML = `<span class="eye e1"><i></i></span><span class="eye e2"><i></i></span>
           <span class="foot f1"></span><span class="foot f2"></span>
           <span class="letter">${ch.toUpperCase()}</span>`;
@@ -173,9 +189,8 @@ export default {
       slot.classList.remove('pulse');
       slot.textContent = slot.dataset.ch.toUpperCase();
       // snap monster exactly onto the slot, then hide it (slot shows the letter)
-      const sr = slot.getBoundingClientRect(), mr = m.getBoundingClientRect();
-      m.style.transition = 'transform .25s ease';
-      m.style.transform = `translate(${sr.left + sr.width / 2 - (mr.left + mr.width / 2)}px, ${sr.top + sr.height / 2 - (mr.top + mr.height / 2)}px) scale(.6)`;
+      const sr = slot.getBoundingClientRect();
+      flyFromDrop(m, sr.left + sr.width / 2, sr.top + sr.height / 2, { scale: 0.6, ms: 250 });
       T(() => { m.style.display = 'none'; m.style.transition = ''; }, 260);
       const c = letterClip(slot.dataset.ch);
       say(c.text, { clip: c.clip });

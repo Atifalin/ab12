@@ -1,5 +1,5 @@
 import { FEED_FOODS } from '../content.js';
-import { makeDraggable } from '../core/drag.js';
+import { makeDraggable, flyFromDrop } from '../core/drag.js';
 import { rand, rnd } from '../core/util.js';
 
 // ---------- feed the monster ----------
@@ -25,7 +25,6 @@ export default {
 
   mount(el, ctx) {
     el.innerHTML = `
-      <div class="feed-room"></div>
       <div class="feed-bubble" id="feed-bubble"><span id="feed-say"></span></div>
       <div class="feed-mon" id="feed-mon">
         <div class="feed-eyes"><span class="feye"><i></i></span><span class="feye"><i></i></span></div>
@@ -114,12 +113,11 @@ export default {
         const d = document.createElement('div');
         d.className = 'feed-food';
         d.dataset.id = f.id;
-        d.style.left = ((i + 0.5) / n * 90 - 4) + '%';
         d.innerHTML = `<span>${f.emoji}</span>`;
         table.appendChild(d);
         f._el = d;
         const drag = makeDraggable(d, {
-          zones: () => [mouth],
+          zones: () => [mon],
           onMove: (el, x, y) => mouth.classList.toggle('open', nearMouth(x, y)),
           onDrop: (el, zone) => {
             mouth.classList.remove('open');
@@ -136,10 +134,8 @@ export default {
       busy = true;
       fed++;
       d.classList.add('eaten');
-      const mr = mouth.getBoundingClientRect(), fr = d.getBoundingClientRect();
-      d.style.transition = 'transform .28s ease, opacity .28s';
-      d.style.transform = `translate(${mr.left + mr.width / 2 - (fr.left + fr.width / 2)}px, ${mr.top + mr.height / 2 - (fr.top + fr.height / 2)}px) scale(.1)`;
-      d.style.opacity = '0';
+      const mr = mouth.getBoundingClientRect();
+      flyFromDrop(d, mr.left + mr.width / 2, mr.top + mr.height / 2, { scale: 0.1, ms: 280, fade: true });
       mon.classList.add('chomp');
       T(() => { mon.classList.remove('chomp'); d.style.display = 'none'; }, 500);
       // crumbs

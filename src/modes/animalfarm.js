@@ -4,11 +4,8 @@ import { rand, rnd } from '../core/util.js';
 
 // ---------- animal farm ----------
 const SCENE_DECO = {
-  farm: { cls: 'af-farm', deco: ['🏡', '🌾', '🚜'], prompt: 'The farm' },
-  zoo: { cls: 'af-zoo', deco: ['🎪', '🌳', '🎈'], prompt: 'The zoo' },
-  sea: { cls: 'af-sea', deco: ['🌊', '⛵', '🐚'], prompt: 'The sea' },
-  jungle: { cls: 'af-jungle', deco: ['🌴', '🍃', '🌺'], prompt: 'The jungle' },
-  mix: { cls: 'af-mix', deco: ['🌍', '🌈', '⭐'], prompt: 'Everywhere' },
+  farm: { cls: 'af-farm' }, zoo: { cls: 'af-zoo' }, sea: { cls: 'af-sea' },
+  jungle: { cls: 'af-jungle' }, mix: { cls: 'af-mix' },
 };
 
 export default {
@@ -31,7 +28,6 @@ export default {
     el.innerHTML = `
       <div class="af-sky"></div>
       <div class="af-hills"><i></i><i></i><i></i></div>
-      <div class="af-deco" id="af-deco"></div>
       <div class="af-ground"></div>
       <div class="af-animals" id="af-animals"></div>
       <div class="pk-banner wm-banner af-banner" id="af-banner">
@@ -42,7 +38,6 @@ export default {
     const { say, playSfx, effects } = ctx;
     const { sparkleBurst, confettiBurst } = effects;
     const field = el.querySelector('#af-animals');
-    const deco = el.querySelector('#af-deco');
     const promptEl = el.querySelector('#af-prompt');
     const banner = el.querySelector('#af-banner');
     const bEmoji = banner.querySelector('.pk-emoji');
@@ -104,18 +99,26 @@ export default {
     function layout() {
       const s = sceneId();
       el.className = 'screen active ' + SCENE_DECO[s].cls;
-      deco.innerHTML = SCENE_DECO[s].deco.map((e) => `<span>${e}</span>`).join('');
       field.innerHTML = '';
+      // non-overlapping grid: cells sized to the animal + a ≥2vmin gap
       const n = shown.length;
-      const cols = n <= 3 ? n : (n <= 6 ? 3 : 4);
+      const fr = field.getBoundingClientRect();
+      const vmin = Math.min(innerWidth, innerHeight) / 100;
+      const cell = 26 * vmin;                     // ~22vmin glyph + ≥2vmin gap
+      const cols = Math.max(1, Math.min(n, Math.floor(fr.width / cell)));
       const rows = Math.ceil(n / cols);
+      const cellH = rows > 1 ? Math.min(cell, fr.height / rows) : cell;
       shown.forEach((a, i) => {
         const d = document.createElement('div');
         d.className = 'af-ani';
         d.dataset.id = a.id;
         const col = i % cols, row = Math.floor(i / cols);
-        d.style.left = ((col + 0.5) / cols * 88 + rnd(-3, 3)) + '%';
-        d.style.top = ((row + 0.55) / (rows + 0.4) * 82 + rnd(-2, 2)) + '%';
+        const rowN = row === rows - 1 ? n - row * cols : cols;
+        const rowW = rowN * cell;
+        const x = (fr.width - rowW) / 2 + col * cell + cell / 2;
+        const y = Math.min(fr.height - cellH / 2, cellH / 2 + row * cellH + rnd(-1.5, 1.5) * vmin);
+        d.style.left = x + 'px';
+        d.style.top = y + 'px';
         d.innerHTML = `<span class="af-emoji">${a.emoji}</span><span class="af-shadow"></span>`;
         d.addEventListener('click', () => tapAnimal(d, a));
         field.appendChild(d);

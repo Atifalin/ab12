@@ -33,8 +33,7 @@ export default {
       <div class="pk-banner" id="pk-banner">
         <span class="pk-emoji"></span>
         <span class="pk-lines"><span class="pk-name"></span><span class="pk-title"></span></span>
-      </div>
-      <div class="pk-hint" id="pk-hint" hidden>Add your family in <b>tools/studio.py</b> 💛</div>`;
+      </div>`;
     const stage = el.querySelector('#pk-stage');
     const promptBtn = el.querySelector('#pk-prompt');
     const whoEl = el.querySelector('#pk-who');
@@ -42,7 +41,6 @@ export default {
     const bannerEmoji = banner.querySelector('.pk-emoji');
     const bannerName = banner.querySelector('.pk-name');
     const bannerTitle = banner.querySelector('.pk-title');
-    const hintEl = el.querySelector('#pk-hint');
 
     const { say, playSfx, effects, nextColor } = ctx;
     const { sparkleBurst, confettiBurst } = effects;
@@ -841,7 +839,6 @@ export default {
       destroyed = false;
       await loadFamily();
       members = familyMembers();
-      hintEl.hidden = members.length > 0;
       if (!members.length) members = PLACEHOLDERS;
       const n = Math.min(4, Math.max(2, +ctx.modeSettings.spots || 3));
       try {

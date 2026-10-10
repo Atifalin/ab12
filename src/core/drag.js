@@ -1,93 +1,140 @@
-// Shared drag engine — reusable across modes (Word Monsters now;
-// Sort it! and Feed the Monster later).
+// Shared drag engine — used by Word Monsters, Sort it! and Feed the Monster.
 //
 // makeDraggable(el, {
 //   zones:  () => Element[]          drop targets evaluated per drag
 //   onPick: (el) => {}
 //   onMove: (el, x, y, zone|null) => {}
 //   onDrop: (el, zone|null) => bool  true = accepted, false = spring back home
-//   home:   () => {x, y}             optional, defaults to pick-up point
-// }) => { destroy() }
+// }) => { destroy(), flyTo(x, y, done) }
 //
-// Pointer events + setPointerCapture, touch-action:none, transform-only
-// movement, ignore secondary pointers, springy return animation.
-export function makeDraggable(el, { zones = () => [], onPick, onMove, onDrop, home } = {}) {
-  el.style.touchAction = 'none';
-  let pid = null;              // active pointer id
-  let offX = 0, offY = 0;      // grab offset inside the element
-  let baseX = 0, baseY = 0;    // pick-up centre (the "home" position)
-  let raf = 0;
-  let zone = null;
-
-  const centre = () => {
+// Positions are tracked against the element's untransformed resting centre
+// (measured once at pick-up with transforms/animations disabled), so the
+// element follows the pointer exactly with no feedback between frames.
+// Zone hit-testing uses the pointer position (what the child is touching).
+// Animate a just-dropped element from where it was released to the screen
+// point (x, y), e.g. into a slot, basket or mouth. Uses the resting centre
+// recorded at pick-up so the transform maths is relative to the untransformed
+// element (replacing the transform with a delta from the *transformed* rect
+// would jump by the drag distance).
+export function flyFromDrop(el, x, y, { scale = 1, ms = 280, fade = false } = {}) {
+  const rest = el._rest || (() => {
     const r = el.getBoundingClientRect();
     return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  })();
+  void el.offsetWidth; // commit the drop-position transform before transitioning
+  el.style.transition = `transform ${ms}ms ease${fade ? `, opacity ${ms}ms` : ''}`;
+  el.style.transform = `translate3d(${x - rest.x}px, ${y - rest.y}px, 0) scale(${scale})`;
+  if (fade) el.style.opacity = '0';
+}
+
+export function makeDraggable(el, { zones = () => [], onPick, onMove, onDrop } = {}) {
+  el.style.touchAction = 'none';
+  let pid = null;              // active pointer id
+  let offX = 0, offY = 0;      // pointer offset from the element centre
+  let baseX = 0, baseY = 0;    // untransformed resting centre
+  let curX = 0, curY = 0;      // current centre being rendered
+  let raf = 0, moveRaf = 0;
+  let zone = null;
+  let savedTransition = '';
+
+  const restCentre = () => {
+    const prevT = el.style.transform;
+    el.style.transform = 'none';
+    const r = el.getBoundingClientRect();
+    el.style.transform = prevT;
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
   };
-  const moveTo = (x, y) => {
-    const c = centre();
-    const dx = x - c.x, dy = y - c.y;
-    el.style.transform = `translate(${dx}px, ${dy}px)${el._lift || ''}`;
+  const render = (lift) => {
+    el.style.transform = `translate3d(${curX - baseX}px, ${curY - baseY}px, 0)${lift ? ' scale(1.15)' : ''}`;
   };
 
-  function hitZone(x, y) {
+  function hitZone(px, py) {
+    let best = null, bestD = Infinity;
     for (const z of zones() || []) {
       const r = z.getBoundingClientRect();
-      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return z;
+      const pad = Math.max(12, Math.min(r.width, r.height) * 0.25); // forgiving for small hands
+      if (px >= r.left - pad && px <= r.right + pad && py >= r.top - pad && py <= r.bottom + pad) {
+        const d = Math.hypot(px - (r.left + r.width / 2), py - (r.top + r.height / 2));
+        if (d < bestD) { bestD = d; best = z; }
+      }
     }
-    return null;
+    return best;
   }
 
-  function returnHome(fromX, fromY) {
+  function settle() {
+    el.style.transform = '';
+    el.style.transition = savedTransition;
+    el.classList.remove('dragging');
+    el.style.zIndex = '';
+  }
+
+  function returnHome() {
     cancelAnimationFrame(raf);
-    const t0 = performance.now();
-    const hx = (home ? home() : baseX).x, hy = (home ? home() : baseX).y;
+    const fx = curX, fy = curY, t0 = performance.now();
     const anim = (t) => {
       const k = Math.min(1, (t - t0) / 380);
-      const e = 1 + 2.2 * Math.pow(k - 1, 3) + 1.5 * Math.pow(k - 1, 2); // springy
-      moveTo(fromX + (hx - fromX) * e, fromY + (hy - fromY) * e);
+      const e = 1 + 2.2 * Math.pow(k - 1, 3) + 1.5 * Math.pow(k - 1, 2); // springy overshoot
+      curX = fx + (baseX - fx) * e;
+      curY = fy + (baseY - fy) * e;
+      render(false);
       if (k < 1) raf = requestAnimationFrame(anim);
-      else { moveTo(hx, hy); el.style.transform = ''; el._lift = ''; }
+      else settle();
     };
     raf = requestAnimationFrame(anim);
   }
 
   function onDown(e) {
-    if (pid !== null) return;
+    if (pid !== null || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    cancelAnimationFrame(raf);
     pid = e.pointerId;
-    try { el.setPointerCapture(pid); } catch (e) { /* synthetic pointers */ }
-    const c = centre();
+    try { el.setPointerCapture(pid); } catch (err) { /* synthetic pointers */ }
+    savedTransition = el.style.transition;
+    el.style.transition = 'none';
+    el.classList.add('dragging'); // CSS: .dragging { animation: none }
+    el.style.zIndex = 60;
+    const c = restCentre();
     baseX = c.x; baseY = c.y;
     offX = e.clientX - c.x; offY = e.clientY - c.y;
-    el._lift = ' scale(1.15)';
-    el.classList.add('dragging');
-    el.style.zIndex = 60;
+    curX = c.x; curY = c.y;
+    el._rest = { x: c.x, y: c.y };
+    render(true);
     if (onPick) onPick(el);
     e.preventDefault();
   }
-  function onMove(e) {
+  function onPointerMove(e) {
     if (e.pointerId !== pid) return;
-    const x = e.clientX - offX, y = e.clientY - offY;
-    zone = hitZone(x, y);
-    moveTo(x, y);
-    if (onMove) onMove(el, x, y, zone);
+    const px = e.clientX, py = e.clientY;
+    curX = px - offX; curY = py - offY;
+    zone = hitZone(px, py);
+    if (!moveRaf) moveRaf = requestAnimationFrame(() => { moveRaf = 0; if (pid !== null) render(true); });
+    if (onMove) onMove(el, curX, curY, zone);
+    e.preventDefault();
   }
   function finish(e, cancelled) {
     if (e.pointerId !== pid) return;
     pid = null;
-    const x = e.clientX - offX, y = e.clientY - offY;
+    cancelAnimationFrame(moveRaf); moveRaf = 0;
+    if (!cancelled) zone = hitZone(e.clientX, e.clientY);
     const z = cancelled ? null : zone;
     zone = null;
+    // hand back to the mode at the drop position (transform kept) so it can
+    // animate the element onward with flyFromDrop()
+    el.style.transition = savedTransition;
     el.classList.remove('dragging');
     el.style.zIndex = '';
-    el._lift = '';
-    const accepted = !cancelled && onDrop ? onDrop(el, z) : false;
-    if (!accepted) returnHome(x, y);
+    render(false);
+    const accepted = z && onDrop ? onDrop(el, z) : false;
+    if (!accepted) {
+      el.classList.add('dragging');
+      el.style.transition = 'none';
+      returnHome();
+    }
   }
   const onUp = (e) => finish(e, false);
   const onCancel = (e) => finish(e, true);
 
   el.addEventListener('pointerdown', onDown);
-  el.addEventListener('pointermove', onMove);
+  el.addEventListener('pointermove', onPointerMove);
   el.addEventListener('pointerup', onUp);
   el.addEventListener('pointercancel', onCancel);
   el.addEventListener('lostpointercapture', onCancel);
@@ -95,24 +142,30 @@ export function makeDraggable(el, { zones = () => [], onPick, onMove, onDrop, ho
   return {
     destroy() {
       cancelAnimationFrame(raf);
+      cancelAnimationFrame(moveRaf);
       el.removeEventListener('pointerdown', onDown);
-      el.removeEventListener('pointermove', onMove);
+      el.removeEventListener('pointermove', onPointerMove);
       el.removeEventListener('pointerup', onUp);
       el.removeEventListener('pointercancel', onCancel);
       el.removeEventListener('lostpointercapture', onCancel);
     },
-    // teleport helper for keyboard-driven placement
+    // animate the element's centre to (x, y) — keyboard-driven placement
     flyTo(x, y, done) {
-      const c = centre();
-      const t0 = performance.now();
+      cancelAnimationFrame(raf);
+      savedTransition = el.style.transition;
+      el.style.transition = 'none';
+      const c = restCentre();
+      baseX = c.x; baseY = c.y;
+      const fx = c.x, fy = c.y, t0 = performance.now();
       const anim = (t) => {
         const k = Math.min(1, (t - t0) / 400);
         const e = 1 - Math.pow(1 - k, 3);
-        moveTo(c.x + (x - c.x) * e, c.y + (y - c.y) * e);
-        if (k < 1) requestAnimationFrame(anim);
-        else { el.style.transform = ''; if (done) done(); }
+        curX = fx + (x - fx) * e; curY = fy + (y - fy) * e;
+        render(false);
+        if (k < 1) raf = requestAnimationFrame(anim);
+        else { el.style.transform = ''; el.style.transition = savedTransition; if (done) done(); }
       };
-      requestAnimationFrame(anim);
+      raf = requestAnimationFrame(anim);
     },
   };
 }
