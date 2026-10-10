@@ -11,6 +11,34 @@
          background: linear-gradient(160deg,#3aa7ff,#8fd8ff 55%,#c9ffe9); }
   .wrap { max-width: 860px; margin: 0 auto; padding: 2vmin 3vmin 6vmin; }
   h1 { text-align:center; color:#fff; font-size:6vmin; text-shadow:0 .5vmin 0 rgba(0,0,0,.2); margin:1vmin 0 2vmin; }
+  .pubbar { display:flex; gap:1.5vmin; justify-content:center; margin-bottom:1.5vmin; }
+  #pub-btn { font:inherit; border:0; border-radius:3vmin; padding:1.2vmin 3.5vmin; font-size:3.2vmin;
+             font-weight:700; background:linear-gradient(180deg,#ff9d4a,#ff5c8a); color:#fff; cursor:pointer;
+             box-shadow:0 .4vmin 1vmin rgba(0,0,0,.15); }
+  #pub-btn:disabled { opacity:.55; cursor:default; }
+  #pub-badge { display:inline-block; background:#fff; color:#ff5c8a; border-radius:2vmin;
+               padding:0 1.4vmin; margin-left:.8vmin; font-size:2.8vmin; }
+  #stop-btn { font:inherit; border:0; border-radius:3vmin; padding:1.2vmin 2.5vmin; font-size:2.6vmin;
+              background:rgba(255,255,255,.25); color:#fff; cursor:pointer; }
+  #pub-panel { background:#fff; border-radius:2.5vmin; padding:2.5vmin 3vmin; margin-bottom:2vmin;
+               color:var(--ink,#2b1b3d); text-align:left; box-shadow:0 .8vmin 2.4vmin rgba(0,0,0,.18); }
+  .pub-head { display:flex; justify-content:space-between; align-items:center; font-weight:700;
+              font-size:3.4vmin; margin-bottom:1vmin; }
+  #pub-close,#pub-retry { font:inherit; border:0; border-radius:2vmin; padding:.4vmin 1.6vmin; cursor:pointer;
+              background:#eee; font-size:2.6vmin; }
+  .pub-bar { height:1.2vmin; background:#eee; border-radius:1vmin; overflow:hidden; margin-bottom:1.5vmin; }
+  #pub-fill { display:block; height:100%; width:0; background:linear-gradient(90deg,#8a63ff,#ff5c8a);
+              transition:width .4s; }
+  #pub-steps { list-style:none; margin:0 0 1vmin 0; padding:0; }
+  #pub-steps li { padding:.5vmin 0; font-size:3vmin; color:#666; }
+  #pub-steps li.done { color:#2e9e44; } #pub-steps li.running { color:var(--ink,#2b1b3d); font-weight:700; }
+  #pub-steps li.error { color:#d33; font-weight:700; } #pub-steps li.skipped { color:#aaa; }
+  #pub-msg { font-size:3vmin; min-height:1em; margin:.5vmin 0; }
+  #pub-msg.err { color:#d33; } #pub-links { font-size:2.8vmin; }
+  #pub-links a { color:#8a63ff; margin-right:2vmin; }
+  #pub-logbox summary { cursor:pointer; font-size:2.8vmin; color:#666; }
+  #pub-log { background:#1e1e2e; color:#c8e6c9; border-radius:1.5vmin; padding:1.5vmin;
+             max-height:30vh; overflow:auto; font-size:2vmin; text-align:left; white-space:pre-wrap; }
   .top-tabs { display:flex; gap:1.5vmin; justify-content:center; margin-bottom:2.5vmin; }
   .top-tab { font:inherit; border:0; border-radius:3vmin; padding:1.6vmin 5vmin; font-size:4vmin;
              background:rgba(255,255,255,.35); color:var(--ink); cursor:pointer; }
@@ -95,6 +123,21 @@
 <body>
 <div class="wrap">
   <h1>🎛️ AB12 Studio</h1>
+  <div class="pubbar">
+    <button id="pub-btn" title="Push to live">🚀 Push to live <span id="pub-badge" hidden></span></button>
+    <button id="stop-btn" title="Stop Studio">⏻ Stop Studio</button>
+  </div>
+  <div id="pub-panel" hidden>
+    <div class="pub-head"><span id="pub-status">…</span><span id="pub-timer"></span>
+      <button id="pub-close" title="Close">✕</button></div>
+    <div class="pub-bar"><i id="pub-fill"></i></div>
+    <ol id="pub-steps"></ol>
+    <p id="pub-msg"></p>
+    <p id="pub-links"><a id="pub-run" target="_blank" hidden>GitHub build ↗</a>
+      <a href="https://ab12.ezypath.in" target="_blank" id="pub-live" hidden>ab12.ezypath.in ↗</a>
+      <button id="pub-retry" hidden>Try again</button></p>
+    <details id="pub-logbox"><summary>Logs</summary><pre id="pub-log"></pre></details>
+  </div>
   <div class="top-tabs">
     <button class="top-tab on" data-view="voices">🎙️ Voices</button>
     <button class="top-tab" data-view="family">💛 Family</button>
@@ -607,6 +650,72 @@ document.addEventListener('keydown', (e) => {
 function shutdownAudio() { stopPlay(); if (rec) stopRec(); else stopMic(); }
 window.addEventListener('pagehide', shutdownAudio);
 document.addEventListener('visibilitychange', () => { if (document.hidden) shutdownAudio(); });
+
+// ---------- push to live ----------
+const pubBtn = $('#pub-btn'), pubBadge = $('#pub-badge'), pubPanel = $('#pub-panel');
+const ICONS = { pending: '·', running: '⏳', done: '✅', error: '❌', skipped: '⏭' };
+let pubPoll = null;
+
+async function refreshBadge() {
+  try {
+    const j = await (await fetch('/api/publish/pending')).json();
+    const n = (j.files || []).length;
+    pubBadge.hidden = !n;
+    pubBadge.textContent = n;
+  } catch (e) {}
+}
+
+function renderPub(st) {
+  if (!st || st.state === 'idle') { pubPanel.hidden = true; return; }
+  pubPanel.hidden = false;
+  const steps = st.steps || [];
+  $('#pub-steps').innerHTML = steps.map((s) =>
+    `<li class="${s.status}">${ICONS[s.status] || '·'} ${s.name}</li>`).join('');
+  const done = steps.filter((s) => s.status === 'done' || s.status === 'skipped').length;
+  $('#pub-fill').style.width = (st.state === 'done' ? 100 : done / Math.max(1, steps.length) * 100) + '%';
+  const labels = { running: 'Working…', done: 'Finished', error: 'Something went wrong', idle: '' };
+  const secs = Math.max(0, Math.round(((st.finishedAt || Date.now() / 1000) - (st.startedAt || 0))));
+  $('#pub-status').textContent = labels[st.state] || st.state;
+  $('#pub-timer').textContent = st.startedAt ? secs + 's' : '';
+  const msg = $('#pub-msg');
+  msg.textContent = st.message || '';
+  msg.className = st.state === 'error' ? 'err' : '';
+  $('#pub-run').hidden = !st.runUrl; $('#pub-run').href = st.runUrl || '#';
+  $('#pub-live').hidden = st.state !== 'done';
+  $('#pub-retry').hidden = st.state !== 'error';
+  $('#pub-log').textContent = (st.log || []).join('\n');
+  const log = $('#pub-log'); log.scrollTop = log.scrollHeight;
+  pubBtn.disabled = st.state === 'running';
+  if (pubPoll) { clearInterval(pubPoll); pubPoll = null; }
+  if (st.state === 'running') pubPoll = setInterval(pollPub, 1500);
+}
+
+async function pollPub() {
+  try { renderPub(await (await fetch('/api/publish/status')).json()); } catch (e) {}
+}
+
+pubBtn.onclick = async () => {
+  const j = await (await fetch('/api/publish/pending')).json();
+  const bits = [];
+  if (j.voices) bits.push(`${j.voices} voice take file${j.voices > 1 ? 's' : ''}`);
+  if (j.family) bits.push(`${j.family} family file${j.family > 1 ? 's' : ''}`);
+  if (!(j.files || []).length) { renderPub(await (await fetch('/api/publish/status')).json()); return; }
+  if (!confirm('Push to live?\n\n' + bits.join(', ') + '\n' + j.files.length + ' file(s) total')) return;
+  const r = await fetch('/api/publish', { method: 'POST', headers: { 'X-Studio': '1' } });
+  if (r.status === 409) { /* already running — just open the panel */ }
+  pollPub();
+};
+$('#pub-retry').onclick = () => pubBtn.onclick();
+$('#pub-close').onclick = () => { pubPanel.hidden = true; if (pubPoll) { clearInterval(pubPoll); pubPoll = null; } };
+$('#stop-btn').onclick = async () => {
+  if (!confirm('Stop the Studio server?')) return;
+  await fetch('/api/shutdown', { method: 'POST', headers: { 'X-Studio': '1' } }).catch(() => {});
+  document.body.innerHTML = '<div class="wrap" style="color:#fff;padding:10vmin"><h1>Studio stopped</h1><p>You can close this tab.</p></div>';
+};
+
+refreshBadge();
+setInterval(refreshBadge, 15000);
+pollPub();
 
 (async () => {
   const r = await fetch('/api/clips');

@@ -57,6 +57,18 @@ them; the app's ⚙️ **Voice pack** setting picks a voice or 🎲 "surprise"
   sound effects, voice, "A is for 🍎" vs "A only", volume, theme, home layout,
   per-mode options, and the mode shelf.
 
+### Studio: start + push to live
+
+Double-click **`Start AB12 Studio.command`** (repo root, or the copy on your
+Desktop) — it starts `tools/studio.py` if needed and opens
+`http://127.0.0.1:8765/studio`. Inside Studio, the **🚀 Push to live** button
+in the top bar shows a badge with the number of changed voice/family files;
+clicking it commits only `public/audio/voices` + `public/family`, rebases on
+`origin/main`, pushes, waits for the GitHub Actions build, then polls the live
+site until it matches — with a stepper, logs, and elapsed timer. The manifest
+files (`manifest.json`, `family.json`) are only rewritten when their content
+actually changes, so idle Studio restarts no longer create spurious diffs.
+
 ## Deployment (CI/CD)
 
 Push-to-deploy, same pipeline as EzyImposter:

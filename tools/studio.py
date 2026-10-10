@@ -18,6 +18,7 @@ Usage:
     python3 tools/studio.py --retrim [v]  # re-trim silence in voice takes
 """
 import base64
+import os
 import binascii
 import json
 import re
@@ -29,6 +30,8 @@ import tempfile
 import threading
 import time
 import wave
+import urllib.error
+import urllib.request
 import webbrowser
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -109,12 +112,30 @@ def build_manifest():
     return {"version": int(time.time() * 1000), "packs": packs, "voices": voices}
 
 
+def _same_content(path, data):
+    """True if the JSON file on disk equals `data` ignoring its `version` field."""
+    try:
+        old = json.loads(Path(path).read_text())
+        old.pop("version", None)
+        new = dict(data)
+        new.pop("version", None)
+        return old == new
+    except Exception:
+        return False
+
+
 def write_manifest():
     VOICES_DIR.mkdir(parents=True, exist_ok=True)
     manifest = build_manifest()
+    out = VOICES_DIR / "manifest.json"
+    if _same_content(out, manifest):
+        try:
+            return json.loads(out.read_text())
+        except Exception:
+            return manifest
     tmp = VOICES_DIR / ".manifest.json.tmp"
     tmp.write_text(json.dumps(manifest, separators=(",", ":")))
-    tmp.replace(VOICES_DIR / "manifest.json")
+    tmp.replace(out)
     return manifest
 
 
@@ -171,9 +192,15 @@ def build_family_json():
 def write_family_json():
     FAMILY_DIR.mkdir(parents=True, exist_ok=True)
     j = build_family_json()
+    out = FAMILY_DIR / "family.json"
+    if _same_content(out, j):
+        try:
+            return json.loads(out.read_text())
+        except Exception:
+            return j
     tmp = FAMILY_DIR / ".family.json.tmp"
     tmp.write_text(json.dumps(j, separators=(",", ":")))
-    tmp.replace(FAMILY_DIR / "family.json")
+    tmp.replace(out)
     return j
 
 
@@ -418,6 +445,12 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         path = self.path.split("?", 1)[0]
+        if path == "/api/publish/pending":
+            self._json(200, pub_pending())
+            return
+        if path == "/api/publish/status":
+            self._json(200, pub)
+            return
         if path == "/api/clips":
             self._json(200, {"clips": load_clips(), "pools": sorted(POOLS),
                              "manifest": build_manifest()})
@@ -432,6 +465,23 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         path = self.path.split("?", 1)[0]
+        if path == "/api/publish":
+            if not csrf_ok(self):
+                self._json(403, {"error": "forbidden"})
+                return
+            if not publish_start():
+                self._json(409, {"error": "already running"})
+                return
+            self._json(200, {"started": True})
+            return
+        if path == "/api/shutdown":
+            if not csrf_ok(self):
+                self._json(403, {"error": "forbidden"})
+                return
+            self._json(200, {"bye": True})
+            threading.Thread(target=lambda: (time.sleep(0.3), self.server.shutdown()),
+                             daemon=True).start()
+            return
         if path == "/api/save":
             q = self._qs()
             voice, clip = q.get("voice", ""), q.get("clip", "")
@@ -649,6 +699,234 @@ class Handler(SimpleHTTPRequestHandler):
         self._json(404, {"error": "not found"})
 
 
+# ---------- publish (push to live) ----------
+PUBLISH_PATHS = ["public/audio/voices", "public/family"]
+PUB_STEPS = ["Check changes", "Save (commit)", "Sync", "Upload (push)",
+             "Build", "Go live", "Done"]
+DRYRUN = os.environ.get("STUDIO_PUBLISH_DRYRUN") == "1"
+pub = {"state": "idle", "steps": [], "log": [], "sha": None, "runUrl": None,
+       "startedAt": None, "finishedAt": None, "message": None}
+pub_lock = threading.Lock()
+
+
+def pub_log(line):
+    line = re.sub(r"https://[^@\s]*@", "https://", line.rstrip())
+    pub["log"].append(f"[{time.strftime('%H:%M:%S')}] {line}")
+    if len(pub["log"]) > 400:
+        pub["log"] = pub["log"][-400:]
+
+
+def pub_pending():
+    """List changed files under the publish paths and count them by kind."""
+    out = subprocess.run(["git", "status", "--porcelain", "-uall", "--"] + PUBLISH_PATHS,
+                         cwd=ROOT, capture_output=True, text=True)
+    files, voices, family = [], 0, 0
+    for line in out.stdout.splitlines():
+        if not line.strip():
+            continue
+        f = line[3:]
+        files.append(f)
+        if "/audio/voices/" in f or f.startswith("audio/voices/"):
+            voices += 1
+        elif "/family/" in f or f.startswith("family/"):
+            family += 1
+    return {"files": files, "voices": voices, "family": family}
+
+
+def pub_run(cmd, step_i, check=True, env=None):
+    pub_log("$ " + " ".join(cmd))
+    p = subprocess.Popen(cmd, cwd=ROOT, stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT, text=True, env=env)
+    for line in p.stdout:
+        pub_log(line)
+    p.wait()
+    if check and p.returncode != 0:
+        raise RuntimeError(f"command failed ({p.returncode})")
+    return p.returncode
+
+
+def pub_http_json(url, headers=None):
+    req = urllib.request.Request(url, headers=headers or {"User-Agent": "ab12-studio"})
+    try:
+        with urllib.request.urlopen(req, timeout=15) as r:
+            return json.loads(r.read()), r.status
+    except urllib.error.HTTPError as e:
+        return None, e.code
+    except Exception as e:
+        return None, str(e)
+
+
+def pub_http_text(url):
+    req = urllib.request.Request(url, headers={"User-Agent": "ab12-studio",
+                                               "Cache-Control": "no-store"})
+    try:
+        with urllib.request.urlopen(req, timeout=15) as r:
+            return r.read().decode("utf-8", "replace"), r.status
+    except Exception as e:
+        return None, e
+
+
+def publish_worker():
+    dry = DRYRUN
+    step_i = -1
+
+    def step(name, i):
+        nonlocal step_i
+        step_i = i
+        pub["steps"][i]["status"] = "running"
+        pub_log(f"── {name}")
+
+    def done_step(i, skipped=False):
+        pub["steps"][i]["status"] = "skipped" if skipped else "done"
+
+    try:
+        # 1. check changes
+        step(PUB_STEPS[0], 0)
+        pend = pub_pending()
+        subprocess.run(["git", "fetch", "-q", "origin", "main"], cwd=ROOT, capture_output=True)
+        ahead = subprocess.run(["git", "rev-list", "--count", "origin/main..HEAD"], cwd=ROOT,
+                               capture_output=True, text=True).stdout.strip()
+        unpushed = ahead not in ("", "0")
+        if not pend["files"] and not unpushed:
+            pub["message"] = "Nothing new to publish"
+            pub["state"] = "done"
+            done_step(0)
+            for i in range(1, 6):
+                pub["steps"][i]["status"] = "skipped"
+            pub["steps"][6]["status"] = "done"
+            pub["finishedAt"] = time.time()
+            pub_log("nothing changed — already live")
+            return
+        pub_log(f"{len(pend['files'])} file(s) to publish "
+                f"({pend['voices']} voice, {pend['family']} family)")
+        done_step(0)
+
+        if dry:
+            for i, name in enumerate(PUB_STEPS[1:], start=1):
+                step(name, i)
+                time.sleep(1.2)
+                pub_log(f"(dry-run) {name} — simulated ok")
+                done_step(i)
+            pub["message"] = "Dry-run complete — nothing was actually published"
+            pub["state"] = "done"
+            pub["finishedAt"] = time.time()
+            return
+
+        # 2. commit (skipped when only an earlier, unpushed commit is waiting)
+        step(PUB_STEPS[1], 1)
+        if pend["files"]:
+            n = len(pend["files"])
+            pub_run(["git", "add", "-A", "--"] + PUBLISH_PATHS, 1)
+            pub_run(["git", "commit", "-m",
+                     f"Studio: update voices and family ({n} files)", "--"] + PUBLISH_PATHS, 1)
+        else:
+            pub_log(f"{ahead} earlier commit(s) not uploaded yet — sending those")
+        sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT,
+                             capture_output=True, text=True).stdout.strip()
+        pub["sha"] = sha
+        pub_log(f"commit {sha[:7]}")
+        done_step(1, skipped=not pend["files"])
+
+        # 3. sync
+        step(PUB_STEPS[2], 2)
+        pub_run(["git", "fetch", "origin", "main"], 2)
+        behind = subprocess.run(
+            ["git", "rev-list", "--count", "HEAD..origin/main"], cwd=ROOT,
+            capture_output=True, text=True).stdout.strip()
+        if behind != "0":
+            pub_log(f"behind by {behind} — rebasing")
+            rc = pub_run(["git", "pull", "--rebase", "--autostash", "origin", "main"], 2, check=False)
+            if rc != 0:
+                subprocess.run(["git", "rebase", "--abort"], cwd=ROOT, capture_output=True)
+                raise RuntimeError("rebase failed — conflicts; local commit kept, resolve manually")
+            sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT,
+                                 capture_output=True, text=True).stdout.strip()
+            pub["sha"] = sha
+            pub_log(f"rebased -> {sha[:7]}")
+        else:
+            pub_log("already up to date")
+        done_step(2)
+
+        # 4. push
+        step(PUB_STEPS[3], 3)
+        pub_run(["git", "push", "origin", "main"], 3)
+        done_step(3)
+
+        # 5. build (GitHub Actions)
+        step(PUB_STEPS[4], 4)
+        url = ("https://api.github.com/repos/Atifalin/ab12/actions/runs"
+               f"?head_sha={sha}")
+        t0 = time.time()
+        backoff = 10
+        while time.time() - t0 < 600:
+            j, code = pub_http_json(url)
+            if code == 403:
+                pub_log("github rate-limited — slowing down")
+                backoff = min(60, backoff * 2)
+            elif j and j.get("workflow_runs"):
+                run = j["workflow_runs"][0]
+                pub["runUrl"] = run.get("html_url")
+                status, concl = run.get("status"), run.get("conclusion")
+                pub_log(f"actions: {status} {concl or ''}".strip())
+                if status == "completed":
+                    if concl == "success":
+                        pub_log("build ok")
+                        break
+                    raise RuntimeError(f"GitHub Actions {concl} — {pub['runUrl']}")
+            time.sleep(backoff)
+        else:
+            raise RuntimeError("timed out waiting for the build (10 min)")
+        done_step(4)
+
+        # 6. go live
+        step(PUB_STEPS[5], 5)
+        local_v = (VOICES_DIR / "manifest.json").read_text()
+        local_f = (FAMILY_DIR / "family.json").read_text()
+        t0 = time.time()
+        while time.time() - t0 < 360:
+            rv, _ = pub_http_text(f"https://ab12.ezypath.in/audio/voices/manifest.json?v={time.time()}")
+            rf, _ = pub_http_text(f"https://ab12.ezypath.in/family/family.json?v={time.time()}")
+            pub_log("polling live…")
+            if rv == local_v and rf == local_f:
+                pub_log("live content matches the commit")
+                break
+            time.sleep(10)
+        else:
+            raise RuntimeError("timed out waiting for the live site (6 min)")
+        done_step(5)
+
+        pub["steps"][6]["status"] = "done"
+        pub["state"] = "done"
+        pub["message"] = f"Live! took {int(time.time() - pub['startedAt'])}s"
+        pub["finishedAt"] = time.time()
+    except Exception as e:
+        pub["state"] = "error"
+        pub["message"] = str(e)
+        pub["finishedAt"] = time.time()
+        pub_log("ERROR: " + str(e))
+        if 0 <= step_i < 7:
+            pub["steps"][step_i]["status"] = "error"
+
+
+def publish_start():
+    with pub_lock:
+        if pub["state"] == "running":
+            return False
+        pub.update({"state": "running", "sha": None, "runUrl": None,
+                    "startedAt": time.time(), "finishedAt": None, "message": None,
+                    "log": [],
+                    "steps": [{"name": n, "status": "pending"} for n in PUB_STEPS]})
+    threading.Thread(target=publish_worker, daemon=True).start()
+    return True
+
+
+def csrf_ok(handler):
+    if handler.headers.get("X-Studio") != "1":
+        return False
+    base = handler.headers.get("Origin") or handler.headers.get("Referer") or ""
+    return base.startswith("http://127.0.0.1:8765") or base.startswith("http://localhost:8765")
+
+
 def main():
     if "--rebuild" in sys.argv:
         m = write_manifest()
@@ -669,7 +947,8 @@ def main():
     write_family_json()
     url = f"http://127.0.0.1:{port}/studio"
     print(f"AB12 Studio -> {url}   (run the app with `npm run dev`)")
-    threading.Timer(0.5, lambda: webbrowser.open(url)).start()
+    if "--no-browser" not in sys.argv:
+        threading.Timer(0.5, lambda: webbrowser.open(url)).start()
     try:
         srv.serve_forever()
     except KeyboardInterrupt:
