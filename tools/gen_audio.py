@@ -87,6 +87,17 @@ def build_manifest():
         letters_spelled = ", ".join(PHON[c] for c in w.upper() if c in PHON)
         clips.append((f"sdone_{slug(w)}", f"{letters_spelled}. {w}!"))
 
+    # Word Monsters — letter sounds, word shout-outs, action lines
+    sounds = dict(extract(r"(\w): '([^']+)'",
+                          src.split("const LETTER_SOUNDS = {")[1].split("}")[0]))
+    for ch, snd in sounds.items():
+        clips.append((f"snd_{ch}", snd))
+    wm_block = src.split("const WM_WORDS = [")[1].split("];")[0]
+    for w, line in extract(r"w: '([^']+)'.*line: '([^']+)'", wm_block):
+        clips.append((f"wm_{slug(w)}", f"{w.capitalize()}!"))
+        clips.append((f"wmact_{slug(w)}", line))
+    clips.append(("wm_intro", "Let's make words with the letter monsters!"))
+
     clips.append(("intro_learn", "Let's learn letters and numbers!"))
     clips.append(("intro_smash", "Smash time!"))
     clips.append(("find_intro", "Let's play find it!"))

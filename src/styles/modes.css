@@ -300,3 +300,72 @@ body.shake #smash-layer { animation: shake .18s linear; }
 .pk-dom-spot.open .pk-member { transform: translateX(-50%) scale(1); }
 .pk-dom-spot.peeking .pk-member { transform: translateX(-110%) scale(.7); }
 .pk-dom-spot.hinted .pk-emoji-spot { animation: bubHint .5s ease-in-out 3; }
+
+/* ---------- WORD MONSTERS ---------- */
+#wordmonsters { background: linear-gradient(180deg, #ffe9f6, #e8f8ff 55%, #f0ffe4); }
+.wm-top { position: absolute; top: max(4vmin, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
+          text-align: center; z-index: 5; }
+.wm-emoji { font-size: 18vmin; line-height: 1; filter: drop-shadow(0 .8vmin 1vmin rgba(0,0,0,.15)); }
+.wm-emoji.act-walk { animation: wmWalk 2.2s ease-in-out; }
+.wm-emoji.act-hop { animation: wmHop 1.8s ease-in-out; }
+.wm-emoji.act-fly { animation: wmFly 2.2s ease-in-out; }
+.wm-emoji.act-spin { animation: wmSpin 1.6s ease-in-out; }
+.wm-emoji.act-bounce { animation: wmBounce 1.8s ease-in-out; }
+.wm-emoji.act-swim { animation: wmSwim 2.4s ease-in-out; }
+.wm-emoji.act-roll { animation: wmRoll 2s ease-in-out; }
+@keyframes wmWalk { 0%{transform:translateX(-40vw)} 100%{transform:translateX(40vw)} }
+@keyframes wmHop { 0%{transform:translate(-30vw,0)} 30%{transform:translate(-10vw,-14vmin)} 60%{transform:translate(10vw,0)} 100%{transform:translate(40vw,-10vmin)} }
+@keyframes wmFly { 0%{transform:translate(-45vw,10vmin) rotate(-10deg)} 50%{transform:translate(0,-16vmin) rotate(8deg)} 100%{transform:translate(45vw,-6vmin)} }
+@keyframes wmSpin { to { transform: rotate(720deg) scale(1.15); } }
+@keyframes wmBounce { 0%,100%{transform:scale(1,1)} 30%{transform:scale(1.25,.7) translateY(4vmin)} 60%{transform:scale(.9,1.2) translateY(-10vmin)} }
+@keyframes wmSwim { 0%{transform:translateX(-45vw) rotate(-8deg)} 50%{transform:translateX(0) rotate(8deg)} 100%{transform:translateX(45vw) rotate(-8deg)} }
+@keyframes wmRoll { 0%{transform:translateX(-40vw) rotate(0)} 100%{transform:translateX(40vw) rotate(720deg)} }
+.wm-word { font-size: 7vmin; font-weight: 700; letter-spacing: 1.2vmin; color: rgba(43,27,61,.22);
+           text-transform: uppercase; }
+.wm-slots { position: absolute; top: 34%; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 2.5vmin; z-index: 5; }
+.wm-slot { width: 12vmin; height: 12vmin; min-width: 48px; min-height: 48px;
+           border: .7vmin dashed rgba(43,27,61,.35); border-radius: 2.5vmin;
+           display: flex; align-items: center; justify-content: center;
+           font-size: 8vmin; font-weight: 700; color: var(--ink);
+           background: rgba(255,255,255,.55); transition: background .2s, border .2s; }
+.wm-slot.filled { border-style: solid; border-color: #4cd964; background: #d9ffd9; }
+.wm-slot.light { animation: chipIn .3s both; }
+.wm-slot.glow { border-color: #ffe94d; box-shadow: 0 0 3vmin #ffe94d; }
+.wm-slot.pulse { animation: bubHint .6s ease-in-out infinite; }
+.wm-field { position: absolute; left: 0; right: 0; top: 52%; bottom: 0; }
+.wm-mon { position: absolute; width: 16vmin; height: 13vmin; min-width: 64px; min-height: 52px;
+          background: var(--c, #ffb3c6); border-radius: 46% 54% 52% 48% / 58% 56% 44% 42%;
+          box-shadow: inset 0 -1.2vmin 0 rgba(0,0,0,.08), 0 1vmin 2vmin rgba(0,0,0,.15);
+          display: flex; align-items: flex-end; justify-content: center;
+          cursor: grab; user-select: none; transition: transform .15s;
+          animation: wmIdle 2.8s ease-in-out infinite; }
+.wm-mon.dragging { box-shadow: 0 2vmin 4vmin rgba(0,0,0,.3); cursor: grabbing; animation: none; }
+.wm-mon.wm-in { transform: scale(0); }
+.wm-mon.jiggle { animation: wmJiggle .4s ease; }
+.wm-mon.giggle { animation: wmGiggle .5s ease; }
+.wm-mon .letter { position: absolute; bottom: 12%; font-size: 7vmin; font-weight: 700;
+                  color: var(--ink); text-shadow: 0 .4vmin 0 rgba(255,255,255,.6); }
+.wm-mon .eye { position: absolute; top: 14%; width: 3.4vmin; height: 3.4vmin; min-width: 14px; min-height: 14px;
+               background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+               animation: wmBlink 4s infinite; }
+.wm-mon .e1 { left: 24%; }
+.wm-mon .e2 { right: 24%; animation-delay: .12s; }
+.wm-mon .eye i { width: 42%; height: 42%; background: var(--ink); border-radius: 50%; }
+.wm-mon .foot { position: absolute; bottom: -1.6vmin; width: 3.4vmin; height: 2vmin;
+                background: var(--c, #ffb3c6); border-radius: 50%;
+                box-shadow: inset 0 -.5vmin 0 rgba(0,0,0,.1); }
+.wm-mon .f1 { left: 22%; }
+.wm-mon .f2 { right: 22%; }
+@keyframes wmIdle { 0%,100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg) translateY(-.6vmin); } }
+@keyframes wmBlink { 0%, 92%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.08); } }
+@keyframes wmJiggle { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-8deg) scale(1.08)} 75%{transform:rotate(8deg) scale(1.08)} }
+@keyframes wmGiggle { 0%,100%{transform:translateX(0) rotate(0)} 20%{transform:translateX(-1.5vmin) rotate(-6deg)} 60%{transform:translateX(1.5vmin) rotate(6deg)} }
+.wm-nav { position: absolute; bottom: max(3vmin, env(safe-area-inset-bottom)); left: 50%;
+          transform: translateX(-50%); display: flex; align-items: center; gap: 3vmin; z-index: 6; }
+.wm-nav button { font: inherit; border: 0; cursor: pointer; color: #8a63ff; font-size: 4.5vmin;
+                 width: 9vmin; height: 9vmin; min-width: 44px; min-height: 44px; border-radius: 50%;
+                 background: #fff; box-shadow: 0 .6vmin 0 rgba(0,0,0,.12); transition: transform .1s; }
+.wm-nav button:active { transform: scale(.9); }
+.wm-count { font-size: 3.2vmin; color: rgba(43,27,61,.55); }
+.wm-banner { top: 20%; }

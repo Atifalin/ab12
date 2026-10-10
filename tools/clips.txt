@@ -301,6 +301,97 @@ sword_nine	Let's spell Nine!
 sdone_nine	en, eye, en, ee. Nine!
 sword_ten	Let's spell Ten!
 sdone_ten	tee, ee, en. Ten!
+snd_a	ah
+snd_b	buh
+snd_c	kuh
+snd_d	duh
+snd_e	eh
+snd_f	fff
+snd_g	guh
+snd_h	hhh
+snd_i	ih
+snd_j	juh
+snd_k	kuh
+snd_l	lll
+snd_m	mmm
+snd_n	nnn
+snd_o	aw
+snd_p	puh
+snd_q	kwuh
+snd_r	rrr
+snd_s	sss
+snd_t	tuh
+snd_u	uh
+snd_v	vvv
+snd_w	wuh
+snd_x	ks
+snd_y	yuh
+snd_z	zzz
+wm_cat	Cat!
+wmact_cat	The cat says meow!
+wm_dog	Dog!
+wmact_dog	The dog says woof!
+wm_sun	Sun!
+wmact_sun	The sun is so warm!
+wm_pig	Pig!
+wmact_pig	The pig says oink!
+wm_bus	Bus!
+wmact_bus	The bus goes beep beep!
+wm_hat	Hat!
+wmact_hat	The hat looks so fancy!
+wm_bed	Bed!
+wmact_bed	The bed is so cozy!
+wm_cup	Cup!
+wmact_cup	The cup is full of milk!
+wm_fox	Fox!
+wmact_fox	The fox is so clever!
+wm_hen	Hen!
+wmact_hen	The hen says cluck!
+wm_bug	Bug!
+wmact_bug	The bug is so tiny!
+wm_map	Map!
+wmact_map	The map shows the way!
+wm_net	Net!
+wmact_net	The net catches the ball!
+wm_jam	Jam!
+wmact_jam	The jam is so sweet!
+wm_van	Van!
+wmact_van	The van goes vroom!
+wm_web	Web!
+wmact_web	The web is so sticky!
+wm_zip	Zip!
+wmact_zip	The zip goes zzzip!
+wm_box	Box!
+wmact_box	The box is full of toys!
+wm_mop	Mop!
+wmact_mop	The mop makes it clean!
+wm_rat	Rat!
+wmact_rat	The rat is so quick!
+wm_frog	Frog!
+wmact_frog	The frog says ribbit!
+wm_fish	Fish!
+wmact_fish	The fish goes splish splash!
+wm_duck	Duck!
+wmact_duck	The duck says quack!
+wm_milk	Milk!
+wmact_milk	The milk is so yummy!
+wm_star	Star!
+wmact_star	The star twinkles bright!
+wm_moon	Moon!
+wmact_moon	The moon glows at night!
+wm_cake	Cake!
+wmact_cake	The cake is so tasty!
+wm_ball	Ball!
+wmact_ball	The ball goes boing!
+wm_bird	Bird!
+wmact_bird	The bird says tweet!
+wm_tree	Tree!
+wmact_tree	The tree is so tall!
+wm_boat	Boat!
+wmact_boat	The boat sails away!
+wm_kite	Kite!
+wmact_kite	The kite flies so high!
+wm_intro	Let's make words with the letter monsters!
 intro_learn	Let's learn letters and numbers!
 intro_smash	Smash time!
 find_intro	Let's play find it!
