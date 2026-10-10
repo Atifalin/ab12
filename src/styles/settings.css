@@ -5,10 +5,10 @@
 }
 .settings[hidden] { display: none; }
 .settings-card {
-  background: #fff; border-radius: 4vmin; padding: 4vmin 4vmin 3vmin; width: min(88vw, 60vmin);
+  background: #fff; border-radius: 4vmin; padding: 4vmin 4vmin 3vmin; width: min(92vw, 640px);
   display: flex; flex-direction: column; gap: 1.6vmin; box-shadow: 0 3vmin 8vmin rgba(0,0,0,.3);
   animation: chipIn .3s cubic-bezier(.34,1.56,.64,1);
-  max-height: 90vh; overflow-y: auto; overscroll-behavior: contain;
+  max-height: 90vh; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain;
 }
 @keyframes chipIn { from { transform: scale(0) rotate(-20deg); opacity: 0 } }
 .settings-card h2 { margin: 0 0 1vmin; font-size: 6vmin; color: var(--ink); text-align: center; }
@@ -45,7 +45,9 @@ div.set-row { cursor: default; }
   .set-row[aria-pressed="true"] .pill::after { transform: translateX(calc(11vmin - 5.4vmin - 1.2vmin)); }
 }
 
-.seg { display: flex; gap: .8vmin; flex: 0 0 auto; flex-wrap: wrap; justify-content: flex-end; }
+.seg { display: flex; gap: .8vmin; flex: 0 1 auto; min-width: 0; flex-wrap: wrap; justify-content: flex-end; }
+.set-row { flex-wrap: wrap; row-gap: 1.4vmin; }
+.set-row > .seg { margin-left: auto; }
 .seg-btn {
   font: inherit; font-size: 2.8vmin; border: 0; border-radius: 1.8vmin; padding: 1.2vmin 1.8vmin;
   background: #e3e0f2; color: var(--ink); cursor: pointer; transition: background .15s, color .15s;
