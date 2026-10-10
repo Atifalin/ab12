@@ -6,8 +6,9 @@ Usage:
     python3 tools/gen_audio.py Junior     # any voice from `say -v '?'`
     python3 tools/gen_audio.py Tara --only-missing   # skip clips that already exist
 
-Outputs audio/<name>.m4a and tools/clips.txt (manifest used by record.sh /
-your own recordings — keep filenames identical if you re-record).
+Outputs public/audio/<name>.m4a and tools/clips.txt (manifest used by
+tools/recorder.py / your own recordings — keep filenames identical if you
+re-record).
 """
 import re
 import subprocess
@@ -15,8 +16,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-APP = ROOT / "app.js"
-OUT = ROOT / "audio"
+APP = ROOT / "src" / "content.js"
+OUT = ROOT / "public" / "audio"
 MANIFEST = ROOT / "tools" / "clips.txt"
 ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
 ONLY_MISSING = "--only-missing" in sys.argv

@@ -1,6 +1,6 @@
 # AB12
 
-A toddler keyboard toy: zero-dependency static site (HTML/CSS/JS, emoji art, Web Speech + WebAudio — no assets to download).
+A toddler keyboard toy: Vite + vanilla ES-module JS (emoji art, Web Speech + WebAudio).
 
 **Modes**
 - **123 ABC** — each key shows a giant colored character, a picture ("A is for Apple 🍎", "3" shows 🍎🍎🍎), speaks it in a fun voice, and adds it to a colored trail at the top. Typing `1` then `0` shows **10**. `Enter` (or the ⏎ pad key) starts a new trail line. Spell a word from the built-in list (Cat, Dog, …) or a family name (Ezdan, Zohaan, …) and the letters glow gold with a celebration banner.
@@ -12,14 +12,28 @@ A toddler keyboard toy: zero-dependency static site (HTML/CSS/JS, emoji art, Web
 
 **Exit lock** — hold the ⭐ in the top-right for 2 seconds to return to the menu.
 
-## Run locally
+## Develop
+
 ```bash
-python3 -m http.server 8080   # then open http://localhost:8080
+npm install
+npm run dev        # http://localhost:5173
+npm run build      # production bundle -> dist/
+npm run preview    # serve the built bundle locally
 ```
+
+Source lives in `src/` (`src/core/` shared services, `src/modes/` one module
+per game, `src/styles/`), static assets in `public/` (audio, icon, manifest —
+served at the same URLs as before).
+
+## Docker
+
+The image is multi-stage: `node:22-alpine` runs `npm ci && npm run build`,
+then `nginx:alpine` serves `dist/` with `nginx.conf` (hashed `/assets/` cached
+immutably, app shell no-cache).
 
 ## Voice clips
 
-Speech uses pre-recorded `.m4a` clips in `audio/` (generated with
+Speech uses pre-recorded `.m4a` clips in `public/audio/` (generated with
 macOS `say`, voice **Tara** — Indian English). If a clip is missing the app
 falls back to browser TTS. Clips cover letters/numbers, words and family
 names (`word_*`), and Find it! prompts (`find_*`, `try_again`).
@@ -30,15 +44,18 @@ names (`word_*`), and Find it! prompts (`find_*`, `try_again`).
 ### Record family voices
 
 `python3 tools/recorder.py` opens a local recorder at `http://127.0.0.1:8765/rec`
-(the app itself runs at `/` for testing). Voice packs live in `audio/voices/<slug>/`
-with a `pack.json` label — create as many as you like (Daddy, Ezdan, Mommy, …),
-record up to 5 takes per clip / 30 for the cheer & try-again pools. The manifest
-is rebuilt automatically (`--rebuild` to rebuild by hand, `--retrim [voice]` to
-re-trim silence). Commit + push ships them; the app's ⚙️ **Voice pack** setting
-picks a voice or 🎲 "surprise" (random per session), with Tara clips as fallback.
-- **Your own voice:** `tools/record.sh` (needs `brew install ffmpeg` or `sox`), or record
-  Voice Memos → export `.m4a` → rename per `tools/clips.txt` → drop into `audio/`
-- **Settings** (⚙️ on the home screen): sound effects, voice, "A is for 🍎" vs "A only", volume
+(run the app itself with `npm run dev`). Voice packs live in
+`public/audio/voices/<slug>/` with a `pack.json` label — create as many as you
+like (Daddy, Ezdan, Mommy, …), record up to 5 takes per clip / 30 for the
+cheer & try-again pools. The manifest is rebuilt automatically (`--rebuild` to
+rebuild by hand, `--retrim [voice]` to re-trim silence). Commit + push ships
+them; the app's ⚙️ **Voice pack** setting picks a voice or 🎲 "surprise"
+(random per session), with Tara clips as fallback.
+- **Your own voice:** record Voice Memos → export `.m4a` → rename per
+  `tools/clips.txt` → drop into `public/audio/`
+- **Settings** (hold ⚙️ on the home screen for 2s — parent lock can be disabled inside):
+  sound effects, voice, "A is for 🍎" vs "A only", volume, theme, home layout,
+  per-mode options, and the mode shelf.
 
 ## Deployment (CI/CD)
 

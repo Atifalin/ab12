@@ -8,12 +8,11 @@
   <meta name="apple-mobile-web-app-title" content="AB12" />
   <meta name="theme-color" content="#ff5c8a" />
   <title>AB12</title>
-  <link rel="manifest" href="manifest.webmanifest?v=9" />
+  <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icon.svg" />
   <link rel="icon" href="icon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=9" />
 </head>
 <body>
   <!-- HOME -->
@@ -23,136 +22,28 @@
       <span class="deco">🎈</span><span class="deco">⭐</span><span class="deco">🌈</span><span class="deco">🎈</span><span class="deco">✨</span>
     </div>
     <h1 class="title"><span>A</span><span>B</span><span>1</span><span>2</span></h1>
-    <div class="menu">
-      <button class="mode-card learn" data-mode="learn">
-        <div class="big">123<br/>ABC</div>
-        <div class="label">Letters &amp; Numbers</div>
-      </button>
-      <button class="mode-card smash" data-mode="smash">
-        <div class="big">💥</div>
-        <div class="label">Smash!</div>
-      </button>
-      <button class="mode-card find" data-mode="find">
-        <div class="big">🔍</div>
-        <div class="label">Find it!</div>
-      </button>
-      <button class="mode-card spell" data-mode="spell">
-        <div class="big">✏️</div>
-        <div class="label">Spell it!</div>
-      </button>
-    </div>
+    <div id="home-view" class="home-view"></div>
     <p class="hint">Desktop: type on the keyboard · Phone: tap the big buttons<br/>Hold the ⭐ in the corner for 2 seconds to come back here</p>
     <p class="made-by">Made for Ezdan with love from Daddy Atif Ali ❤️</p>
-    <button id="settings-btn" class="settings-btn" aria-label="Open settings">⚙️</button>
+    <button id="settings-btn" class="settings-btn" aria-label="Open settings">⚙️<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17"/></svg></button>
   </section>
 
-  <!-- SETTINGS -->
+  <!-- SETTINGS (sections built by src/core/settingsPanel.js) -->
   <div id="settings" class="settings" hidden>
     <div class="settings-card">
       <h2>Settings</h2>
-
-      <button class="set-row" id="set-sfx" aria-pressed="true">
-        <span class="set-label">🔊 Sound effects</span>
-        <span class="pill"></span>
-      </button>
-
-      <button class="set-row" id="set-voice" aria-pressed="true">
-        <span class="set-label">🗣️ Voice</span>
-        <span class="pill"></span>
-      </button>
-
-      <div class="set-row set-seg" id="set-words">
-        <span class="set-label">💬 Voice says</span>
-        <span class="seg">
-          <button data-words="1" class="seg-btn">A is for 🍎</button>
-          <button data-words="0" class="seg-btn">A only</button>
-        </span>
-      </div>
-
-      <div class="set-row set-seg" id="set-voicepack">
-        <span class="set-label">👪 Voice pack</span>
-        <span class="seg"><!-- filled dynamically from audio/voices/manifest.json --></span>
-      </div>
-      <p id="pack-note" class="seg-note"></p>
-
-      <div class="set-row set-vol">
-        <span class="set-label">🔉 Volume</span>
-        <input type="range" id="set-volume" min="0" max="100" value="80" />
-      </div>
-
-      <div class="set-row set-seg" id="set-theme">
-        <span class="set-label">🎨 Theme</span>
-        <span class="seg">
-          <button data-theme="auto" class="seg-btn">🌈 Mix</button>
-          <button data-theme="candy" class="seg-btn">🍬</button>
-          <button data-theme="ocean" class="seg-btn">🌊</button>
-          <button data-theme="forest" class="seg-btn">🌿</button>
-        </span>
-      </div>
-
-      <button class="set-close" id="settings-close">Done</button>
     </div>
   </div>
 
-  <!-- LEARN -->
-  <section id="learn" class="screen">
-    <div class="trail" id="trail"></div>
-    <div class="stage" id="learn-stage">
-      <div id="word-banner" class="word-banner"><span class="wb-emoji"></span><span class="wb-text"></span></div>
-      <div class="hero" id="hero">
-        <div class="glyph" id="glyph">A</div>
-        <div class="pic" id="pic">🍎</div>
-        <div class="word" id="word">Apple</div>
-      </div>
-      <div class="idle" id="learn-idle">Press any letter or number!</div>
-    </div>
-    <div class="pad" id="pad"></div>
-    <button id="undo-btn" class="undo-btn" aria-label="Undo last letter">⌫</button>
-  </section>
-
-  <!-- SMASH -->
-  <section id="smash" class="screen">
-    <div class="smash-idle" id="smash-idle">Tap or smash the keys!</div>
-    <div id="smash-layer"></div>
-  </section>
-
-  <!-- FIND IT! -->
-  <section id="find" class="screen">
-    <div class="find-stars" id="find-stars"></div>
-    <button class="find-prompt" id="find-prompt" aria-label="Hear it again">
-      <span class="find-big">🔊</span><span class="find-target" id="find-target"></span>
-    </button>
-    <div class="find-bubbles" id="find-bubbles"></div>
-  </section>
-
-  <!-- SPELL IT! -->
-  <section id="spell" class="screen">
-    <div class="spell-picker" id="spell-picker">
-      <button class="spell-track" data-track="az">
-        <span class="st-big">🔤 A to Z</span>
-        <span class="st-prog" id="spell-prog-az"></span>
-      </button>
-      <button class="spell-track" data-track="num">
-        <span class="st-big">🔢 1 to 10</span>
-        <span class="st-prog" id="spell-prog-num"></span>
-      </button>
-    </div>
-    <div class="spell-game" id="spell-game" hidden>
-      <div class="spell-top">
-        <button class="spell-nav" id="spell-prev" aria-label="Previous word">◀</button>
-        <button class="spell-nav" id="spell-tracks" aria-label="Pick a track">☰</button>
-        <button class="spell-nav" id="spell-next" aria-label="Next word">▶</button>
-        <div class="spell-count" id="spell-count"></div>
-      </div>
-      <button class="spell-pic" id="spell-pic" aria-label="Hear the word"></button>
-      <div class="spell-word" id="spell-word"></div>
-      <div class="pad" id="spell-pad"></div>
-    </div>
-  </section>
+  <!-- MODE SCREENS (each mode builds its own markup on first entry) -->
+  <section id="learn" class="screen"></section>
+  <section id="smash" class="screen"></section>
+  <section id="find" class="screen"></section>
+  <section id="spell" class="screen"></section>
 
   <button id="home-btn" class="home-btn" aria-label="Hold to go home">⭐<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17"/></svg></button>
   <div id="unlock-toast" class="toast">Hold ⭐ to go home</div>
 
-  <script src="app.js?v=9"></script>
+  <script type="module" src="/src/main.js"></script>
 </body>
 </html>

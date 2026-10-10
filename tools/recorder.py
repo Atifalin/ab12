@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 """Local voice-take recorder for AB12 (dev tool, not shipped in the image).
 
-Serves the repo root on http://127.0.0.1:8765/ (so the app itself is testable)
-plus a recorder UI at /rec. Voice packs are directories audio/voices/<slug>/
-with a pack.json label. Takes are saved as AAC .m4a named
-<clip>~<id>.m4a via macOS afconvert, and audio/voices/manifest.json is
-rebuilt from the directory listing (files are the source of truth).
+Serves public/ on http://127.0.0.1:8765/ plus a recorder UI at /rec
+(the app itself is developed with `npm run dev`). Voice packs are
+directories public/audio/voices/<slug>/ with a pack.json label. Takes are
+saved as AAC .m4a named <clip>~<id>.m4a via macOS afconvert, and
+public/audio/voices/manifest.json is rebuilt from the directory listing
+(files are the source of truth).
 
 Usage:
     python3 tools/recorder.py              # serve + open the browser
-    python3 tools/recorder.py --rebuild    # just rebuild audio/voices/manifest.json
+    python3 tools/recorder.py --rebuild    # just rebuild the voices manifest
     python3 tools/recorder.py --retrim [v] # re-trim silence in takes (one pack or all)
 """
 import json
@@ -28,7 +29,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 CLIPS_TXT = ROOT / "tools" / "clips.txt"
-VOICES_DIR = ROOT / "audio" / "voices"
+PUBLIC_DIR = ROOT / "public"
+VOICES_DIR = PUBLIC_DIR / "audio" / "voices"
 RECORDER_HTML = ROOT / "tools" / "recorder.html"
 POOLS = {"cheer", "try"}
 MAX_BODY = 4 * 1024 * 1024
@@ -209,11 +211,11 @@ def retrim(voice=None):
 
 class Handler(SimpleHTTPRequestHandler):
     def translate_path(self, path):
-        # serve the repo root statically, /rec -> tools/recorder.html
+        # serve public/ statically, /rec -> tools/recorder.html
         path = path.split("?", 1)[0].split("#", 1)[0]
         if path in ("/rec", "/recorder", "/recorder.html"):
             return str(RECORDER_HTML)
-        return str(ROOT / path.lstrip("/"))
+        return str(PUBLIC_DIR / path.lstrip("/"))
 
     def log_message(self, fmt, *args):
         pass
@@ -383,7 +385,7 @@ def main():
     srv = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     write_manifest()
     url = f"http://127.0.0.1:{port}/rec"
-    print(f"AB12 recorder -> {url}   (app at http://127.0.0.1:{port}/)")
+    print(f"AB12 recorder -> {url}   (run the app with `npm run dev`)")
     threading.Timer(0.5, lambda: webbrowser.open(url)).start()
     try:
         srv.serve_forever()
