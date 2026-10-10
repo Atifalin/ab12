@@ -149,6 +149,12 @@ function startVoice({ text, clip, urls, pitch, rate }) {
     speakTts(text, pitch, rate, my);
   }
 }
+// URL of the session voice pack's take for a clip key, or null if none
+// (excludes the bundled audio/<key>.m4a fallback).
+export function packTakeUrl(key) {
+  const urls = voiceClipUrls(key);
+  return urls.length > 1 ? urls[0] : null;
+}
 export function say(text, { pitch = 1.15, rate = 0.92, queue = false, clip = null } = {}) {
   if (!settings.voice) return;
   audio();

@@ -392,6 +392,103 @@ wmact_boat	The boat sails away!
 wm_kite	Kite!
 wmact_kite	The kite flies so high!
 wm_intro	Let's make words with the letter monsters!
+ani_cow	Cow!
+anisay_cow	The cow says moo!
+aniq_cow	Who says moo?
+anisnd_cow	Moo!
+ani_pig	Pig!
+anisay_pig	The pig says oink!
+aniq_pig	Who says oink?
+anisnd_pig	Oink!
+ani_sheep	Sheep!
+anisay_sheep	The sheep says baa!
+aniq_sheep	Who says baa?
+anisnd_sheep	Baa!
+ani_horse	Horse!
+anisay_horse	The horse says neigh!
+aniq_horse	Who says neigh?
+anisnd_horse	Neigh!
+ani_chicken	Chicken!
+anisay_chicken	The chicken says cluck!
+aniq_chicken	Who says cluck?
+anisnd_chicken	Cluck!
+ani_rooster	Rooster!
+anisay_rooster	The rooster says cock-a-doodle-doo!
+aniq_rooster	Who says cock-a-doodle-doo?
+anisnd_rooster	Cock-a-doodle-doo!
+ani_duck	Duck!
+anisay_duck	The duck says quack!
+aniq_duck	Who says quack?
+anisnd_duck	Quack!
+ani_dog	Dog!
+anisay_dog	The dog says woof!
+aniq_dog	Who says woof?
+anisnd_dog	Woof!
+ani_cat	Cat!
+anisay_cat	The cat says meow!
+aniq_cat	Who says meow?
+anisnd_cat	Meow!
+ani_goat	Goat!
+anisay_goat	The goat says baa!
+aniq_goat	Who says baa?
+anisnd_goat	Baa!
+ani_donkey	Donkey!
+anisay_donkey	The donkey says hee-haw!
+aniq_donkey	Who says hee-haw?
+anisnd_donkey	Hee-haw!
+ani_turkey	Turkey!
+anisay_turkey	The turkey says gobble!
+aniq_turkey	Who says gobble?
+anisnd_turkey	Gobble!
+ani_bee	Bee!
+anisay_bee	The bee says buzz!
+aniq_bee	Who says buzz?
+anisnd_bee	Buzz!
+ani_crow	Crow!
+anisay_crow	The crow says caw!
+aniq_crow	Who says caw?
+anisnd_crow	Caw!
+ani_lion	Lion!
+anisay_lion	The lion says roar!
+aniq_lion	Who says roar?
+anisnd_lion	Roar!
+ani_elephant	Elephant!
+anisay_elephant	The elephant says toot!
+aniq_elephant	Who says toot?
+anisnd_elephant	Toot!
+ani_monkey	Monkey!
+anisay_monkey	The monkey says ooh ooh!
+aniq_monkey	Who says ooh ooh?
+anisnd_monkey	Ooh ooh!
+ani_owl	Owl!
+anisay_owl	The owl says hoot!
+aniq_owl	Who says hoot?
+anisnd_owl	Hoot!
+ani_wolf	Wolf!
+anisay_wolf	The wolf says howl!
+aniq_wolf	Who says howl?
+anisnd_wolf	Howl!
+ani_frog	Frog!
+anisay_frog	The frog says ribbit!
+aniq_frog	Who says ribbit?
+anisnd_frog	Ribbit!
+ani_dolphin	Dolphin!
+anisay_dolphin	The dolphin says click click!
+aniq_dolphin	Who says click click?
+anisnd_dolphin	Click click!
+ani_whale	Whale!
+anisay_whale	The whale says ooo!
+aniq_whale	Who says ooo?
+anisnd_whale	Ooo!
+ani_parrot	Parrot!
+anisay_parrot	The parrot says squawk!
+aniq_parrot	Who says squawk?
+anisnd_parrot	Squawk!
+ani_goose	Goose!
+anisay_goose	The goose says honk!
+aniq_goose	Who says honk?
+anisnd_goose	Honk!
+farm_intro	Let's visit the animals!
 intro_learn	Let's learn letters and numbers!
 intro_smash	Smash time!
 find_intro	Let's play find it!

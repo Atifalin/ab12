@@ -4,6 +4,7 @@ import find from './find.js';
 import spell from './spell.js';
 import peekaboo from './peekaboo.js';
 import wordmonsters from './wordmonsters.js';
+import animalfarm from './animalfarm.js';
 
 // registry order = original home order; category views filter this list
-export const MODES = [learn, smash, find, spell, peekaboo, wordmonsters];
+export const MODES = [learn, smash, find, spell, peekaboo, wordmonsters, animalfarm];

@@ -92,3 +92,35 @@ export const WM_WORDS = [
   { w: 'boat', emoji: '⛵', act: 'swim', line: 'The boat sails away!' },
   { w: 'kite', emoji: '🪁', act: 'fly', line: 'The kite flies so high!' },
 ];
+
+// ---------- animal farm ----------
+// { id, name, emoji, scenes: ['farm','zoo','sea','jungle'], sound }
+// Only animals with a real CC0/PD sound file (public/audio/animals/<id>.m4a)
+// or a recorded anisnd_<id> take are included.
+export const ANIMALS = [
+  { id: 'cow',      name: 'Cow',      emoji: '🐮', scenes: ['farm'],   sound: 'moo' },
+  { id: 'pig',      name: 'Pig',      emoji: '🐷', scenes: ['farm'],   sound: 'oink' },
+  { id: 'sheep',    name: 'Sheep',    emoji: '🐑', scenes: ['farm'],   sound: 'baa' },
+  { id: 'horse',    name: 'Horse',    emoji: '🐴', scenes: ['farm'],   sound: 'neigh' },
+  { id: 'chicken',  name: 'Chicken',  emoji: '🐔', scenes: ['farm'],   sound: 'cluck' },
+  { id: 'rooster',  name: 'Rooster',  emoji: '🐓', scenes: ['farm'],   sound: 'cock-a-doodle-doo' },
+  { id: 'duck',     name: 'Duck',     emoji: '🦆', scenes: ['farm', 'sea'], sound: 'quack' },
+  { id: 'dog',      name: 'Dog',      emoji: '🐶', scenes: ['farm'],   sound: 'woof' },
+  { id: 'cat',      name: 'Cat',      emoji: '🐱', scenes: ['farm'],   sound: 'meow' },
+  { id: 'goat',     name: 'Goat',     emoji: '🐐', scenes: ['farm'],   sound: 'baa' },
+  { id: 'donkey',   name: 'Donkey',   emoji: '🫏', scenes: ['farm'],   sound: 'hee-haw' },
+  { id: 'turkey',   name: 'Turkey',   emoji: '🦃', scenes: ['farm'],   sound: 'gobble' },
+  { id: 'bee',      name: 'Bee',      emoji: '🐝', scenes: ['farm', 'jungle'], sound: 'buzz' },
+  { id: 'crow',     name: 'Crow',     emoji: '🐦‍⬛', scenes: ['farm'],   sound: 'caw' },
+  { id: 'lion',     name: 'Lion',     emoji: '🦁', scenes: ['zoo'],    sound: 'roar' },
+  { id: 'elephant', name: 'Elephant', emoji: '🐘', scenes: ['zoo', 'jungle'], sound: 'toot' },
+  { id: 'monkey',   name: 'Monkey',   emoji: '🐵', scenes: ['zoo', 'jungle'], sound: 'ooh ooh' },
+  { id: 'owl',      name: 'Owl',      emoji: '🦉', scenes: ['zoo'],    sound: 'hoot' },
+  { id: 'wolf',     name: 'Wolf',     emoji: '🐺', scenes: ['zoo'],    sound: 'howl' },
+  { id: 'frog',     name: 'Frog',     emoji: '🐸', scenes: ['sea', 'jungle'], sound: 'ribbit' },
+  { id: 'dolphin',  name: 'Dolphin',  emoji: '🐬', scenes: ['sea'],    sound: 'click click' },
+  { id: 'whale',    name: 'Whale',    emoji: '🐳', scenes: ['sea'],    sound: 'ooo' },
+  { id: 'parrot',   name: 'Parrot',   emoji: '🦜', scenes: ['jungle'], sound: 'squawk' },
+  { id: 'goose',    name: 'Goose',    emoji: '🪿', scenes: ['sea', 'farm'], sound: 'honk' },
+];
+export const AF_SCENES = ['farm', 'zoo', 'sea', 'jungle', 'mix'];

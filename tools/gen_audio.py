@@ -98,6 +98,18 @@ def build_manifest():
         clips.append((f"wmact_{slug(w)}", line))
     clips.append(("wm_intro", "Let's make words with the letter monsters!"))
 
+    # Animal Farm — names, lines, quiz prompts. `anisnd_*` entries are
+    # real animal sounds (recorded/downloaded) — listed for the Studio but
+    # never generated (filtered out in main()).
+    ani_block = src.split("const ANIMALS = [")[1].split("];")[0]
+    for aid, name, sound in extract(
+            r"id: '([^']+)'.*name: '([^']+)'.*sound: '([^']+)'", ani_block):
+        clips.append((f"ani_{aid}", f"{name}!"))
+        clips.append((f"anisay_{aid}", f"The {name.lower()} says {sound}!"))
+        clips.append((f"aniq_{aid}", f"Who says {sound}?"))
+        clips.append((f"anisnd_{aid}", f"{sound.capitalize()}!"))
+    clips.append(("farm_intro", "Let's visit the animals!"))
+
     clips.append(("intro_learn", "Let's learn letters and numbers!"))
     clips.append(("intro_smash", "Smash time!"))
     clips.append(("find_intro", "Let's play find it!"))
@@ -120,6 +132,7 @@ def main():
     clips = build_manifest()
     MANIFEST.write_text("\n".join(f"{n}\t{t}" for n, t in clips) + "\n")
     print(f"{len(clips)} clips -> {OUT} (voice: {VOICE})")
+    clips = [(n, t) for n, t in clips if not n.startswith("anisnd_")]
     if ONLY_MISSING:
         clips = [(n, t) for n, t in clips if not (OUT / f"{n}.m4a").exists()]
         print(f"--only-missing: {len(clips)} to generate")
