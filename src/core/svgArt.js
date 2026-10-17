@@ -1114,6 +1114,13 @@ export const SVG_BY_ID = {
     <path d="M50 16 C26 16 14 34 14 54 C14 74 32 84 48 84 C56 84 60 76 56 68 C54 62 60 58 68 60 C80 62 86 52 86 42 C86 26 70 16 50 16 Z" fill="#f4a261" ${O}/>
     <circle cx="34" cy="38" r="6" fill="#ff4d6d"/><circle cx="52" cy="30" r="6" fill="#ffd23f"/>
     <circle cx="68" cy="40" r="6" fill="#2fb8ff"/><circle cx="30" cy="56" r="6" fill="#4cd964"/>`,
+  zap: `
+    <circle cx="50" cy="50" r="38" fill="#1e1b4b" ${O}/>
+    <path d="M14 50 A36 36 0 0 1 86 50 Z" fill="#ef4444" ${O}/>
+    <path d="M14 50 A36 36 0 0 0 86 50 Z" fill="#ffffff" ${O}/>
+    <line x1="14" y1="50" x2="86" y2="50" stroke="${INK}" stroke-width="6"/>
+    <circle cx="50" cy="50" r="12" fill="#ffffff" ${O}/>
+    <polygon points="56,10 30,52 48,52 40,90 72,44 52,44" fill="#ffe14d" ${O}/>`,
 };
 
 // Map every emoji used across AB12 (normalized without \uFE0F) to its SVG id
@@ -1162,5 +1169,5 @@ export const EMOJI_TO_ID = {
   '🔤': 'abc', '🔢': 'num123', '🧩': 'puzzle', '💥': 'boom', '🔍': 'search',
   '✏': 'pencil', '👀': 'eyes', '🧺': 'basket', '🔊': 'speaker', '🔉': 'speaker',
   '⚙': 'gear', '🔒': 'lock', '🔐': 'lock', '🔔': 'bell', '🎲': 'dice',
-  '🎨': 'palette', '🎛': 'gear', '🃏': 'abc', '💬': 'cloud', '🗣': 'speaker',
+  '🎨': 'palette', '🎛': 'gear', '🃏': 'abc', '💬': 'cloud', '🗣': 'speaker', '⚡': 'zap',
 };
