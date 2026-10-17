@@ -123,13 +123,28 @@ export default {
         }
       }, 6000);
     }
-    // tap the hero to hear it again
+    // tap the hero to hear it again (or tap individual counting items to count aloud!)
     hero.addEventListener('pointerdown', (e) => {
       e.preventDefault();
+      const unit = e.target.closest('.art-unit');
+      if (unit && picEl.children.length > 1) {
+        const units = [...picEl.querySelectorAll('.art-unit')];
+        const idx = units.indexOf(unit) + 1;
+        unit.classList.remove('unit-pop');
+        void unit.offsetWidth;
+        unit.classList.add('unit-pop');
+        const ur = unit.getBoundingClientRect();
+        sparkleBurst(ur.left + ur.width / 2, ur.top + ur.height / 2, 5);
+        playSfx('scaleNote');
+        if (idx >= 1 && idx <= 10) say(`${NUMBER_WORDS[idx]}!`, { clip: `num_${idx}` });
+        return;
+      }
       if (!lastSpeak) return;
       hero.classList.remove('wiggle');
       void hero.offsetWidth;
       hero.classList.add('wiggle');
+      const hr = hero.getBoundingClientRect();
+      sparkleBurst(hr.left + hr.width / 2, hr.top + hr.height / 2, 5);
       playSfx('pop');
       say(lastSpeak.text, { clip: lastSpeak.clip });
     });

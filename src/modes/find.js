@@ -27,12 +27,13 @@ export default {
     const findTargetEl = el.querySelector('#find-target');
     const findBubblesEl = el.querySelector('#find-bubbles');
     const { say, playSfx, effects, nextColor, settings, audio } = ctx;
-    const { sparkleBurst } = effects;
+    const { sparkleBurst, confettiBurst } = effects;
     const findBubbles = [];
     let findStreak = 0, findTarget = '', findPrev = '', findLocked = false, findWrong = 0, findTimer = null;
     for (let i = 0; i < 6; i++) {
       const b = document.createElement('button');
       b.className = 'find-bubble';
+      b.style.animationDelay = (i * -0.4) + 's';
       b.hidden = true;
       b.addEventListener('pointerdown', (e) => { e.preventDefault(); audio(); findPick(b); });
       findBubblesEl.appendChild(b);
@@ -67,7 +68,7 @@ export default {
           b.textContent = arr[i];
           b.dataset.ch = arr[i];
           b.style.setProperty('--k', nextColor());
-          b.classList.remove('correct', 'wobble', 'hint');
+          b.classList.remove('correct', 'wobble', 'hint', 'tried');
         } else b.hidden = true;
       });
       el.dataset.target = target;
@@ -85,15 +86,17 @@ export default {
       if (findLocked || b.hidden || !findTarget) return;
       if (b.dataset.ch === findTarget) {
         findLocked = true;
-        b.classList.remove('wobble', 'hint');
+        b.classList.remove('wobble', 'hint', 'tried');
         b.classList.add('correct');
         const r = b.getBoundingClientRect();
-        sparkleBurst(r.left + r.width / 2, r.top + r.height / 2);
+        const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+        sparkleBurst(cx, cy, 8);
+        confettiBurst(el, cx - el.getBoundingClientRect().left, cy - el.getBoundingClientRect().top);
         playSfx('scaleNote');
         findStreak++;
         renderStars();
         if (findStreak % 10 === 0) {
-          findStars.textContent = '';
+          findStars.innerHTML = '';
           playSfx('fanfare');
           say('You found ten! Amazing!', { clip: 'find_ten' });
           sparkleBurst(window.innerWidth / 2, Math.max(60, window.innerHeight * 0.1), 8);
@@ -106,7 +109,7 @@ export default {
       } else {
         b.classList.remove('wobble');
         void b.offsetWidth;
-        b.classList.add('wobble');
+        b.classList.add('wobble', 'tried');
         playSfx('boing');
         say('Try again!', { clip: 'try_again' });
         findWrong++;

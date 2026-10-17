@@ -25,14 +25,26 @@ export default {
   mount(el, ctx) {
     el.innerHTML = `
       <div class="sort-sky"><span class="sort-cloud" data-art="☁️">${artHtml('☁️')}</span><span class="sort-cloud c2" data-art="☁️">${artHtml('☁️')}</span></div>
-      <div class="sort-prompt" id="sort-prompt"></div>
+      <div class="sort-stars" id="sort-stars"></div>
+      <button class="sort-prompt" id="sort-prompt" aria-label="Hear prompt"></button>
       <div class="sort-drop" id="sort-drop"></div>
       <div class="sort-baskets" id="sort-baskets"></div>`;
-    const { say, playSfx, effects } = ctx;
+    const { say, playSfx, effects, audio } = ctx;
     const { sparkleBurst, confettiBurst } = effects;
+    const starsEl = el.querySelector('#sort-stars');
     const promptEl = el.querySelector('#sort-prompt');
     const dropEl = el.querySelector('#sort-drop');
     const basketsEl = el.querySelector('#sort-baskets');
+
+    // Basket googly eyes track pointer/dragged item
+    el.addEventListener('pointermove', (e) => {
+      basketsEl.querySelectorAll('.sb-eye i').forEach((p) => {
+        const r = p.parentElement.getBoundingClientRect();
+        const dx = Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / 140));
+        const dy = Math.max(-1, Math.min(1, (e.clientY - (r.top + r.height / 2)) / 140));
+        p.style.transform = `translate(${dx * 42}%, ${dy * 42}%)`;
+      });
+    });
 
     let timers = [];
     let drags = [];
@@ -65,7 +77,9 @@ export default {
       queue = pool.slice(0, Math.min(pool.length, 6 + (ctx.modeSettings.speed === 'calm' ? -2 : 2)));
       if (queue.length < 4) queue = pool.slice(0, pool.length);
       wrong = 0;
+      starsEl.innerHTML = '';
       promptEl.textContent = set.prompt;
+      promptEl.onclick = () => { audio(); playSfx('pop'); say(set.prompt, { clip: 'sortq_' + set.id }); };
       say(set.prompt, { clip: 'sortq_' + set.id });
 
       basketsEl.innerHTML = '';
@@ -74,9 +88,21 @@ export default {
         d.className = 'sort-basket';
         d.dataset.b = b.id;
         d.style.setProperty('--bc', b.color);
-        d.innerHTML = `<span class="fill"></span><span class="icon" data-art="${b.icon}">${artHtml(b.icon)}</span><span class="blabel">${b.label}</span>`;
+        d.innerHTML = `
+          <div class="sb-eyes"><span class="sb-eye"><i></i></span><span class="sb-eye"><i></i></span></div>
+          <span class="fill"></span>
+          <div class="sb-items"></div>
+          <span class="icon" data-art="${b.icon}">${artHtml(b.icon)}</span>
+          <span class="blabel">${b.label}</span>`;
+        d.addEventListener('click', () => {
+          audio();
+          d.classList.remove('wiggle'); void d.offsetWidth; d.classList.add('wiggle');
+          playSfx('pop');
+          say(b.label, { clip: 'sortb_' + b.id });
+        });
         basketsEl.appendChild(d);
         b._el = d;
+        b._count = 0;
       }
       nextItem();
     }
@@ -91,6 +117,14 @@ export default {
       d.className = 'sort-item' + (isGlyph ? ' sort-glyph' : '');
       if (isGlyph) d.textContent = curItem.emoji;
       else setArt(d, curItem.emoji);
+      d.addEventListener('click', () => {
+        audio();
+        d.classList.remove('giggle'); void d.offsetWidth; d.classList.add('giggle');
+        const r = d.getBoundingClientRect();
+        sparkleBurst(r.left + r.width / 2, r.top + r.height / 2, 5);
+        playSfx('pop');
+        say('', { clip: 'sorti_' + curItem.id });
+      });
       dropEl.appendChild(d);
       curEl = d;
       // drop-in bounce
@@ -99,7 +133,16 @@ export default {
       T(() => d.classList.remove('dropping'), calm ? 900 : 550);
       const drag = makeDraggable(d, {
         zones: () => [...basketsEl.children],
+        onPick: () => {
+          audio();
+          playSfx('pop');
+          say('', { clip: 'sorti_' + curItem.id });
+        },
+        onMove: (el2, x, y, zone) => {
+          [...basketsEl.children].forEach((z) => z.classList.toggle('hover', z === zone));
+        },
         onDrop: (el, zone) => {
+          [...basketsEl.children].forEach((z) => z.classList.remove('hover'));
           if (zone && zone.dataset.b === curItem.b) {
             accept(zone);
             return true;
@@ -117,15 +160,30 @@ export default {
       zone.classList.add('wiggle');
       T(() => zone.classList.remove('wiggle'), 600);
       const bk = baskets.find((x) => x._el === zone);
-      bk._fill = Math.min(85, (bk._fill || 8) + 14);
+      bk._fill = Math.min(85, (bk._fill || 8) + 16);
+      bk._count = (bk._count || 0) + 1;
       zone.querySelector('.fill').style.height = bk._fill + '%';
       const sr = zone.getBoundingClientRect();
-      flyFromDrop(curEl, sr.left + sr.width / 2, sr.top + sr.height * 0.6, { scale: 0.4, ms: 300, fade: true });
+      sparkleBurst(sr.left + sr.width / 2, sr.top + sr.height * 0.4, 7);
+      flyFromDrop(curEl, sr.left + sr.width / 2, sr.top + sr.height * 0.55, { scale: 0.35, ms: 280, fade: true });
       const item = curItem;
+      // Add a visible mini-item inside the basket!
+      T(() => {
+        const sbItems = zone.querySelector('.sb-items');
+        if (sbItems) {
+          const mini = document.createElement('span');
+          mini.className = 'sb-mini';
+          if (/^[A-Z0-9]$/.test(item.emoji)) mini.textContent = item.emoji;
+          else setArt(mini, item.emoji);
+          sbItems.appendChild(mini);
+        }
+      }, 240);
+      const totalSorted = baskets.reduce((s, x) => s + (x._count || 0), 0);
+      setArt(starsEl, '⭐'.repeat(Math.min(8, totalSorted)));
       say('', { clip: 'sorti_' + item.id });
       const b = baskets.find((x) => x.id === item.b);
       say(b.label, { clip: 'sortb_' + b.id, queue: true });
-      T(() => { drags.forEach((x) => x.destroy()); drags = []; nextItem(); busy = false; }, 1300);
+      T(() => { drags.forEach((x) => x.destroy()); drags = []; nextItem(); busy = false; }, 1250);
     }
 
     function reject() {

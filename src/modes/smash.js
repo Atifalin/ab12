@@ -13,10 +13,12 @@ export default {
 
   mount(el, ctx) {
     el.innerHTML = `
+      <div class="smash-bar" id="smash-bar"><i id="smash-fill"></i></div>
       <div class="smash-idle" id="smash-idle">Tap or smash the keys!</div>
       <div id="smash-layer"></div>`;
     const layer = el.querySelector('#smash-layer');
     const idle = el.querySelector('#smash-idle');
+    const fillEl = el.querySelector('#smash-fill');
     const ringLive = layer.getElementsByClassName('ring');
     const { say, playSfx, effects, pickBg, audio } = ctx;
     const { confettiBurst, sparkleBurst } = effects;
@@ -40,8 +42,19 @@ export default {
       p.style.fontSize = size + 'vmin';
       p.style.rotate = rnd(-20, 20) + 'deg';
       p.innerHTML = `<span class="pop-art" data-art="${emoji}">${artHtml(emoji)}</span><span class="name">${label ? label + ' · ' : ''}${name}</span>`;
+      p.addEventListener('pointerdown', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        audio();
+        p.classList.add('zoom');
+        const pr = p.getBoundingClientRect();
+        sparkleBurst(pr.left + pr.width / 2, pr.top + pr.height / 2, 8);
+        confettiBurst(layer, pr.left + pr.width / 2, pr.top + pr.height / 2);
+        playSfx('boing');
+        say(name + '!', { clip: `smash_${slug(name)}` });
+      });
       layer.appendChild(p);
-      setTimeout(() => p.remove(), 3100);
+      setTimeout(() => p.remove(), 3400);
       while (layer.querySelectorAll('.pop').length > 8) layer.querySelector('.pop').remove();
 
       if (ringLive.length <= 4) {
@@ -54,6 +67,7 @@ export default {
         setTimeout(() => ring.remove(), 800);
       }
 
+      sparkleBurst(x, y, 4);
       if (Math.random() < 0.35) confettiBurst(layer, x, y);
       document.body.style.background = pickBg();
       document.body.classList.add('shake');
@@ -61,8 +75,10 @@ export default {
 
       // streak celebration — every 8th rapid smash gets a party
       smashStreak++;
+      const step = smashStreak % 8 || 8;
+      fillEl.style.width = (step / 8 * 100) + '%';
       clearTimeout(streakTimer);
-      streakTimer = setTimeout(() => (smashStreak = 0), 1500);
+      streakTimer = setTimeout(() => { smashStreak = 0; fillEl.style.width = '0%'; }, 2200);
       if (smashStreak % 8 === 0) {
         confettiBurst(layer, x, y);
         confettiBurst(layer, x - 60, y - 40);

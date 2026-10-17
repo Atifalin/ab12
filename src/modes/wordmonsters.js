@@ -50,8 +50,33 @@ export default {
     const bannerName = banner.querySelector('.pk-name');
     const bannerTitle = banner.querySelector('.pk-title');
 
-    const { say, playSfx, effects } = ctx;
+    const { say, playSfx, effects, audio } = ctx;
     const { sparkleBurst, confettiBurst } = effects;
+
+    // Monster eyes follow pointer across the screen
+    el.addEventListener('pointermove', (e) => {
+      field.querySelectorAll('.wm-mon:not(.dragging) .eye i').forEach((p) => {
+        const r = p.parentElement.getBoundingClientRect();
+        const dx = Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / 120));
+        const dy = Math.max(-1, Math.min(1, (e.clientY - (r.top + r.height / 2)) / 120));
+        p.style.transform = `translate(${dx * 42}%, ${dy * 42}%)`;
+      });
+    });
+
+    // Tap the top word picture to see it act & hear the word anytime!
+    el.querySelector('.wm-top').addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      if (!curWord) return;
+      audio();
+      emojiEl.className = 'wm-emoji';
+      void emojiEl.offsetWidth;
+      emojiEl.classList.add('act-' + curWord.act);
+      const r = emojiEl.getBoundingClientRect();
+      sparkleBurst(r.left + r.width / 2, r.top + r.height / 2, 6);
+      playSfx('pop');
+      if (curWord.member) playLine(curWord.member, 'name');
+      else say(curWord.w, { clip: 'wm_' + curWord.w });
+    });
 
     let words = [];
     let wi = 0;
@@ -110,6 +135,14 @@ export default {
         s.className = 'wm-slot';
         s.dataset.ch = ch;
         s.dataset.i = i;
+        s.addEventListener('pointerdown', (e) => {
+          if (!s.classList.contains('filled')) return;
+          e.preventDefault();
+          audio();
+          s.classList.remove('light'); void s.offsetWidth; s.classList.add('light');
+          playSfx('pop');
+          squeak(ch);
+        });
         slotsEl.appendChild(s);
         return s;
       });
@@ -158,8 +191,17 @@ export default {
             }
             return slots.filter((s) => !s.classList.contains('filled'));
           },
-          onPick: () => m.classList.add('lifted'),
+          onPick: () => {
+            audio();
+            m.classList.add('lifted');
+            squeak(ch);
+          },
+          onMove: (el2, x, y, zone) => {
+            slots.forEach((s) => s.classList.toggle('hover', s === zone));
+          },
           onDrop: (el, zone) => {
+            slots.forEach((s) => s.classList.remove('hover'));
+            m.classList.remove('lifted');
             if (m._placed) return true;
             if (zone && zone.dataset.ch === ch) {
               lockLetter(m, zone);

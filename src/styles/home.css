@@ -9,11 +9,14 @@ body.theme-candy #home { background: linear-gradient(180deg, #ff9fd6, #ffd0ec 55
 body.theme-ocean #home { background: linear-gradient(180deg, #3aa7ff, #8fd8ff 55%, #c9ffe9); }
 body.theme-forest #home { background: linear-gradient(180deg, #57cc8a, #a8ecbe 55%, #f4ffc9); }
 
-.clouds { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.clouds { position: absolute; inset: 0; overflow: hidden; z-index: 0; }
 .clouds span {
-  position: absolute; font-size: 12vmin; opacity: .9;
-  animation: drift 30s linear infinite;
+  position: absolute; font-size: 12vmin; opacity: .92; cursor: pointer;
+  animation: drift 30s linear infinite; transition: transform .25s, opacity .25s;
 }
+.clouds span.popped { transform: scale(1.6); opacity: 0; pointer-events: none; }
+.title span { display: inline-block; cursor: pointer; animation: jelly 1.8s ease-in-out infinite; }
+.title span.pop-letter { animation: slotPop .45s cubic-bezier(.34,1.56,.64,1); }
 .clouds span:not(.deco) { left: -15vw; }
 .clouds span:nth-child(1) { top: 6%; animation-delay: -5s; }
 .clouds span:nth-child(2) { top: 20%; animation-delay: -17s; font-size: 8vmin; }

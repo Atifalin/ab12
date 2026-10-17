@@ -1,8 +1,9 @@
 import { settings, modeEnabled } from './settings.js';
 import { audio, playSfx } from './audio.js';
+import { say } from './voice.js';
 import { show, activeMode } from './screens.js';
 import { isTouch } from './util.js';
-import { holdToActivate, toast } from './effects.js';
+import { holdToActivate, toast, sparkleBurst, confettiBurst } from './effects.js';
 import { openSettings } from './settingsPanel.js';
 import { setArt, artHtml } from './art.js';
 
@@ -98,8 +99,42 @@ export function renderHome() {
 
 export function initHome(modes) {
   allModes = modes;
-  // upgrade static home sky decorations + corner buttons to original SVG art
-  document.querySelectorAll('#home .clouds span').forEach((sp) => setArt(sp, sp.textContent));
+  const homeEl = document.getElementById('home');
+  // upgrade static home sky decorations to interactive poppable SVG toys!
+  document.querySelectorAll('#home .clouds span').forEach((sp) => {
+    setArt(sp, sp.textContent);
+    sp.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      audio();
+      const r = sp.getBoundingClientRect();
+      sparkleBurst(r.left + r.width / 2, r.top + r.height / 2, 6);
+      confettiBurst(homeEl, r.left + r.width / 2, r.top + r.height / 2);
+      playSfx('pop');
+      sp.classList.add('popped');
+      setTimeout(() => sp.classList.remove('popped'), 1400);
+    });
+  });
+  // interactive AB12 title letters: tap A, B, 1, 2 to bounce & speak!
+  const titleClips = [
+    { text: 'ay!', clip: 'letter_A' },
+    { text: 'bee!', clip: 'letter_B' },
+    { text: 'One!', clip: 'num_1' },
+    { text: 'Two!', clip: 'num_2' },
+  ];
+  document.querySelectorAll('#home .title span').forEach((sp, i) => {
+    sp.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      audio();
+      sp.classList.remove('pop-letter');
+      void sp.offsetWidth;
+      sp.classList.add('pop-letter');
+      const r = sp.getBoundingClientRect();
+      sparkleBurst(r.left + r.width / 2, r.top + r.height / 2, 6);
+      playSfx('scaleNote');
+      if (titleClips[i]) say(titleClips[i].text, { clip: titleClips[i].clip });
+    });
+  });
   const gear = document.getElementById('settings-btn');
   const hbtn = document.getElementById('home-btn');
   if (gear) {
