@@ -1,4 +1,5 @@
-import { audio, tone, settings } from '../core/audio.js';
+import { audio, tone } from '../core/audio.js';
+import { settings } from '../core/settings.js';
 
 // ---------- PokéLab: Procedural Code-Art Creature & Shader Engine ----------
 // 100% original code-generated SVG + filter shaders + procedural DNA fusion +
