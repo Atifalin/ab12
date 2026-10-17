@@ -161,6 +161,13 @@ def build_manifest():
     clips.append(("feed_blech", "Blech! Not that one!"))
     clips.append(("feed_dance", "I'm so full and happy!"))
     clips.append(("feed_intro", "Feed the hungry monster!"))
+    clips.append(("feedsfx_crunch", "Crunch crunch crunch! Nom nom!"))
+    clips.append(("feedsfx_slurp", "Slurrrp! Ahhh, so good!"))
+    clips.append(("feedsfx_burp", "Burrrp! Excuse me!"))
+    clips.append(("feedsfx_giggle", "Hehehe! That tickles my tummy!"))
+    clips.append(("feedsfx_poke", "Boing! Hey, that's my silly head!"))
+    clips.append(("feedsfx_hungry", "Aaaah! Feed me! Nom nom nom!"))
+    clips.append(("feedsfx_snore", "Zzzzz... Huh? I'm awake!"))
 
     clips.append(("intro_learn", "Let's learn letters and numbers!"))
     clips.append(("intro_smash", "Smash time!"))

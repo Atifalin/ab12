@@ -260,25 +260,44 @@ body.shake #smash-layer { animation: shake .18s linear; }
 #peekaboo { background: linear-gradient(180deg, #7ed4ff 0%, #bfeaff 60%, #c9f2a8 100%); }
 .pk-stage { position: fixed; inset: 0; height: 100vh; height: 100dvh; overflow: hidden; }
 .pk-canvas { position: fixed; left: 0; top: 0; }
+.pk-hits { position: fixed; inset: 0; pointer-events: none; z-index: 15; }
+.pk-spot-hit {
+  position: absolute; border: 0; background: transparent; cursor: pointer;
+  pointer-events: auto; padding: 0; border-radius: 4vmin;
+  display: flex; align-items: flex-start; justify-content: center;
+}
+.pk-spot-hit:focus-visible { outline: .5vmin solid #fff; }
+.pk-peek-eyes {
+  font-size: min(5.5vmin, 7vw); opacity: 0; transform: translateY(2vmin) scale(.4);
+  transition: opacity .25s, transform .25s cubic-bezier(.34,1.56,.64,1);
+  pointer-events: none;
+}
+.pk-spot-hit.peeking .pk-peek-eyes { opacity: .95; transform: translateY(-.5vmin) scale(1); }
+.pk-stars {
+  position: absolute; left: max(3vmin, env(safe-area-inset-left)); top: max(3vmin, env(safe-area-inset-top));
+  font-size: 5.5vmin; z-index: 26; pointer-events: none;
+}
 .pk-banner {
-  position: absolute; left: 50%; top: 16%; transform: translateX(-50%);
+  position: absolute; left: 50%; top: 14%; transform: translateX(-50%);
   display: flex; align-items: center; justify-content: center; gap: 2vmin;
-  max-width: 82vw; text-align: center;
+  max-width: 84vw; text-align: center;
   line-height: 1.05; color: #fff;
-  text-shadow: 0 .7vmin 0 rgba(0,0,0,.25), 0 0 4vmin rgba(255,255,255,.4);
-  background: rgba(43, 27, 61, .38); border-radius: 5vmin; padding: 1.6vmin 3.5vmin;
+  text-shadow: 0 .6vmin 0 rgba(0,0,0,.28), 0 0 4vmin rgba(255,255,255,.4);
+  background: rgba(43, 27, 61, .48); border: .45vmin solid rgba(255,255,255,.75);
+  border-radius: 5vmin; padding: 1.4vmin 3.5vmin;
   pointer-events: none; z-index: 30; opacity: 0;
 }
-.pk-banner .pk-emoji { font-size: min(9vmin, 12vw); }
+.pk-banner .pk-emoji { font-size: min(8.5vmin, 11vw); }
 .pk-banner .pk-lines { display: flex; flex-direction: column; align-items: center; }
-.pk-banner .pk-name { font-size: min(9vmin, 11vw); }
-.pk-banner .pk-title { font-size: min(4.5vmin, 5.5vw); opacity: .92; }
+.pk-banner .pk-name { font-size: min(8.5vmin, 10.5vw); }
+.pk-banner .pk-title { font-size: min(4.2vmin, 5vw); opacity: .92; }
 .pk-banner.show { animation: wbPop .5s cubic-bezier(.34,1.56,.64,1) both; }
 .pk-prompt {
-  position: absolute; left: 50%; top: max(3vmin, env(safe-area-inset-top)); transform: translateX(-50%);
-  font: inherit; border: 0; cursor: pointer; background: rgba(255,255,255,.3);
-  border-radius: 4vmin; padding: 1.5vmin 3.5vmin; display: flex; align-items: center; gap: 2vmin;
-  color: #fff; box-shadow: 0 .8vmin 0 rgba(0,0,0,.15); transition: transform .1s; z-index: 25;
+  position: absolute; left: 50%; top: max(2.5vmin, env(safe-area-inset-top)); transform: translateX(-50%);
+  font: inherit; border: .45vmin solid rgba(255,255,255,.85); cursor: pointer;
+  background: rgba(43,27,61,.42);
+  border-radius: 4vmin; padding: 1.2vmin 3.2vmin; display: flex; align-items: center; gap: 1.8vmin;
+  color: #fff; box-shadow: 0 .8vmin 0 rgba(0,0,0,.18); transition: transform .1s; z-index: 25;
 }
 .pk-prompt:active { transform: translateX(-50%) scale(.94); }
 .pk-prompt .pk-big { font-size: 6vmin; line-height: 1; }
@@ -475,75 +494,127 @@ body.shake #smash-layer { animation: shake .18s linear; }
 .sort-basket.dance { animation: wmBounce .8s ease-in-out 2; }
 
 /* ---------- FEED THE MONSTER ---------- */
-#feed { background: linear-gradient(#ffe9d6, #fff6e8 55%, #ffe4ec); overflow: hidden;
-        padding-top: max(4vmin, env(safe-area-inset-top)); }
+#feed { background: radial-gradient(circle at 50% 38%, #fff9f0, #ffe8d1 60%, #ffd6e6); overflow: hidden;
+        padding-top: max(3.5vmin, env(safe-area-inset-top)); }
 #feed.active { display: flex; flex-direction: column; align-items: center; }
 
-.feed-bubble { position: relative; flex: 0 0 auto; margin: 0 auto;
-               background: #fff; border-radius: 4vmin; padding: 1.6vmin 3.5vmin;
-               font-size: 5vmin; font-weight: 700; color: var(--ink); z-index: 8;
-               box-shadow: 0 .6vmin 1.8vmin rgba(0,0,0,.15); max-width: 86vw; text-align: center;
-               display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.feed-bubble::after { content: ''; position: absolute; bottom: -1.4vmin; left: 50%;
+.feed-bubble { position: relative; flex: 0 0 auto; margin: 0 auto; font: inherit; border: .45vmin solid rgba(43,27,61,.15);
+               background: #fff; border-radius: 4vmin; padding: 1.4vmin 3.2vmin; cursor: pointer;
+               font-size: 4.8vmin; font-weight: 700; color: var(--ink); z-index: 8;
+               box-shadow: 0 .8vmin 0 rgba(43,27,61,.14), 0 1.2vmin 2.4vmin rgba(0,0,0,.12);
+               max-width: 86vw; text-align: center; display: flex; align-items: center; gap: 1.4vmin; }
+.feed-bubble:active { transform: scale(.96); }
+.feed-bubble .feed-spk { font-size: 4.6vmin; line-height: 1; flex: 0 0 auto; }
+.feed-bubble::after { content: ''; position: absolute; bottom: -1.4vmin; left: 50%; transform: translateX(-50%);
                       border: 1.5vmin solid transparent; border-top-color: #fff; }
-.feed-mon { position: relative; flex: 0 0 auto; margin: 2vmin auto 0;
-            width: min(34vmin, 46vw); height: min(34vmin, 46vw); min-width: 130px; min-height: 130px;
-            background: var(--mc, #a78bfa); border-radius: 48% 52% 46% 54% / 55% 52% 48% 45%;
-            border: .6vmin solid var(--ink);
-            box-shadow: inset 0 -2vmin 0 rgba(0,0,0,.1), 0 1.4vmin 0 rgba(43,27,61,.2), 0 2vmin 3.5vmin rgba(0,0,0,.15);
+.feed-mon { position: relative; flex: 0 0 auto; margin: 3vmin auto 0; cursor: pointer;
+            width: min(36vmin, 48vw); height: min(36vmin, 48vw); min-width: 140px; min-height: 140px;
+            background: radial-gradient(circle at 35% 25%, rgba(255,255,255,.35), transparent 55%), var(--mc, #a78bfa);
+            border-radius: 48% 52% 46% 54% / 55% 52% 48% 45%;
+            border: .65vmin solid var(--ink);
+            box-shadow: inset 0 -2.4vmin 0 rgba(0,0,0,.12), 0 1.6vmin 0 rgba(43,27,61,.22), 0 2.4vmin 4vmin rgba(0,0,0,.15);
             animation: feedBreathe 3s ease-in-out infinite; z-index: 6; }
-.fhorn { position: absolute; top: -2.2vmin; width: 5vmin; height: 5.5vmin;
-         background: #ffd23f; border: .55vmin solid var(--ink); border-radius: 50% 50% 20% 20%; }
-.fh1 { left: 18%; transform: rotate(-22deg); }
-.fh2 { right: 18%; transform: rotate(22deg); }
-.fcheek { position: absolute; top: 36%; width: 4.6vmin; height: 2.8vmin;
-          background: rgba(255,110,155,.55); border-radius: 50%; }
-.fc1 { left: 12%; }
-.fc2 { right: 12%; }
-.ffoot { position: absolute; bottom: -2vmin; width: 7vmin; height: 3.6vmin;
-         background: var(--mc, #a78bfa); border: .55vmin solid var(--ink); border-radius: 50%; }
-.ff1 { left: 22%; }
-.ff2 { right: 22%; }
+.ftuft { position: absolute; top: -2.4vmin; left: 50%; transform: translateX(-50%);
+         width: 5vmin; height: 3.4vmin; background: var(--mc, #a78bfa);
+         border: .5vmin solid var(--ink); border-bottom: 0; border-radius: 50% 50% 0 0; }
+.fhorn { position: absolute; top: -2.6vmin; width: 5.4vmin; height: 6vmin;
+         background: linear-gradient(180deg, #fff3b0, #ffd23f); border: .55vmin solid var(--ink);
+         border-radius: 50% 50% 20% 20%; transition: transform .2s; }
+.fh1 { left: 16%; transform: rotate(-22deg); }
+.fh2 { right: 16%; transform: rotate(22deg); }
+.farm { position: absolute; top: 42%; width: 5.5vmin; height: 11vmin;
+        background: var(--mc, #a78bfa); border: .55vmin solid var(--ink); border-radius: 4vmin;
+        transform-origin: top center; transition: transform .22s cubic-bezier(.34,1.56,.64,1); z-index: -1; }
+.fa1 { left: -3.2vmin; transform: rotate(22deg); }
+.fa2 { right: -3.2vmin; transform: rotate(-22deg); }
+.feed-mon.excited .fa1, .feed-mon.wide-open .fa1 { transform: rotate(125deg); }
+.feed-mon.excited .fa2, .feed-mon.wide-open .fa2 { transform: rotate(-125deg); }
+.feed-mon.tickle .fa1 { animation: armWiggleL .22s ease-in-out infinite alternate; }
+.feed-mon.tickle .fa2 { animation: armWiggleR .22s ease-in-out infinite alternate; }
+@keyframes armWiggleL { from { transform: rotate(45deg); } to { transform: rotate(110deg); } }
+@keyframes armWiggleR { from { transform: rotate(-45deg); } to { transform: rotate(-110deg); } }
+.fcheek { position: absolute; top: 36%; width: 5vmin; height: 3vmin;
+          background: rgba(255,95,145,.58); border-radius: 50%; transition: transform .2s, background .2s; }
+.fc1 { left: 11%; }
+.fc2 { right: 11%; }
+.feed-mon.tickle .fcheek, .feed-mon.excited .fcheek { transform: scale(1.35); background: rgba(255,60,120,.82); }
+.ffoot { position: absolute; bottom: -2.2vmin; width: 7.5vmin; height: 3.8vmin;
+         background: var(--mc, #a78bfa); border: .55vmin solid var(--ink); border-radius: 50%;
+         transition: transform .15s; }
+.ff1 { left: 20%; }
+.ff2 { right: 20%; }
+.feed-brows { position: absolute; top: 10%; left: 0; right: 0; display: flex; justify-content: center; gap: 20%; pointer-events: none; }
+.fbrow { width: 6vmin; height: 1.4vmin; background: var(--ink); border-radius: 2vmin; transition: transform .18s; }
+.feed-mon.excited .fb1, .feed-mon.wide-open .fb1 { transform: translateY(-.9vmin) rotate(-10deg); }
+.feed-mon.excited .fb2, .feed-mon.wide-open .fb2 { transform: translateY(-.9vmin) rotate(10deg); }
+.feed-mon.blech .fb1 { transform: translateY(.5vmin) rotate(18deg); }
+.feed-mon.blech .fb2 { transform: translateY(.5vmin) rotate(-18deg); }
 .feed-eyes { position: absolute; top: 16%; left: 0; right: 0; display: flex; justify-content: center; gap: 14%; }
-.feye { width: 7.5vmin; height: 7.5vmin; min-width: 30px; min-height: 30px; background: #fff;
+.feye { width: 7.8vmin; height: 7.8vmin; min-width: 30px; min-height: 30px; background: #fff;
         border: .5vmin solid var(--ink); border-radius: 50%;
-        display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        display: flex; align-items: center; justify-content: center; overflow: hidden;
+        animation: wmBlink 4.2s infinite; }
+.feed-mon.sleepy .feye { transform: scaleY(.18); animation: none; }
+.feed-mon.dizzy .feye i { animation: dizzySpin .45s linear 2; }
+@keyframes dizzySpin { to { transform: rotate(360deg) translate(35%, 0); } }
 .feye i { width: 42%; height: 42%; background: var(--ink); border-radius: 50%; transition: transform .12s; position: relative; }
 .feye i::after { content: ''; position: absolute; top: 15%; left: 18%; width: 35%; height: 35%; background: #fff; border-radius: 50%; }
-.feed-mouth { position: absolute; top: 44%; left: 50%; transform: translateX(-50%);
-              width: 14vmin; height: 6.5vmin; min-width: 54px; min-height: 24px;
-              background: #5c2e3e; border: .5vmin solid var(--ink); border-radius: 1.5vmin 1.5vmin 10vmin 10vmin; overflow: hidden;
-              transition: height .15s, width .15s; }
-.ftooth { position: absolute; top: 0; width: 2.2vmin; height: 1.6vmin; background: #fff; border-radius: 0 0 .8vmin .8vmin; }
-.ft1 { left: 22%; }
-.ft2 { right: 22%; }
-.feed-mouth.open { height: 11vmin; width: 16vmin; }
+.feed-mouth { position: absolute; top: 43%; left: 50%; transform: translateX(-50%);
+              width: 14.5vmin; height: 6.8vmin; min-width: 56px; min-height: 26px;
+              background: #5c2038; border: .5vmin solid var(--ink); border-radius: 1.8vmin 1.8vmin 10vmin 10vmin; overflow: hidden;
+              transition: height .15s cubic-bezier(.34,1.56,.64,1), width .15s cubic-bezier(.34,1.56,.64,1); }
+.ftooth { position: absolute; top: 0; width: 2.3vmin; height: 1.8vmin; background: #fff; border-radius: 0 0 .8vmin .8vmin; z-index: 2; }
+.ft1 { left: 20%; }
+.ft2 { right: 20%; }
+.ftb1, .ftb2 { top: auto; bottom: 0; height: 1.4vmin; border-radius: .8vmin .8vmin 0 0; }
+.ftb1 { left: 32%; }
+.ftb2 { right: 32%; }
+.feed-mouth.open { height: 12.5vmin; width: 17.5vmin; }
 @media (orientation: portrait) {
-  .feed-bubble { font-size: 6vw; }
-  .feed-mon { top: 32%; width: 56vw; height: 56vw; }
+  .feed-bubble { font-size: 5.4vw; }
+  .feed-mon { width: 54vw; height: 54vw; margin-top: 3vw; }
 }
-.ftongue { position: absolute; bottom: 0; left: 20%; width: 60%; height: 45%;
-           background: #ff8fa8; border-radius: 50% 50% 0 0; }
-.feed-tummy { position: absolute; bottom: 8%; left: 50%; transform: translateX(-50%);
-              width: 60%; height: 26%; background: rgba(255,255,255,.35); border-radius: 50%;
-              transform-origin: center 80%; transition: transform .3s; }
-.feed-mon.chomp .feed-mouth { animation: feedChomp .45s ease; }
+.ftongue { position: absolute; bottom: -4%; left: 20%; width: 60%; height: 50%;
+           background: #ff7597; border-radius: 50% 50% 0 0; animation: tongueWag 1.8s ease-in-out infinite; }
+@keyframes tongueWag { 0%,100% { transform: translateX(0); } 50% { transform: translateX(6%); } }
+.feed-tummy { position: absolute; bottom: 7%; left: 50%; transform: translateX(-50%);
+              width: 62%; height: 28%; background: rgba(255,255,255,.45);
+              border: .4vmin dashed rgba(43,27,61,.22); border-radius: 50%;
+              display: flex; align-items: center; justify-content: center; gap: .4vmin;
+              padding: .6vmin 1.2vmin; overflow: hidden;
+              transform-origin: center 80%; transition: transform .3s cubic-bezier(.34,1.56,.64,1); }
+.feed-tummy-items { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .3vmin; }
+.tummy-food { width: 3.4vmin; height: 3.4vmin; display: inline-flex; animation: tummyBob 1.8s ease-in-out infinite alternate; }
+.tummy-food .art-svg { width: 100%; height: 100%; }
+@keyframes tummyBob { from { transform: translateY(-.3vmin) rotate(-8deg); } to { transform: translateY(.4vmin) rotate(8deg); } }
+.feed-mon.chomp { animation: monChompBody .55s ease; }
+.feed-mon.chomp .feed-mouth { animation: feedChomp .18s ease 3; }
+.feed-mon.gulp { animation: monGulp .45s cubic-bezier(.34,1.56,.64,1); }
+.feed-mon.tickle { animation: monTickle .65s ease-in-out; }
+.feed-mon.dizzy { animation: wmGiggle .65s ease; }
+.feed-mon.dizzy .fhorn { transform: scale(1.25) rotate(0deg); }
+.feed-mon.hop { animation: monHop .6s cubic-bezier(.34,1.56,.64,1); }
 .feed-mon.blech { animation: wmGiggle .6s ease; }
 .feed-mon.blech .feed-mouth { height: 2.5vmin; width: 9vmin; }
 .feed-mon.dance { animation: wmBounce .9s ease-in-out 2; }
 @keyframes feedBreathe { 0%,100% { transform: scale(1,1); } 50% { transform: scale(1.02,.98) translateY(-1%); } }
-@keyframes feedChomp { 0%,100%{transform:translateX(-50%) scaleY(1)} 40%{transform:translateX(-50%) scaleY(1.7)} 70%{transform:translateX(-50%) scaleY(.6)} }
+@keyframes feedChomp { 0%,100%{transform:translateX(-50%) scaleY(1)} 45%{transform:translateX(-50%) scaleY(1.85) scaleX(1.12)} 75%{transform:translateX(-50%) scaleY(.35)} }
+@keyframes monChompBody { 0%,100%{transform:scale(1,1)} 25%{transform:scale(1.08,.93)} 50%{transform:scale(.95,1.06)} 75%{transform:scale(1.05,.96)} }
+@keyframes monGulp { 0%{transform:scale(1,1)} 45%{transform:scale(1.1, .92) translateY(1.5vmin)} 100%{transform:scale(1,1)} }
+@keyframes monTickle { 0%,100%{transform:rotate(0) scale(1)} 20%{transform:rotate(-8deg) scale(1.06,.95)} 40%{transform:rotate(8deg) scale(.96,1.05)} 60%{transform:rotate(-6deg) scale(1.05,.96)} 80%{transform:rotate(6deg)} }
+@keyframes monHop { 0%,100%{transform:translateY(0) scale(1,1)} 35%{transform:translateY(-8vmin) scale(.94,1.08)} 70%{transform:translateY(1vmin) scale(1.08,.92)} }
 .feed-table { position: relative; flex: 0 0 auto; margin: auto 0 max(4vmin, env(safe-area-inset-bottom));
               width: 92vw; max-width: 640px; height: 24vmin; min-height: 96px;
               background: linear-gradient(#d9a066, #b57f4a); border-radius: 3vmin;
-              box-shadow: inset 0 1vmin 0 rgba(255,255,255,.25), 0 1vmin 2vmin rgba(0,0,0,.15); z-index: 7;
+              border: .55vmin solid var(--ink);
+              box-shadow: inset 0 1vmin 0 rgba(255,255,255,.25), 0 1.2vmin 0 rgba(43,27,61,.2), 0 1.5vmin 2.5vmin rgba(0,0,0,.15); z-index: 7;
               display: flex; align-items: center; justify-content: space-around; padding: 0 3vmin; }
 .feed-food { position: relative; flex: 0 0 auto; width: 19vmin; height: 19vmin; min-width: 68px; min-height: 68px;
              font-size: 14vmin; line-height: 1; cursor: grab; display: flex; align-items: center; justify-content: center;
              filter: drop-shadow(0 .8vmin 1vmin rgba(0,0,0,.2)); }
 .feed-plate { width: 88%; height: 88%; border-radius: 50%;
               background: radial-gradient(circle, #fff 55%, #f1f5f9 100%);
-              border: .45vmin solid rgba(43,27,61,.2);
+              border: .45vmin solid rgba(43,27,61,.25);
               box-shadow: 0 .6vmin 0 rgba(0,0,0,.15);
               display: flex; align-items: center; justify-content: center; }
 .feed-plate .art-svg { width: 80%; height: 80%; }
@@ -551,6 +622,20 @@ body.shake #smash-layer { animation: shake .18s linear; }
 .feed-food.wiggle { animation: wmJiggle .6s ease infinite; }
 .feed-count { position: absolute; top: 50%; right: 4%; transform: translateY(-50%);
               font-size: 4.5vmin; font-weight: 700; color: rgba(43,27,61,.6); z-index: 8; }
-.feed-crumb { position: absolute; width: 1.2vmin; height: 1.2vmin; border-radius: 50%;
-              background: #d9a066; animation: feedCrumb .8s ease-out forwards; }
-@keyframes feedCrumb { to { transform: translateY(6vmin) rotate(90deg); opacity: 0; } }
+.feed-crumb { position: absolute; width: 1.6vmin; height: 1.6vmin; border-radius: 40%;
+              border: .25vmin solid rgba(43,27,61,.35); pointer-events: none; z-index: 12;
+              animation: feedCrumb .75s cubic-bezier(.2,.8,.4,1) forwards; }
+@keyframes feedCrumb {
+  0% { transform: translate(0, 0) scale(1) rotate(0); opacity: 1; }
+  100% { transform: translate(var(--cx, 30px), var(--cy, 60px)) scale(.3) rotate(220deg); opacity: 0; }
+}
+.feed-burp-bub { position: absolute; border-radius: 50%; pointer-events: none; z-index: 12;
+                 background: radial-gradient(circle at 30% 30%, #e9ffdb, #70e000 70%);
+                 border: .3vmin solid #2d6a4f; opacity: .88;
+                 animation: burpFloat .95s ease-out forwards; }
+@keyframes burpFloat {
+  0% { transform: translate(0, 0) scale(.4); opacity: .95; }
+  100% { transform: translate(var(--bx, 0px), -14vmin) scale(1.25); opacity: 0; }
+}
+.feed-floater { position: absolute; font-size: 4vmin; pointer-events: none; z-index: 12;
+                animation: burpFloat .95s ease-out forwards; }

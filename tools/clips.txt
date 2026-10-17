@@ -636,6 +636,13 @@ feed_yum3	Mmm, delicious!
 feed_blech	Blech! Not that one!
 feed_dance	I'm so full and happy!
 feed_intro	Feed the hungry monster!
+feedsfx_crunch	Crunch crunch crunch! Nom nom!
+feedsfx_slurp	Slurrrp! Ahhh, so good!
+feedsfx_burp	Burrrp! Excuse me!
+feedsfx_giggle	Hehehe! That tickles my tummy!
+feedsfx_poke	Boing! Hey, that's my silly head!
+feedsfx_hungry	Aaaah! Feed me! Nom nom nom!
+feedsfx_snore	Zzzzz... Huh? I'm awake!
 intro_learn	Let's learn letters and numbers!
 intro_smash	Smash time!
 find_intro	Let's play find it!

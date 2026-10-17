@@ -56,9 +56,9 @@ export function tone({ type = 'sine', f0 = 440, f1 = f0, dur = 0.25, gain = 0.25
   live.add(node);
   o.onended = () => { live.delete(node); o.disconnect(); g.disconnect(); };
 }
-export function playSfx(name) {
-  if (!settings.sfx) return;
-  stopSfx();
+export function playSfx(name, { overlay = false } = {}) {
+  if (!settings.sfx || !SFX[name]) return;
+  if (!overlay) stopSfx();
   SFX[name]();
 }
 const SCALE = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.7, 1318.5];
@@ -66,8 +66,40 @@ let noteIdx = 0, noteTimer = null;
 export const SFX = {
   pop: () => tone({ type: 'sine', f0: 550, f1: 1050, dur: 0.14, gain: 0.22 }),
   boing: () => tone({ type: 'triangle', f0: 750, f1: 160, dur: 0.42, gain: 0.18 }),
-  chomp: () => { tone({ type: 'square', f0: 160, f1: 70, dur: 0.16, gain: 0.2 }); tone({ type: 'square', f0: 140, f1: 60, dur: 0.14, gain: 0.16, delay: 0.14 }); },
-  burp: () => tone({ type: 'sawtooth', f0: 130, f1: 60, dur: 0.5, gain: 0.15, delay: 0.1 }),
+  chomp: () => {
+    tone({ type: 'square', f0: 190, f1: 68, dur: 0.13, gain: 0.22 });
+    tone({ type: 'sawtooth', f0: 320, f1: 95, dur: 0.1, gain: 0.14, delay: 0.03 });
+    tone({ type: 'square', f0: 165, f1: 60, dur: 0.14, gain: 0.19, delay: 0.18 });
+  },
+  crunch: () => {
+    // 3 crispy multi-layered bites + swallow gulp
+    [0, 0.22, 0.44].forEach((d, i) => {
+      tone({ type: 'sawtooth', f0: 260 - i * 25, f1: 65, dur: 0.13, gain: 0.2, delay: d });
+      tone({ type: 'square', f0: 520 - i * 40, f1: 120, dur: 0.08, gain: 0.14, delay: d + 0.02 });
+    });
+    tone({ type: 'sine', f0: 320, f1: 110, dur: 0.22, gain: 0.18, delay: 0.68 });
+  },
+  slurp: () => {
+    tone({ type: 'sine', f0: 260, f1: 980, dur: 0.36, gain: 0.18 });
+    tone({ type: 'triangle', f0: 420, f1: 1280, dur: 0.28, gain: 0.14, delay: 0.12 });
+    tone({ type: 'sine', f0: 760, f1: 220, dur: 0.2, gain: 0.16, delay: 0.44 });
+  },
+  gulp: () => {
+    tone({ type: 'sine', f0: 380, f1: 110, dur: 0.22, gain: 0.2 });
+    tone({ type: 'triangle', f0: 180, f1: 340, dur: 0.15, gain: 0.14, delay: 0.16 });
+  },
+  burp: () => {
+    tone({ type: 'sawtooth', f0: 145, f1: 58, dur: 0.52, gain: 0.18, delay: 0.05 });
+    tone({ type: 'square', f0: 98, f1: 72, dur: 0.38, gain: 0.12, delay: 0.12 });
+  },
+  giggle: () => {
+    [580, 720, 640, 820, 760, 940].forEach((f, i) =>
+      tone({ type: 'triangle', f0: f, f1: f * 1.18, dur: 0.09, gain: 0.16, delay: i * 0.08 }));
+  },
+  snore: () => {
+    tone({ type: 'sawtooth', f0: 110, f1: 85, dur: 0.45, gain: 0.1 });
+    tone({ type: 'sine', f0: 320, f1: 540, dur: 0.35, gain: 0.09, delay: 0.48 });
+  },
   slideUp: () => tone({ type: 'triangle', f0: 240, f1: 1200, dur: 0.45, gain: 0.1 }),
   honk: () => { tone({ type: 'triangle', f0: 220, f1: 200, dur: 0.28, gain: 0.13 }); tone({ type: 'triangle', f0: 277, f1: 260, dur: 0.28, gain: 0.11 }); },
   laser: () => tone({ type: 'sine', f0: 1400, f1: 140, dur: 0.32, gain: 0.1 }),
