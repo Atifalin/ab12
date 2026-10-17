@@ -27,6 +27,7 @@ applyTheme();
 // Per-mode settings live under settings.modes[modeId]; `enabled` hides a mode.
 export function modeSettings(mode) {
   const m = settings.modes[mode.id] || (settings.modes[mode.id] = {});
+  if (m.enabled === undefined && mode.defaultEnabled !== undefined) m.enabled = mode.defaultEnabled;
   for (const s of mode.settings || []) if (m[s.key] === undefined) m[s.key] = s.default;
   return m;
 }

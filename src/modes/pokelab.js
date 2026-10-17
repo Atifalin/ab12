@@ -18,6 +18,7 @@ export default {
   title: 'PokéLab',
   emoji: '⚡',
   category: 'play',
+  defaultEnabled: false,
   settings: [
     { key: 'tab', label: 'Start tab', type: 'seg', default: 'pack',
       options: [
