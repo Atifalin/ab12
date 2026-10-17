@@ -1152,35 +1152,74 @@ body.shake #smash-layer { animation: shake .18s linear; }
 #pokelab {
   background: radial-gradient(circle at 50% 15%, #1e1b4b, #0f172a 75%);
   color: #f8fafc;
-  padding: max(2vmin, env(safe-area-inset-top)) 2.5vmin max(2.5vmin, env(safe-area-inset-bottom));
+  padding: max(1.8vmin, env(safe-area-inset-top)) 2.5vmin max(2.5vmin, env(safe-area-inset-bottom));
   overflow-y: auto; overflow-x: hidden;
+  touch-action: pan-y; -webkit-overflow-scrolling: touch;
 }
 .pkl-top {
-  display: flex; align-items: center; justify-content: center; gap: 2vmin;
-  padding-right: 11vmin; flex-wrap: wrap; z-index: 10; margin-bottom: 1.6vmin;
+  display: flex; align-items: center; justify-content: center; gap: 1.4vmin;
+  padding-right: 11vmin; flex-wrap: wrap; z-index: 10; margin-bottom: 1.2vmin;
 }
 .pkl-tabs {
-  display: flex; gap: 1vmin; flex-wrap: wrap; justify-content: center;
-  background: rgba(255,255,255,.08); padding: .7vmin; border-radius: 4vmin;
+  display: flex; gap: .8vmin; flex-wrap: wrap; justify-content: center;
+  background: rgba(255,255,255,.08); padding: .6vmin; border-radius: 4vmin;
   border: 1px solid rgba(255,255,255,.16);
 }
 .pkl-tab {
-  font: inherit; font-size: 2.5vmin; font-weight: 700; border: 0; border-radius: 3vmin;
-  padding: .9vmin 2.2vmin; background: transparent; color: #cbd5e1; cursor: pointer;
+  font: inherit; font-size: 2.3vmin; font-weight: 700; border: 0; border-radius: 3vmin;
+  padding: .8vmin 1.8vmin; background: transparent; color: #cbd5e1; cursor: pointer;
   transition: background .15s, color .15s;
 }
 .pkl-tab.on { background: linear-gradient(135deg, #f59e0b, #ec4899); color: #fff; box-shadow: 0 .4vmin 1.2vmin rgba(236,72,153,.4); }
-#pkl-dex-count {
-  font-size: 2.3vmin; background: rgba(255,255,255,.12); padding: .6vmin 1.8vmin;
+.pkl-dex-badge {
+  font: inherit; font-size: 2.1vmin; font-weight: 700;
+  background: rgba(255,255,255,.12); padding: .6vmin 1.6vmin;
   border-radius: 3vmin; color: #fde047; border: 1px solid rgba(253,224,71,.35);
+  cursor: pointer;
+}
+#pkl-help-btn.on { background: rgba(250,204,21,.22); border-color: #fde047; }
+
+.pkl-coach {
+  display: flex; align-items: center; justify-content: center; gap: 1.2vmin;
+  background: linear-gradient(90deg, rgba(79,70,229,.45), rgba(236,72,153,.45));
+  border: 2px solid #fde047; border-radius: 3vmin; padding: .9vmin 2.4vmin;
+  margin: 0 auto 1.4vmin; max-width: 92vw; font-size: 2.3vmin; color: #fff;
+  box-shadow: 0 .4vmin 1.6vmin rgba(0,0,0,.35);
+}
+.pkl-coach[hidden] { display: none; }
+.pkl-coach-ico { font-size: 3vmin; animation: afHint .7s ease-in-out infinite; }
+
+.pkl-spotlight {
+  outline: 3px solid #fde047 !important;
+  box-shadow: 0 0 0 4px rgba(253,224,71,.35), 0 0 20px rgba(253,224,71,.75) !important;
+  animation: bubHint .9s ease-in-out infinite !important;
 }
 
 .pkl-body { flex: 1; display: flex; flex-direction: column; min-height: 0; width: 100%; max-width: 1140px; margin: 0 auto; }
 .pkl-split {
-  display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 2.8vmin; align-items: center; flex: 1;
+  display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 2.2vmin; align-items: center; flex: 1;
 }
-.pkl-left-col { display: flex; flex-direction: column; gap: 2vmin; min-width: 0; }
+.pkl-left-col { display: flex; flex-direction: column; gap: 1.6vmin; min-width: 0; }
 .pkl-right-col { display: flex; align-items: center; justify-content: center; }
+
+/* Visual DNA Splicer Cards */
+.pkl-splicer-row {
+  display: flex; align-items: center; justify-content: center; gap: 1.6vmin;
+}
+.pkl-parent-box {
+  flex: 1; background: rgba(15,23,42,.65); border: 2px solid rgba(255,255,255,.18);
+  border-radius: 2.5vmin; padding: 1vmin; display: flex; flex-direction: column;
+  align-items: center; gap: .5vmin;
+}
+.pkl-p-lbl { font-size: 1.7vmin; color: #fde047; letter-spacing: .04em; }
+.pkl-p-mini { width: 11vmin; height: 11vmin; }
+.pkl-p-nav { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: .6vmin; font-size: 2.1vmin; }
+.pkl-Step {
+  font: inherit; border: 0; background: rgba(255,255,255,.18); color: #fff;
+  width: 4.6vmin; height: 4.6vmin; min-width: 28px; min-height: 28px;
+  border-radius: 50%; cursor: pointer; font-size: 2.2vmin;
+}
+.pkl-plus { font-size: 3.4vmin; color: #fde047; }
 
 /* 3D Tilt Holographic Trading Card */
 .pkl-card {
@@ -1375,9 +1414,15 @@ body.shake #smash-layer { animation: shake .18s linear; }
 .pkl-vs { font-size: 4.5vmin; color: #f43f5e; font-weight: 700; }
 
 @media (orientation: portrait) {
-  .pkl-split { grid-template-columns: 1fr; }
-  .pkl-card { width: min(78vw, 310px); }
-  .pkl-tab { font-size: 3.3vw; padding: 1.6vw 3vw; }
-  .pkl-btn, .pkl-sh-btn { font-size: 3.4vw; padding: 1.8vw 3.2vw; }
-  .pkl-lab-row { grid-template-columns: 1fr; }
+  .pkl-split { grid-template-columns: 1fr; gap: 2.4vw; }
+  .pkl-card { width: min(74vw, 285px); padding: 2.4vw; }
+  .pkl-card-art { aspect-ratio: 1 / 0.72; }
+  .pkl-tab { font-size: 3.1vw; padding: 1.4vw 2.6vw; }
+  .pkl-dex-badge { font-size: 2.9vw; padding: 1vw 2.4vw; }
+  .pkl-coach { font-size: 3.1vw; padding: 1.6vw 3vw; }
+  .pkl-btn, .pkl-sh-btn { font-size: 3.1vw; padding: 1.4vw 2.8vw; }
+  .pkl-booster { width: min(58vw, 220px); padding: 2.4vw; }
+  .pkl-booster-art { width: 22vw; height: 22vw; }
+  .pkl-p-mini { width: 15vw; height: 15vw; }
+  .pkl-p-nav { font-size: 3.1vw; }
 }

@@ -116,26 +116,51 @@ body.theme-forest #home { background: linear-gradient(180deg, #57cc8a, #a8ecbe 5
 
 /* ---------- SETTINGS GEAR ---------- */
 .settings-btn {
-  position: absolute; left: max(2vmin, env(safe-area-inset-left)); top: max(2vmin, env(safe-area-inset-top));
+  position: fixed; left: max(2vmin, env(safe-area-inset-left)); top: max(2vmin, env(safe-area-inset-top));
   width: 9vmin; height: 9vmin; min-width: 44px; min-height: 44px; border-radius: 50%;
   border: .35vmin solid rgba(255,255,255,.85);
-  background: rgba(255,255,255,.48); font-size: 4.5vmin; display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 .6vmin 0 rgba(0,0,0,.16);
-  cursor: pointer; opacity: .9; transition: transform .15s, opacity .15s;
+  background: rgba(255,255,255,.65); font-size: 4.5vmin; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 .6vmin 0 rgba(0,0,0,.18);
+  z-index: 60; cursor: pointer; opacity: .95; transition: transform .15s, opacity .15s;
 }
 .settings-btn:active { transform: scale(.92); opacity: 1; }
 
+/* When "Show all modes on home" (.flat) is enabled, size the 12 cards so they all fit & scroll cleanly */
+.home-view.flat {
+  max-height: 68vh; overflow-y: auto; overflow-x: hidden;
+  touch-action: pan-y; -webkit-overflow-scrolling: touch;
+  padding: 1.5vmin 2.5vmin;
+}
+.home-view.flat .menu {
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: 2.4vmin;
+}
+.home-view.flat .mode-card {
+  width: 19vmin; height: 19vmin; border-radius: 4.5vmin; gap: 1vmin;
+}
+.home-view.flat .mode-card .big { font-size: 5vmin; }
+.home-view.flat .mode-card .big .art-svg { width: 8vmin; height: 8vmin; }
+.home-view.flat .mode-card .label { font-size: 2.1vmin; }
+
 @media (orientation: portrait) {
-  .title { font-size: 18vw; }
+  .title { font-size: 16vw; }
+  .settings-btn { width: 12vw; height: 12vw; font-size: 6vw; }
   .mode-card { width: 42vw; height: 42vw; border-radius: 9vw; }
   .mode-card .big { font-size: 10vw; }
   .mode-card .big .art-svg { width: 17vw; height: 17vw; }
   .mode-card .label { font-size: 3.8vw; }
-  .hint { font-size: 3.2vw; padding: 0 4vw; }
-  .made-by { font-size: 3.4vw; }
+  .hint { font-size: 3.2vw; padding: 1.2vw 4vw; }
+  .made-by { font-size: 3.2vw; }
   .cat-back { width: 12vw; height: 12vw; font-size: 6vw; }
   .home-view.cat-open { flex-direction: column; gap: 3vw; }
   .home-view.cat-open .cat-back { align-self: flex-start; margin: 0 0 0 4vw; }
   .home-view .menu { gap: 4vw; }
   .home-view.cat-open .mode-card { width: 38vw; height: 38vw; }
+
+  /* 3x4 grid for all 12 modes on phone portrait — fits cleanly below the gear button */
+  .home-view.flat { max-height: 70vh; padding: 2vw; }
+  .home-view.flat .menu { grid-template-columns: repeat(3, 1fr); gap: 2.6vw; }
+  .home-view.flat .mode-card { width: 28vw; height: 23vw; border-radius: 5.5vw; gap: 1vw; }
+  .home-view.flat .mode-card .big { font-size: 6.5vw; }
+  .home-view.flat .mode-card .big .art-svg { width: 10.5vw; height: 10.5vw; }
+  .home-view.flat .mode-card .label { font-size: 2.8vw; line-height: 1.1; }
 }
