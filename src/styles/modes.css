@@ -778,14 +778,14 @@ body.shake #smash-layer { animation: shake .18s linear; }
 .ftongue { position: absolute; bottom: -4%; left: 20%; width: 60%; height: 50%;
            background: #ff7597; border-radius: 50% 50% 0 0; animation: tongueWag 1.8s ease-in-out infinite; }
 @keyframes tongueWag { 0%,100% { transform: translateX(0); } 50% { transform: translateX(6%); } }
-.feed-tummy { position: absolute; bottom: 7%; left: 50%; transform: translateX(-50%);
-              width: 62%; height: 28%; background: rgba(255,255,255,.45);
+.feed-tummy { position: absolute; bottom: 8%; left: 50%; transform: translateX(-50%);
+              width: 60%; height: 28%; background: rgba(255,255,255,.45);
               border: .4vmin dashed rgba(43,27,61,.22); border-radius: 50%;
-              display: flex; align-items: center; justify-content: center; gap: .4vmin;
+              display: flex; align-items: center; justify-content: center; gap: .6vmin;
               padding: .6vmin 1.2vmin; overflow: hidden;
-              transform-origin: center 80%; transition: transform .3s cubic-bezier(.34,1.56,.64,1); }
-.feed-tummy-items { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .3vmin; }
-.tummy-food { width: 3.4vmin; height: 3.4vmin; display: inline-flex; animation: tummyBob 1.8s ease-in-out infinite alternate; }
+              transform-origin: center center; transition: transform .3s cubic-bezier(.34,1.56,.64,1); }
+.feed-tummy-items { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .6vmin; }
+.tummy-food { width: 5.2vmin; height: 5.2vmin; min-width: 24px; min-height: 24px; display: inline-flex; animation: tummyBob 1.8s ease-in-out infinite alternate; }
 .tummy-food .art-svg { width: 100%; height: 100%; }
 @keyframes tummyBob { from { transform: translateY(-.3vmin) rotate(-8deg); } to { transform: translateY(.4vmin) rotate(8deg); } }
 .feed-mon.chomp { animation: monChompBody .55s ease; }

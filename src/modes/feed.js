@@ -355,7 +355,7 @@ export default {
         mon.classList.add('gulp');
         d.style.display = 'none';
         addTummyFood(f);
-        tummy.style.transform = `scale(${Math.min(1.42, 1 + fed * 0.07)})`;
+        tummy.style.transform = `translateX(-50%) scale(${Math.min(1.32, 1 + fed * 0.06)})`;
       }, 540);
       T(() => mon.classList.remove('gulp'), 950);
 
