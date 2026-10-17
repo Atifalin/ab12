@@ -49,7 +49,7 @@ export default {
     const spellWord = el.querySelector('#spell-word');
     const spellCount = el.querySelector('#spell-count');
     const { say, playSfx, effects, nextColor, buildPad, audio } = ctx;
-    const { sparkleBurst } = effects;
+    const { sparkleBurst, confettiBurst } = effects;
     let spellProg = { az: { idx: 0, done: [] }, num: { idx: 0, done: [] } };
     try {
       const p = JSON.parse(localStorage.getItem('ab12-spell') || '{}');
@@ -108,13 +108,15 @@ export default {
       spellClearHints();
       const list = spellList();
       const item = list[spellIdx];
-      spellCount.textContent = `${spellProg[spellTrack].done.length} / ${list.length}`;
+      const isDone = spellProg[spellTrack].done.includes(item.key);
+      spellCount.textContent = `${spellProg[spellTrack].done.length} / ${list.length} ⭐`;
+      spellPic.classList.remove('win', 'react');
       if (spellTrack === 'num') {
         const n = item.n;
         const em = rand(COUNT_EMOJI).repeat(n);
-        spellPic.innerHTML = `<span class="sp-digit">${n}</span><span class="sp-emoji${n > 3 ? ' many' : ''}" data-art="${em}">${artHtml(em)}</span>`;
+        spellPic.innerHTML = `<span class="sp-spk">${artHtml('speaker')}</span><span class="sp-digit">${n}</span><span class="sp-emoji${n > 3 ? ' many' : ''}" data-art="${em}">${artHtml(em)}</span>${isDone ? '<span class="sp-star">⭐</span>' : ''}`;
       } else {
-        spellPic.innerHTML = `<span class="sp-emoji" data-art="${item.pic}">${artHtml(item.pic)}</span>`;
+        spellPic.innerHTML = `<span class="sp-spk">${artHtml('speaker')}</span><span class="sp-emoji" data-art="${item.pic}">${artHtml(item.pic)}</span>${isDone ? '<span class="sp-star">⭐</span>' : ''}`;
       }
       spellWord.innerHTML = '';
       spellWord.style.setProperty('--slots', item.word.length);
@@ -124,7 +126,25 @@ export default {
         s.className = 'slot';
         if (c === ' ') s.classList.add('gap');
         else if (c === '-') { s.classList.add('sep'); s.textContent = '-'; }
-        else s.textContent = c.toUpperCase();
+        else {
+          const ch = c.toUpperCase();
+          s.textContent = ch;
+          s.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            audio();
+            if (s.classList.contains('filled')) {
+              s.classList.remove('win');
+              void s.offsetWidth;
+              s.classList.add('win');
+              playSfx('pop');
+              say(PHON[ch], { clip: `letter_${ch}` });
+            } else if (s.classList.contains('cur')) {
+              spellPadHint(ch);
+              playSfx('pop');
+              say(PHON[ch], { clip: `letter_${ch}` });
+            }
+          });
+        }
         spellWord.appendChild(s);
         spellSlots.push({ el: s, ch: /^[A-Z]$/i.test(c) ? c.toUpperCase() : null });
       }
@@ -156,10 +176,13 @@ export default {
         spellWrong = 0;
         cur.el.classList.add('filled');
         cur.el.style.color = nextColor();
+        spellPic.classList.remove('react');
+        void spellPic.offsetWidth;
+        spellPic.classList.add('react');
         playSfx('scaleNote');
         say(PHON[k], { clip: `letter_${k}` });
         const r = cur.el.getBoundingClientRect();
-        sparkleBurst(r.left + r.width / 2, r.top + r.height / 2, 4);
+        sparkleBurst(r.left + r.width / 2, r.top + r.height / 2, 5);
         let next = -1;
         for (let i = spellCursor + 1; i < spellSlots.length; i++)
           if (spellSlots[i].ch && !spellSlots[i].el.classList.contains('filled')) { next = i; break; }
@@ -182,13 +205,17 @@ export default {
       spellMarkCursor();
       const item = spellList()[spellIdx];
       spellSlots.forEach((s, i) => { s.el.style.animationDelay = (i * 0.07) + 's'; s.el.classList.add('win'); });
+      spellPic.classList.remove('react');
+      spellPic.classList.add('win');
       playSfx('fanfare');
       const r = spellWord.getBoundingClientRect();
+      const pr = spellPic.getBoundingClientRect();
       sparkleBurst(r.left + r.width / 2, r.top + r.height / 2, 8);
+      confettiBurst(spellGame, pr.left - spellGame.getBoundingClientRect().left + pr.width / 2, pr.top - spellGame.getBoundingClientRect().top + pr.height / 2);
       say(`${item.word}!`, { clip: `sdone_${slug(item.word)}` });
       const prog = spellProg[spellTrack];
       if (!prog.done.includes(item.key)) prog.done.push(item.key);
-      spellCount.textContent = `${prog.done.length} / ${spellList().length}`;
+      spellCount.textContent = `${prog.done.length} / ${spellList().length} ⭐`;
       const last = spellIdx === spellList().length - 1;
       if (last) {
         sparkleBurst(r.left + r.width * 0.3, r.top + r.height / 2, 8);
@@ -210,6 +237,14 @@ export default {
       e.preventDefault();
       if (!spellTrack) return;
       audio();
+      spellPic.classList.remove('react');
+      void spellPic.offsetWidth;
+      spellPic.classList.add('react');
+      const pr = spellPic.getBoundingClientRect();
+      sparkleBurst(pr.left + pr.width / 2, pr.top + pr.height / 2, 5);
+      playSfx('pop');
+      const cur = spellSlots[spellCursor];
+      if (cur && !spellDone) spellPadHint(cur.ch);
       const item = spellList()[spellIdx];
       say(`Let's spell ${item.word}!`, { clip: `sword_${slug(item.word)}` });
     });
