@@ -100,6 +100,28 @@ export const SFX = {
     tone({ type: 'sawtooth', f0: 110, f1: 85, dur: 0.45, gain: 0.1 });
     tone({ type: 'sine', f0: 320, f1: 540, dur: 0.35, gain: 0.09, delay: 0.48 });
   },
+  snap: () => {
+    tone({ type: 'triangle', f0: 380, f1: 760, dur: 0.11, gain: 0.22 });
+    tone({ type: 'sine', f0: 1140, f1: 1520, dur: 0.16, gain: 0.16, delay: 0.06 });
+  },
+  rocket: () => {
+    tone({ type: 'sawtooth', f0: 95, f1: 520, dur: 0.75, gain: 0.16 });
+    tone({ type: 'triangle', f0: 210, f1: 980, dur: 0.65, gain: 0.14, delay: 0.08 });
+  },
+  siren: () => {
+    [0, 0.26, 0.52].forEach((d, i) =>
+      tone({ type: 'triangle', f0: i % 2 ? 580 : 780, f1: i % 2 ? 780 : 580, dur: 0.24, gain: 0.16, delay: d }));
+  },
+  choo: () => {
+    [0, 0.18].forEach((d) => {
+      tone({ type: 'triangle', f0: 523.25, f1: 523.25, dur: 0.16, gain: 0.16, delay: d });
+      tone({ type: 'triangle', f0: 659.25, f1: 659.25, dur: 0.16, gain: 0.14, delay: d });
+    });
+  },
+  vroom: () => {
+    tone({ type: 'sawtooth', f0: 85, f1: 240, dur: 0.32, gain: 0.16 });
+    tone({ type: 'sawtooth', f0: 140, f1: 380, dur: 0.38, gain: 0.16, delay: 0.22 });
+  },
   slideUp: () => tone({ type: 'triangle', f0: 240, f1: 1200, dur: 0.45, gain: 0.1 }),
   honk: () => { tone({ type: 'triangle', f0: 220, f1: 200, dur: 0.28, gain: 0.13 }); tone({ type: 'triangle', f0: 277, f1: 260, dur: 0.28, gain: 0.11 }); },
   laser: () => tone({ type: 'sine', f0: 1400, f1: 140, dur: 0.32, gain: 0.1 }),

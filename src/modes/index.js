@@ -7,6 +7,8 @@ import wordmonsters from './wordmonsters.js';
 import animalfarm from './animalfarm.js';
 import sortit from './sortit.js';
 import feed from './feed.js';
+import puzzle from './puzzle.js';
+import buildgo from './buildgo.js';
 
 // registry order = original home order; category views filter this list
-export const MODES = [learn, smash, find, spell, peekaboo, wordmonsters, animalfarm, sortit, feed];
+export const MODES = [learn, smash, find, spell, peekaboo, wordmonsters, animalfarm, buildgo, sortit, feed, puzzle];

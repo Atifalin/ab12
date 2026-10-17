@@ -226,3 +226,30 @@ export const FEED_FOODS = [
   { id: 'watermelon', emoji: '🍉', name: 'watermelon', color: 'green' },
 ];
 export const FEED_COLORS = ['red', 'yellow', 'green', 'orange', 'white', 'purple', 'pink'];
+
+// ---------- picture puzzle ----------
+export const PUZZLES = [
+  { id: 'lion',      title: 'Sunny Lion',      emoji: '🦁', set: 'animals',  bg1: '#fff3b0', bg2: '#ffd166', ground: '#70e000', deco: ['☀️', '🌳'] },
+  { id: 'elephant',  title: 'Happy Elephant',  emoji: '🐘', set: 'animals',  bg1: '#caf0f8', bg2: '#90e0ef', ground: '#52b788', deco: ['☁️', '🌼'] },
+  { id: 'dino',      title: 'Super Dino',      emoji: '🦖', set: 'animals',  bg1: '#d8f3dc', bg2: '#95d5b2', ground: '#40916c', deco: ['☀️', '🌴'] },
+  { id: 'whale',     title: 'Splashy Whale',   emoji: '🐳', set: 'animals',  bg1: '#90e0ef', bg2: '#00b4d8', ground: '#0077b6', deco: ['🫧', '🐟'] },
+  { id: 'rocket',    title: 'Space Rocket',    emoji: '🚀', set: 'vehicles', bg1: '#1d1e4e', bg2: '#3a0ca3', ground: '#7209b7', deco: ['⭐', '🌙'] },
+  { id: 'firetruck', title: 'Fire Truck',      emoji: '🚒', set: 'vehicles', bg1: '#bde0fe', bg2: '#e0fbfc', ground: '#74c69d', deco: ['☁️', '🏠'] },
+  { id: 'train',     title: 'Choo-Choo Train', emoji: '🚂', set: 'vehicles', bg1: '#a2d2ff', bg2: '#dff6ff', ground: '#52b788', deco: ['☁️', '🌳'] },
+  { id: 'tractor',   title: 'Green Tractor',   emoji: '🚜', set: 'vehicles', bg1: '#fffae5', bg2: '#cfe9ff', ground: '#7ed36a', deco: ['☀️', '🌻'] },
+  { id: 'cake',      title: 'Birthday Cake',   emoji: '🎂', set: 'fun',      bg1: '#ffe5ec', bg2: '#ffc2d1', ground: '#ff8fab', deco: ['🎈', '🎉'] },
+  { id: 'rainbow',   title: 'Rainbow Sky',     emoji: '🌈', set: 'fun',      bg1: '#a8e6ff', bg2: '#e9ffdb', ground: '#70e000', deco: ['☀️', '☁️'] },
+  { id: 'unicorn',   title: 'Magic Unicorn',   emoji: '🦄', set: 'fun',      bg1: '#f3d9fa', bg2: '#ffd6ff', ground: '#b197fc', deco: ['✨', '🌈'] },
+  { id: 'robot',     title: 'Friendly Robot',  emoji: '🤖', set: 'fun',      bg1: '#e0fbfc', bg2: '#c2f0fc', ground: '#4cc9f0', deco: ['✨', '⭐'] },
+];
+
+// ---------- build & go! ----------
+export const BUILD_VEHICLES = [
+  { id: 'rocket',       name: 'Rocket Ship',    emoji: '🚀', sfx: 'rocket',  go: 'Three, two, one, blast off!',          env: 'space', targets: ['⭐', '🌙', '🫧', '☀️'] },
+  { id: 'firetruck',    name: 'Fire Truck',     emoji: '🚒', sfx: 'siren',   go: 'Wee-oo wee-oo! Here comes the fire truck!', env: 'road',  targets: ['🫧', '🎈', '⭐', '☁️'] },
+  { id: 'train',        name: 'Choo-Choo Train',emoji: '🚂', sfx: 'choo',    go: 'Choo choo! All aboard the train!',     env: 'track', targets: ['☁️', '🎈', '⭐', '🌻'] },
+  { id: 'monstertruck', name: 'Monster Truck',  emoji: '🚜', sfx: 'vroom',   go: 'Vroom vroom! Big monster truck jump!', env: 'hills', targets: ['📦', '🎈', '⭐', '🍉'] },
+  { id: 'submarine',    name: 'Submarine',      emoji: '🐳', sfx: 'bubbles', go: 'Splish splash! Dive under the sea!',   env: 'sea',   targets: ['🫧', '🐟', '🐙', '🦀'] },
+  { id: 'plane',        name: 'Super Plane',    emoji: '✈️', sfx: 'vroom',   go: 'Zoom! Flying high in the clouds!',     env: 'sky',   targets: ['☁️', '🌈', '🎈', '⭐'] },
+];
+

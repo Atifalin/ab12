@@ -643,6 +643,35 @@ feedsfx_giggle	Hehehe! That tickles my tummy!
 feedsfx_poke	Boing! Hey, that's my silly head!
 feedsfx_hungry	Aaaah! Feed me! Nom nom nom!
 feedsfx_snore	Zzzzz... Huh? I'm awake!
+puz_lion	Hooray! You made the Sunny Lion!
+puz_elephant	Hooray! You made the Happy Elephant!
+puz_dino	Hooray! You made the Super Dino!
+puz_whale	Hooray! You made the Splashy Whale!
+puz_rocket	Hooray! You made the Space Rocket!
+puz_firetruck	Hooray! You made the Fire Truck!
+puz_train	Hooray! You made the Choo-Choo Train!
+puz_tractor	Hooray! You made the Green Tractor!
+puz_cake	Hooray! You made the Birthday Cake!
+puz_rainbow	Hooray! You made the Rainbow Sky!
+puz_unicorn	Hooray! You made the Magic Unicorn!
+puz_robot	Hooray! You made the Friendly Robot!
+puz_intro	Let's put the picture puzzle together!
+puz_snap	Snap! Great fit!
+bg_v_rocket	Rocket Ship!
+bg_go_rocket	Three, two, one, blast off!
+bg_v_firetruck	Fire Truck!
+bg_go_firetruck	Wee-oo wee-oo! Here comes the fire truck!
+bg_v_train	Choo-Choo Train!
+bg_go_train	Choo choo! All aboard the train!
+bg_v_monstertruck	Monster Truck!
+bg_go_monstertruck	Vroom vroom! Big monster truck jump!
+bg_v_submarine	Submarine!
+bg_go_submarine	Splish splash! Dive under the sea!
+bg_v_plane	Super Plane!
+bg_go_plane	Zoom! Flying high in the clouds!
+bg_intro	Let's build and go!
+bg_snap	Click! That fits!
+bg_ready	All built! Press the big GO button!
 intro_learn	Let's learn letters and numbers!
 intro_smash	Smash time!
 find_intro	Let's play find it!

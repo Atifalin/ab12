@@ -169,6 +169,23 @@ def build_manifest():
     clips.append(("feedsfx_hungry", "Aaaah! Feed me! Nom nom nom!"))
     clips.append(("feedsfx_snore", "Zzzzz... Huh? I'm awake!"))
 
+    # Picture Puzzle — intro, snap, completed picture lines
+    puz_block = src.split("const PUZZLES = [")[1].split("];")[0]
+    for pid, ptitle in extract(r"id: '([^']+)',\s*title: '([^']+)'", puz_block):
+        clips.append((f"puz_{pid}", f"Hooray! You made the {ptitle}!"))
+    clips.append(("puz_intro", "Let's put the picture puzzle together!"))
+    clips.append(("puz_snap", "Snap! Great fit!"))
+
+    # Build & Go! — intro, parts, vehicle names, launch lines
+    bg_block = src.split("const BUILD_VEHICLES = [")[1].split("];")[0]
+    for vid, vname, vgo in extract(
+            r"id: '([^']+)',\s*name: '([^']+)',.*go: '([^']+)'", bg_block):
+        clips.append((f"bg_v_{vid}", f"{vname}!"))
+        clips.append((f"bg_go_{vid}", vgo))
+    clips.append(("bg_intro", "Let's build and go!"))
+    clips.append(("bg_snap", "Click! That fits!"))
+    clips.append(("bg_ready", "All built! Press the big GO button!"))
+
     clips.append(("intro_learn", "Let's learn letters and numbers!"))
     clips.append(("intro_smash", "Smash time!"))
     clips.append(("find_intro", "Let's play find it!"))

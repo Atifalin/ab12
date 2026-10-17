@@ -84,6 +84,8 @@ body.theme-forest #home { background: linear-gradient(180deg, #57cc8a, #a8ecbe 5
 .mode-card.peekaboo { background: linear-gradient(160deg, #ffb3d9, #ff77b9 60%, #e6499b); }
 .mode-card.sortit { background: linear-gradient(160deg, #ffc078, #fd7e14 60%, #e8590c); }
 .mode-card.feed { background: linear-gradient(160deg, #da77f2, #be4bdb 60%, #9c36b5); }
+.mode-card.puzzle { background: linear-gradient(160deg, #63e6be, #12b886 60%, #099268); }
+.mode-card.buildgo { background: linear-gradient(160deg, #ff8787, #fa5252 60%, #c92a2a); }
 .cat-card.cat-think { background: linear-gradient(160deg, #7ee8a6, #20c997 60%, #0ca678); }
 .cat-card.cat-family { background: linear-gradient(160deg, #ffb3d9, #ff77b9 60%, #e6499b); }
 .mode-card .big { font-size: 7vmin; line-height: 1; text-shadow: 0 .5vmin 0 rgba(0,0,0,.2); display: flex; align-items: center; justify-content: center; }
