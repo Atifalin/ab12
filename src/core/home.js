@@ -4,6 +4,7 @@ import { show, activeMode } from './screens.js';
 import { isTouch } from './util.js';
 import { holdToActivate, toast } from './effects.js';
 import { openSettings } from './settingsPanel.js';
+import { setArt, artHtml } from './art.js';
 
 // ---------- home ----------
 export const CATEGORIES = [
@@ -35,7 +36,8 @@ function modeCard(m) {
   if (m.color) b.style.background = m.color;
   const big = document.createElement('div');
   big.className = 'big';
-  big.innerHTML = m.cardHtml || m.emoji;
+  if (m.cardHtml) big.innerHTML = m.cardHtml;
+  else setArt(big, m.emoji);
   const label = document.createElement('div');
   label.className = 'label';
   label.textContent = m.title;
@@ -50,7 +52,7 @@ function catCard(c, count) {
   b.dataset.cat = c.id;
   const big = document.createElement('div');
   big.className = 'big';
-  big.textContent = c.emoji;
+  setArt(big, c.emoji);
   const label = document.createElement('div');
   label.className = 'label';
   label.textContent = c.title;
@@ -96,6 +98,20 @@ export function renderHome() {
 
 export function initHome(modes) {
   allModes = modes;
+  // upgrade static home sky decorations + corner buttons to original SVG art
+  document.querySelectorAll('#home .clouds span').forEach((sp) => setArt(sp, sp.textContent));
+  const gear = document.getElementById('settings-btn');
+  const hbtn = document.getElementById('home-btn');
+  if (gear) {
+    const svgRing = gear.querySelector('svg');
+    gear.innerHTML = `<span class="btn-art">${artHtml('gear')}</span>`;
+    if (svgRing) gear.appendChild(svgRing);
+  }
+  if (hbtn) {
+    const svgRing = hbtn.querySelector('svg');
+    hbtn.innerHTML = `<span class="btn-art">${artHtml('star')}</span>`;
+    if (svgRing) hbtn.appendChild(svgRing);
+  }
   renderHome();
   // Escape/back returns from a category's mode-card view
   window.addEventListener('keydown', (e) => {
@@ -105,7 +121,6 @@ export function initHome(modes) {
     }
   });
   // ⚙️ gear: 2s hold with progress ring when the parent lock is on
-  const gear = document.getElementById('settings-btn');
   gear.addEventListener('click', (e) => e.stopPropagation());
   holdToActivate(gear, 2000, openSettings, () => {
     if (settings.parentLock) toast('Hold to open settings');

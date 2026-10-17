@@ -111,6 +111,29 @@
   #fam-edit .row { display:flex; gap:1.5vmin; flex-wrap:wrap; justify-content:center; }
   #fam-edit button { font:inherit; border:0; border-radius:2vmin; padding:1.2vmin 3vmin; font-size:2.8vmin; cursor:pointer; }
   .fam-lines { display:flex; flex-wrap:wrap; gap:1vmin; justify-content:center; margin-bottom:2vmin; }
+  /* pictures tab */
+  #pics-toolbar { display:flex; gap:1.5vmin; justify-content:center; align-items:center; flex-wrap:wrap; margin-bottom:1.5vmin; }
+  #pic-search { font:inherit; font-size:2.8vmin; padding:1vmin 2.2vmin; border-radius:2.5vmin; border:0;
+                background:rgba(255,255,255,.92); color:var(--ink); width:min(52vmin,75vw);
+                box-shadow:0 .4vmin 1.2vmin rgba(0,0,0,.1); }
+  #pics-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(155px, 1fr)); gap:2vmin; margin-top:1.5vmin; }
+  .pic-card { background:rgba(255,255,255,.94); border-radius:3vmin; padding:2vmin; text-align:center;
+              display:flex; flex-direction:column; align-items:center; gap:1vmin; position:relative;
+              box-shadow:0 .8vmin 2vmin rgba(0,0,0,.12); border:.4vmin solid transparent; transition:transform .12s; }
+  .pic-card.custom { border-color:#4cd964; }
+  .pic-card.dragover { border-color:#8a63ff; transform:scale(1.04); }
+  .pic-art { width:92px; height:92px; border-radius:2.2vmin; background:#f5f4ff; display:flex;
+             align-items:center; justify-content:center; overflow:hidden; padding:6px; }
+  .pic-art svg, .pic-art img { width:100%; height:100%; object-fit:contain; display:block; }
+  .pic-badge { position:absolute; top:1.2vmin; right:1.2vmin; font-size:1.8vmin; padding:.2vmin 1vmin;
+               border-radius:1.2vmin; background:#e3e0f2; color:var(--ink); }
+  .pic-card.custom .pic-badge { background:#4cd964; color:#fff; }
+  .pic-emoji-tag { position:absolute; top:1.2vmin; left:1.2vmin; font-size:2.6vmin; opacity:.75; }
+  .pic-title { font-size:2.8vmin; font-weight:700; line-height:1.15; }
+  .pic-btns { display:flex; gap:1vmin; flex-wrap:wrap; justify-content:center; margin-top:auto; }
+  .pic-btns button { font:inherit; border:0; border-radius:1.8vmin; padding:.7vmin 1.8vmin; font-size:2.3vmin; cursor:pointer; }
+  .pic-btns .up { background:#8a63ff; color:#fff; }
+  .pic-btns .rst { background:#ff6b6b; color:#fff; }
   @media (orientation:portrait) {
     .prompt { font-size:6.5vw; } .sub { font-size:4vw; }
     .chip { font-size:3.6vw; } .nav button { font-size:4.2vw; }
@@ -141,6 +164,7 @@
   <div class="top-tabs">
     <button class="top-tab on" data-view="voices">🎙️ Voices</button>
     <button class="top-tab" data-view="family">💛 Family</button>
+    <button class="top-tab" data-view="pics">🖼️ Pictures</button>
   </div>
 
   <div id="voices-pane">
@@ -171,7 +195,17 @@
     <div class="pack-tools" id="fam-tools"></div>
   </div>
 
-  <div class="card">
+  <div id="pics-pane" style="display:none">
+    <div class="overall" id="pics-overall"></div>
+    <div id="pics-toolbar">
+      <input type="search" id="pic-search" placeholder="🔍 Search items (e.g. apple, cow, bus)…" />
+    </div>
+    <div class="chips" id="pic-cats"></div>
+    <input type="file" id="pic-file" accept="image/*" style="display:none" />
+    <div id="pics-grid"></div>
+  </div>
+
+  <div class="card" id="rec-card">
     <div class="prompt" id="prompt">…</div>
     <div class="sub" id="sub"></div>
     <div class="key-name" id="keyname"></div>
@@ -225,6 +259,153 @@ const FAMILY_LINE_TEXT = {
 let view = 'voices';
 let clips = [], manifest = {packs:{}, voices:{}}, voice = '', group = 'cheer', idx = 0;
 let members = [], family = {members:[]}, curMember = '', curLine = 'name';
+let picsMap = {}, svgById = {}, picCat = 'all', picQuery = '', picTargetId = '';
+const PIC_CATS = [
+  ['all', 'All'],
+  ['letters', 'Letters A–Z'],
+  ['animals', 'Animals'],
+  ['foods', 'Foods & Drinks'],
+  ['vehicles', 'Vehicles'],
+  ['objects', 'Objects & Nature'],
+];
+const PIC_ITEMS = [
+  // Letters A-Z primary items
+  { id: 'apple', label: 'Apple (A)', emoji: '🍎', cat: 'letters' },
+  { id: 'banana', label: 'Banana (B)', emoji: '🍌', cat: 'letters' },
+  { id: 'cat', label: 'Cat (C)', emoji: '🐱', cat: 'letters' },
+  { id: 'dog', label: 'Dog (D)', emoji: '🐶', cat: 'letters' },
+  { id: 'elephant', label: 'Elephant (E)', emoji: '🐘', cat: 'letters' },
+  { id: 'fish', label: 'Fish (F)', emoji: '🐟', cat: 'letters' },
+  { id: 'grapes', label: 'Grapes (G)', emoji: '🍇', cat: 'letters' },
+  { id: 'horse', label: 'Horse (H)', emoji: '🐴', cat: 'letters' },
+  { id: 'icecream', label: 'Ice cream (I)', emoji: '🍦', cat: 'letters' },
+  { id: 'juice', label: 'Juice (J)', emoji: '🍹', cat: 'letters' },
+  { id: 'kite', label: 'Kite (K)', emoji: '🪁', cat: 'letters' },
+  { id: 'lion', label: 'Lion (L)', emoji: '🦁', cat: 'letters' },
+  { id: 'monkey', label: 'Monkey (M)', emoji: '🐵', cat: 'letters' },
+  { id: 'nest', label: 'Nest (N)', emoji: '🪺', cat: 'letters' },
+  { id: 'orange', label: 'Orange (O)', emoji: '🍊', cat: 'letters' },
+  { id: 'parrot', label: 'Parrot (P)', emoji: '🦜', cat: 'letters' },
+  { id: 'queen', label: 'Queen (Q)', emoji: '👸', cat: 'letters' },
+  { id: 'rabbit', label: 'Rabbit (R)', emoji: '🐰', cat: 'letters' },
+  { id: 'ship', label: 'Ship (S)', emoji: '🚢', cat: 'letters' },
+  { id: 'tiger', label: 'Tiger (T)', emoji: '🐯', cat: 'letters' },
+  { id: 'umbrella', label: 'Umbrella (U)', emoji: '☂️', cat: 'letters' },
+  { id: 'violin', label: 'Violin (V)', emoji: '🎻', cat: 'letters' },
+  { id: 'whale', label: 'Whale (W)', emoji: '🐳', cat: 'letters' },
+  { id: 'xylophone', label: 'Xylophone (X)', emoji: '🎼', cat: 'letters' },
+  { id: 'yoyo', label: 'Yo-yo (Y)', emoji: '🪀', cat: 'letters' },
+  { id: 'zebra', label: 'Zebra (Z)', emoji: '🦓', cat: 'letters' },
+  // Animals
+  { id: 'cow', label: 'Cow', emoji: '🐮', cat: 'animals' },
+  { id: 'pig', label: 'Pig', emoji: '🐷', cat: 'animals' },
+  { id: 'sheep', label: 'Sheep', emoji: '🐑', cat: 'animals' },
+  { id: 'goat', label: 'Goat', emoji: '🐐', cat: 'animals' },
+  { id: 'donkey', label: 'Donkey', emoji: '🫏', cat: 'animals' },
+  { id: 'chicken', label: 'Chicken / Hen', emoji: '🐔', cat: 'animals' },
+  { id: 'rooster', label: 'Rooster', emoji: '🐓', cat: 'animals' },
+  { id: 'chick', label: 'Chick', emoji: '🐥', cat: 'animals' },
+  { id: 'duck', label: 'Duck', emoji: '🦆', cat: 'animals' },
+  { id: 'goose', label: 'Goose', emoji: '🪿', cat: 'animals' },
+  { id: 'turkey', label: 'Turkey', emoji: '🦃', cat: 'animals' },
+  { id: 'bird', label: 'Bird', emoji: '🐦', cat: 'animals' },
+  { id: 'crow', label: 'Crow', emoji: '🐦‍⬛', cat: 'animals' },
+  { id: 'owl', label: 'Owl', emoji: '🦉', cat: 'animals' },
+  { id: 'penguin', label: 'Penguin', emoji: '🐧', cat: 'animals' },
+  { id: 'frog', label: 'Frog', emoji: '🐸', cat: 'animals' },
+  { id: 'turtle', label: 'Turtle', emoji: '🐢', cat: 'animals' },
+  { id: 'dolphin', label: 'Dolphin', emoji: '🐬', cat: 'animals' },
+  { id: 'octopus', label: 'Octopus', emoji: '🐙', cat: 'animals' },
+  { id: 'crab', label: 'Crab', emoji: '🦀', cat: 'animals' },
+  { id: 'bee', label: 'Bee', emoji: '🐝', cat: 'animals' },
+  { id: 'butterfly', label: 'Butterfly', emoji: '🦋', cat: 'animals' },
+  { id: 'bug', label: 'Bug', emoji: '🐛', cat: 'animals' },
+  { id: 'ant', label: 'Ant', emoji: '🐜', cat: 'animals' },
+  { id: 'snail', label: 'Snail', emoji: '🐌', cat: 'animals' },
+  { id: 'mouse', label: 'Mouse / Rat', emoji: '🐭', cat: 'animals' },
+  { id: 'fox', label: 'Fox', emoji: '🦊', cat: 'animals' },
+  { id: 'wolf', label: 'Wolf', emoji: '🐺', cat: 'animals' },
+  { id: 'bear', label: 'Bear', emoji: '🐻', cat: 'animals' },
+  { id: 'panda', label: 'Panda', emoji: '🐼', cat: 'animals' },
+  { id: 'koala', label: 'Koala', emoji: '🐨', cat: 'animals' },
+  { id: 'giraffe', label: 'Giraffe', emoji: '🦒', cat: 'animals' },
+  { id: 'unicorn', label: 'Unicorn', emoji: '🦄', cat: 'animals' },
+  { id: 'dino', label: 'T-Rex Dino', emoji: '🦖', cat: 'animals' },
+  { id: 'sauropod', label: 'Bronto Dino', emoji: '🦕', cat: 'animals' },
+  // Foods & Drinks
+  { id: 'greenapple', label: 'Green Apple', emoji: '🍏', cat: 'foods' },
+  { id: 'strawberry', label: 'Strawberry', emoji: '🍓', cat: 'foods' },
+  { id: 'watermelon', label: 'Watermelon', emoji: '🍉', cat: 'foods' },
+  { id: 'lemon', label: 'Lemon', emoji: '🍋', cat: 'foods' },
+  { id: 'pineapple', label: 'Pineapple', emoji: '🍍', cat: 'foods' },
+  { id: 'cherries', label: 'Cherries', emoji: '🍒', cat: 'foods' },
+  { id: 'kiwi', label: 'Kiwi', emoji: '🥝', cat: 'foods' },
+  { id: 'melon', label: 'Melon', emoji: '🍈', cat: 'foods' },
+  { id: 'blueberries', label: 'Blueberries', emoji: '🫐', cat: 'foods' },
+  { id: 'avocado', label: 'Avocado', emoji: '🥑', cat: 'foods' },
+  { id: 'carrot', label: 'Carrot', emoji: '🥕', cat: 'foods' },
+  { id: 'broccoli', label: 'Broccoli', emoji: '🥦', cat: 'foods' },
+  { id: 'corn', label: 'Corn', emoji: '🌽', cat: 'foods' },
+  { id: 'tomato', label: 'Tomato', emoji: '🍅', cat: 'foods' },
+  { id: 'pizza', label: 'Pizza', emoji: '🍕', cat: 'foods' },
+  { id: 'fries', label: 'Fries', emoji: '🍟', cat: 'foods' },
+  { id: 'noodles', label: 'Noodles', emoji: '🍜', cat: 'foods' },
+  { id: 'cheese', label: 'Cheese', emoji: '🧀', cat: 'foods' },
+  { id: 'egg', label: 'Egg', emoji: '🥚', cat: 'foods' },
+  { id: 'donut', label: 'Donut', emoji: '🍩', cat: 'foods' },
+  { id: 'cookie', label: 'Cookie', emoji: '🍪', cat: 'foods' },
+  { id: 'cake', label: 'Cake', emoji: '🎂', cat: 'foods' },
+  { id: 'honey', label: 'Honey', emoji: '🍯', cat: 'foods' },
+  { id: 'milk', label: 'Milk', emoji: '🥛', cat: 'foods' },
+  { id: 'cup', label: 'Cup', emoji: '🥤', cat: 'foods' },
+  // Vehicles
+  { id: 'car', label: 'Car', emoji: '🚗', cat: 'vehicles' },
+  { id: 'taxi', label: 'Taxi', emoji: '🚕', cat: 'vehicles' },
+  { id: 'police', label: 'Police Car', emoji: '🚓', cat: 'vehicles' },
+  { id: 'bus', label: 'Bus', emoji: '🚌', cat: 'vehicles' },
+  { id: 'van', label: 'Van', emoji: '🚐', cat: 'vehicles' },
+  { id: 'ambulance', label: 'Ambulance', emoji: '🚑', cat: 'vehicles' },
+  { id: 'firetruck', label: 'Fire Truck', emoji: '🚒', cat: 'vehicles' },
+  { id: 'truck', label: 'Truck', emoji: '🚚', cat: 'vehicles' },
+  { id: 'tractor', label: 'Tractor', emoji: '🚜', cat: 'vehicles' },
+  { id: 'racecar', label: 'Race Car', emoji: '🏎️', cat: 'vehicles' },
+  { id: 'train', label: 'Train', emoji: '🚂', cat: 'vehicles' },
+  { id: 'plane', label: 'Airplane', emoji: '✈️', cat: 'vehicles' },
+  { id: 'helicopter', label: 'Helicopter', emoji: '🚁', cat: 'vehicles' },
+  { id: 'rocket', label: 'Rocket', emoji: '🚀', cat: 'vehicles' },
+  { id: 'bike', label: 'Bicycle', emoji: '🚲', cat: 'vehicles' },
+  { id: 'scooter', label: 'Scooter', emoji: '🛵', cat: 'vehicles' },
+  { id: 'boat', label: 'Sailboat', emoji: '⛵', cat: 'vehicles' },
+  // Objects & Nature
+  { id: 'sun', label: 'Sun', emoji: '☀️', cat: 'objects' },
+  { id: 'moon', label: 'Moon', emoji: '🌙', cat: 'objects' },
+  { id: 'star', label: 'Star', emoji: '⭐', cat: 'objects' },
+  { id: 'cloud', label: 'Cloud', emoji: '☁️', cat: 'objects' },
+  { id: 'rainbow', label: 'Rainbow', emoji: '🌈', cat: 'objects' },
+  { id: 'tree', label: 'Tree', emoji: '🌳', cat: 'objects' },
+  { id: 'rose', label: 'Rose', emoji: '🌹', cat: 'objects' },
+  { id: 'sunflower', label: 'Sunflower', emoji: '🌻', cat: 'objects' },
+  { id: 'flower', label: 'Flower', emoji: '🌼', cat: 'objects' },
+  { id: 'clover', label: 'Clover', emoji: '🍀', cat: 'objects' },
+  { id: 'sprout', label: 'Sprout', emoji: '🌱', cat: 'objects' },
+  { id: 'ball', label: 'Ball', emoji: '⚽', cat: 'objects' },
+  { id: 'book', label: 'Book', emoji: '📖', cat: 'objects' },
+  { id: 'hat', label: 'Hat', emoji: '🎩', cat: 'objects' },
+  { id: 'cap', label: 'Cap', emoji: '🧢', cat: 'objects' },
+  { id: 'bed', label: 'Bed', emoji: '🛏️', cat: 'objects' },
+  { id: 'box', label: 'Box', emoji: '📦', cat: 'objects' },
+  { id: 'teddy', label: 'Teddy Bear', emoji: '🧸', cat: 'objects' },
+  { id: 'balloon', label: 'Balloon', emoji: '🎈', cat: 'objects' },
+  { id: 'house', label: 'House', emoji: '🏠', cat: 'objects' },
+  { id: 'map', label: 'Map', emoji: '🗺️', cat: 'objects' },
+  { id: 'net', label: 'Net', emoji: '🥅', cat: 'objects' },
+  { id: 'web', label: 'Web', emoji: '🕸️', cat: 'objects' },
+  { id: 'zip', label: 'Zipper', emoji: '🤐', cat: 'objects' },
+  { id: 'mop', label: 'Mop / Broom', emoji: '🧹', cat: 'objects' },
+  { id: 'ghost', label: 'Ghost', emoji: '👻', cat: 'objects' },
+  { id: 'robot', label: 'Robot', emoji: '🤖', cat: 'objects' },
+  { id: 'monster', label: 'Monster', emoji: '👾', cat: 'objects' },
+];
 let media = null, rec = null, starting = false, chunks = [], recStart = 0, recTimer = null, autoStop = null;
 let pendingBlob = null, pendingUrl = null, ac = null;
 let playBtn = null; // button currently marked as playing
@@ -277,7 +458,39 @@ function drawCard({prompt, sub, keyname, pos, takeFiles, takeUrl}) {
 }
 
 function draw() {
-  if (view === 'voices') drawVoices(); else drawFamily();
+  $('#rec-card').style.display = view === 'pics' ? 'none' : '';
+  if (view === 'voices') drawVoices();
+  else if (view === 'family') drawFamily();
+  else drawPics();
+}
+
+function drawPics() {
+  const customCount = Object.keys(picsMap).length;
+  $('#pics-overall').textContent = `${customCount} custom picture(s) uploaded · all others use original SVG art`;
+  $('#pic-cats').innerHTML = PIC_CATS.map(([c, label]) =>
+    `<button class="chip ${c === picCat ? 'on' : ''}" data-pc="${c}">${label}</button>`
+  ).join('');
+  const q = picQuery.trim().toLowerCase();
+  const list = PIC_ITEMS.filter((it) =>
+    (picCat === 'all' || it.cat === picCat) &&
+    (!q || it.label.toLowerCase().includes(q) || it.id.includes(q))
+  );
+  $('#pics-grid').innerHTML = list.map((it) => {
+    const custom = picsMap[it.id];
+    const art = custom
+      ? `<img src="/pics/img/${custom}" alt="${it.label}" />`
+      : (svgById[it.id] ? `<svg viewBox="0 0 100 100">${svgById[it.id]}</svg>` : it.emoji);
+    return `<div class="pic-card ${custom ? 'custom' : ''}" data-pid="${it.id}">
+      <span class="pic-emoji-tag">${it.emoji}</span>
+      <span class="pic-badge">${custom ? 'Custom' : 'SVG'}</span>
+      <div class="pic-art">${art}</div>
+      <div class="pic-title">${it.label}</div>
+      <div class="pic-btns">
+        <button class="up" data-up="${it.id}">🖼 ${custom ? 'Change' : 'Replace'}</button>
+        ${custom ? `<button class="rst" data-rst="${it.id}">↺ SVG</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function drawVoices() {
@@ -589,9 +802,79 @@ document.querySelectorAll('.top-tab').forEach((b) => b.addEventListener('click',
   document.querySelectorAll('.top-tab').forEach((x) => x.classList.toggle('on', x === b));
   $('#voices-pane').style.display = view === 'voices' ? '' : 'none';
   $('#family-pane').style.display = view === 'family' ? '' : 'none';
+  $('#pics-pane').style.display = view === 'pics' ? '' : 'none';
   stopPlay(); discardPending();
   draw();
 }));
+
+async function uploadPicFile(pid, file) {
+  if (!file) return;
+  if (file.size > 8 * 1024 * 1024) { alert('Image too big (max 8 MB)'); return; }
+  const b64 = await new Promise((res) => {
+    const rd = new FileReader();
+    rd.onload = () => res(rd.result.split(',')[1]);
+    rd.readAsDataURL(file);
+  });
+  const r = await fetch(`/api/pics/${pid}`, {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({image: b64}),
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) { alert('Upload failed: ' + (j.error || r.status)); return; }
+  picsMap = j.pics || {};
+  refreshBadge();
+  draw();
+}
+async function resetPic(pid) {
+  const r = await fetch(`/api/pics/${pid}`, {method: 'DELETE'});
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) { alert('Reset failed: ' + (j.error || r.status)); return; }
+  picsMap = j.pics || {};
+  refreshBadge();
+  draw();
+}
+$('#pic-cats').addEventListener('click', (e) => {
+  const c = e.target.closest('.chip'); if (!c) return;
+  picCat = c.dataset.pc;
+  drawPics();
+});
+$('#pic-search').addEventListener('input', (e) => {
+  picQuery = e.target.value;
+  drawPics();
+});
+$('#pics-grid').addEventListener('click', (e) => {
+  const up = e.target.closest('[data-up]');
+  if (up) {
+    picTargetId = up.dataset.up;
+    $('#pic-file').value = '';
+    $('#pic-file').click();
+    return;
+  }
+  const rst = e.target.closest('[data-rst]');
+  if (rst) resetPic(rst.dataset.rst);
+});
+$('#pic-file').addEventListener('change', () => {
+  const f = $('#pic-file').files[0];
+  if (f && picTargetId) uploadPicFile(picTargetId, f);
+});
+$('#pics-grid').addEventListener('dragover', (e) => {
+  const card = e.target.closest('.pic-card');
+  if (!card) return;
+  e.preventDefault();
+  card.classList.add('dragover');
+});
+$('#pics-grid').addEventListener('dragleave', (e) => {
+  const card = e.target.closest('.pic-card');
+  if (card) card.classList.remove('dragover');
+});
+$('#pics-grid').addEventListener('drop', (e) => {
+  const card = e.target.closest('.pic-card');
+  if (!card) return;
+  e.preventDefault();
+  card.classList.remove('dragover');
+  const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f) uploadPicFile(card.dataset.pid, f);
+});
 $('#tabs').addEventListener('click', (e) => {
   const v = e.target.dataset.v; if (!v) return;
   e.target.blur();
@@ -699,6 +982,7 @@ pubBtn.onclick = async () => {
   const bits = [];
   if (j.voices) bits.push(`${j.voices} voice take file${j.voices > 1 ? 's' : ''}`);
   if (j.family) bits.push(`${j.family} family file${j.family > 1 ? 's' : ''}`);
+  if (j.pics) bits.push(`${j.pics} picture file${j.pics > 1 ? 's' : ''}`);
   if (!(j.files || []).length) { renderPub(await (await fetch('/api/publish/status')).json()); return; }
   if (!confirm('Push to live?\n\n' + bits.join(', ') + '\n' + j.files.length + ' file(s) total')) return;
   const r = await fetch('/api/publish', { method: 'POST', headers: { 'X-Studio': '1' } });
@@ -718,12 +1002,16 @@ setInterval(refreshBadge, 15000);
 pollPub();
 
 (async () => {
+  import('/src/core/svgArt.js').then((m) => { svgById = m.SVG_BY_ID || {}; if (view === 'pics') drawPics(); }).catch(() => {});
   const r = await fetch('/api/clips');
   const j = await r.json();
   clips = j.clips; manifest = j.manifest;
   const fr = await fetch('/api/family');
   const fj = await fr.json().catch(() => ({}));
   members = fj.members || []; family = fj.family || {members: []};
+  const pr = await fetch('/api/pics');
+  const pj = await pr.json().catch(() => ({}));
+  picsMap = pj.pics || {};
   draw();
 })();
 </script>

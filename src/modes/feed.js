@@ -1,6 +1,7 @@
 import { FEED_FOODS } from '../content.js';
 import { makeDraggable, flyFromDrop } from '../core/drag.js';
 import { rand, rnd } from '../core/util.js';
+import { setArt } from '../core/art.js';
 
 // ---------- feed the monster ----------
 const MON_COLORS = { purple: '#a78bfa', green: '#6fd98a', blue: '#6fb8ff', pink: '#ff9fc7' };
@@ -27,9 +28,12 @@ export default {
     el.innerHTML = `
       <div class="feed-bubble" id="feed-bubble"><span id="feed-say"></span></div>
       <div class="feed-mon" id="feed-mon">
+        <span class="fhorn fh1"></span><span class="fhorn fh2"></span>
+        <span class="fcheek fc1"></span><span class="fcheek fc2"></span>
         <div class="feed-eyes"><span class="feye"><i></i></span><span class="feye"><i></i></span></div>
-        <div class="feed-mouth" id="feed-mouth"><span class="ftongue"></span></div>
+        <div class="feed-mouth" id="feed-mouth"><span class="ftooth ft1"></span><span class="ftooth ft2"></span><span class="ftongue"></span></div>
         <div class="feed-tummy" id="feed-tummy"></div>
+        <span class="ffoot ff1"></span><span class="ffoot ff2"></span>
       </div>
       <div class="feed-table" id="feed-table"></div>
       <div class="feed-count" id="feed-count"></div>`;
@@ -113,7 +117,10 @@ export default {
         const d = document.createElement('div');
         d.className = 'feed-food';
         d.dataset.id = f.id;
-        d.innerHTML = `<span>${f.emoji}</span>`;
+        const sp = document.createElement('span');
+        sp.className = 'feed-plate';
+        setArt(sp, f.emoji);
+        d.appendChild(sp);
         table.appendChild(d);
         f._el = d;
         const drag = makeDraggable(d, {

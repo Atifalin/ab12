@@ -1,6 +1,7 @@
 import { SMASH, CHEERS, COLORS, slug } from '../content.js';
 import { rand, rnd } from '../core/util.js';
 import { SILLY } from '../core/audio.js';
+import { artHtml } from '../core/art.js';
 
 // ---------- smash mode ----------
 export default {
@@ -38,7 +39,7 @@ export default {
       p.style.top = y + 'px';
       p.style.fontSize = size + 'vmin';
       p.style.rotate = rnd(-20, 20) + 'deg';
-      p.innerHTML = `${emoji}<span class="name">${label ? label + ' · ' : ''}${name}</span>`;
+      p.innerHTML = `<span class="pop-art" data-art="${emoji}">${artHtml(emoji)}</span><span class="name">${label ? label + ' · ' : ''}${name}</span>`;
       layer.appendChild(p);
       setTimeout(() => p.remove(), 3100);
       while (layer.querySelectorAll('.pop').length > 8) layer.querySelector('.pop').remove();

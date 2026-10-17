@@ -1,6 +1,7 @@
 import { ANIMALS } from '../content.js';
 import { sayUrls, packTakeUrl } from '../core/voice.js';
 import { rand, rnd } from '../core/util.js';
+import { setArt, artHtml } from '../core/art.js';
 
 // ---------- animal farm ----------
 const SCENE_DECO = {
@@ -78,7 +79,7 @@ export default {
     }
 
     function showBanner(a, line) {
-      bEmoji.textContent = a.emoji;
+      setArt(bEmoji, a.emoji);
       bName.textContent = a.name + '!';
       bTitle.textContent = line || '';
       bTitle.style.display = line ? '' : 'none';
@@ -119,7 +120,7 @@ export default {
         const y = Math.min(fr.height - cellH / 2, cellH / 2 + row * cellH + rnd(-1.5, 1.5) * vmin);
         d.style.left = x + 'px';
         d.style.top = y + 'px';
-        d.innerHTML = `<span class="af-emoji">${a.emoji}</span><span class="af-shadow"></span>`;
+        d.innerHTML = `<span class="af-emoji" data-art="${a.emoji}">${artHtml(a.emoji)}</span><span class="af-shadow"></span>`;
         d.addEventListener('click', () => tapAnimal(d, a));
         field.appendChild(d);
         a._el = d;

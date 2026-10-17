@@ -1,6 +1,7 @@
 import { SORT_SETS } from '../content.js';
 import { makeDraggable, flyFromDrop } from '../core/drag.js';
 import { rand, rnd } from '../core/util.js';
+import { setArt, artHtml } from '../core/art.js';
 
 // ---------- sort it ----------
 const SET_ORDER = { colours: 'colour', kinds: 'kind', size: 'size', where: 'where', letters: 'letters' };
@@ -23,7 +24,7 @@ export default {
 
   mount(el, ctx) {
     el.innerHTML = `
-      <div class="sort-sky"><span class="sort-cloud">☁️</span><span class="sort-cloud c2">☁️</span></div>
+      <div class="sort-sky"><span class="sort-cloud" data-art="☁️">${artHtml('☁️')}</span><span class="sort-cloud c2" data-art="☁️">${artHtml('☁️')}</span></div>
       <div class="sort-prompt" id="sort-prompt"></div>
       <div class="sort-drop" id="sort-drop"></div>
       <div class="sort-baskets" id="sort-baskets"></div>`;
@@ -73,7 +74,7 @@ export default {
         d.className = 'sort-basket';
         d.dataset.b = b.id;
         d.style.setProperty('--bc', b.color);
-        d.innerHTML = `<span class="fill"></span><span class="icon">${b.icon}</span><span class="blabel">${b.label}</span>`;
+        d.innerHTML = `<span class="fill"></span><span class="icon" data-art="${b.icon}">${artHtml(b.icon)}</span><span class="blabel">${b.label}</span>`;
         basketsEl.appendChild(d);
         b._el = d;
       }
@@ -86,8 +87,10 @@ export default {
       wrong = 0;
       dropEl.innerHTML = '';
       const d = document.createElement('div');
-      d.className = 'sort-item' + (/^[A-Z0-9]$/.test(curItem.emoji) ? ' sort-glyph' : '');
-      d.textContent = curItem.emoji;
+      const isGlyph = /^[A-Z0-9]$/.test(curItem.emoji);
+      d.className = 'sort-item' + (isGlyph ? ' sort-glyph' : '');
+      if (isGlyph) d.textContent = curItem.emoji;
+      else setArt(d, curItem.emoji);
       dropEl.appendChild(d);
       curEl = d;
       // drop-in bounce

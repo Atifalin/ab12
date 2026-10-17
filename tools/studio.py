@@ -44,6 +44,9 @@ FAMILY_DIR = PUBLIC_DIR / "family"
 FAMILY_IMG = FAMILY_DIR / "img"
 FAMILY_AUDIO = FAMILY_DIR / "audio"
 MEMBERS_JSON = FAMILY_DIR / "members.json"
+PICS_DIR = PUBLIC_DIR / "pics"
+PICS_IMG = PICS_DIR / "img"
+PICS_JSON = PICS_DIR / "pics.json"
 STUDIO_HTML = ROOT / "tools" / "studio.html"
 POOLS = {"cheer", "try"}
 MAX_BODY = 8 * 1024 * 1024
@@ -145,6 +148,50 @@ def takes_for(voice, clip):
         return []
     return [f.name for f in vdir.iterdir()
             if FILE_RE.match(f.name) and f.name.split("~", 1)[0] == clip]
+
+
+# ---------- custom pictures (emoji/item overrides) ----------
+
+def build_pics_json():
+    pics = {}
+    if PICS_IMG.is_dir():
+        for f in sorted(PICS_IMG.iterdir()):
+            if IMG_RE.match(f.name):
+                pid = f.name.split("~", 1)[0]
+                pics[pid] = f.name
+    return {"version": int(time.time() * 1000), "pics": pics}
+
+
+def write_pics_json():
+    PICS_DIR.mkdir(parents=True, exist_ok=True)
+    j = build_pics_json()
+    if _same_content(PICS_JSON, j):
+        try:
+            return json.loads(PICS_JSON.read_text())
+        except Exception:
+            return j
+    tmp = PICS_DIR / ".pics.json.tmp"
+    tmp.write_text(json.dumps(j, separators=(",", ":")))
+    tmp.replace(PICS_JSON)
+    return j
+
+
+def save_item_pic(pid, raw):
+    """Decode an uploaded item image via sips -> 512px PNG named <id>~<shortid>.png."""
+    PICS_IMG.mkdir(parents=True, exist_ok=True)
+    out = PICS_IMG / f"{pid}~{secrets.token_hex(3)}.png"
+    with tempfile.TemporaryDirectory() as td:
+        src = Path(td) / "in.img"
+        src.write_bytes(raw)
+        proc = subprocess.run(
+            ["sips", "-s", "format", "png", "-Z", "512", str(src), "--out", str(out)],
+            capture_output=True, timeout=60)
+        if proc.returncode != 0 or not out.exists() or out.stat().st_size == 0:
+            return None
+    for old in list(PICS_IMG.iterdir()):
+        if old.name != out.name and IMG_RE.match(old.name) and old.name.split("~", 1)[0] == pid:
+            old.unlink()
+    return out.name
 
 
 # ---------- family members ----------
@@ -364,10 +411,12 @@ def retrim(voice=None):
 
 class Handler(SimpleHTTPRequestHandler):
     def translate_path(self, path):
-        # serve public/ statically, /studio -> tools/studio.html (/rec redirects)
+        # serve public/ statically, /src/ for shared SVG art modules, /studio -> tools/studio.html
         path = path.split("?", 1)[0].split("#", 1)[0]
         if path in ("/studio", "/studio.html"):
             return str(STUDIO_HTML)
+        if path.startswith("/src/"):
+            return str(ROOT / path.lstrip("/"))
         return str(PUBLIC_DIR / path.lstrip("/"))
 
     def log_message(self, fmt, *args):
@@ -456,6 +505,8 @@ class Handler(SimpleHTTPRequestHandler):
                              "manifest": build_manifest()})
         elif path == "/api/family":
             self._json(200, family_state())
+        elif path == "/api/pics":
+            self._json(200, write_pics_json())
         elif path in ("/rec", "/recorder", "/recorder.html"):
             self.send_response(302)
             self.send_header("Location", "/studio")
@@ -587,6 +638,28 @@ class Handler(SimpleHTTPRequestHandler):
                 (adir / take).write_bytes(dst.read_bytes())
             self._json(200, {"file": take, **family_state()})
             return
+        m = re.fullmatch(r"/api/pics/([a-z0-9-]+)", path)
+        if m:
+            pid = m.group(1)
+            j = self._body_json()
+            img64 = (j or {}).get("image")
+            if not img64:
+                self._json(400, {"error": "image required"})
+                return
+            try:
+                raw_img = base64.b64decode(img64, validate=True)
+            except (binascii.Error, ValueError):
+                self._json(400, {"error": "bad image data"})
+                return
+            if not (0 < len(raw_img) <= MAX_BODY):
+                self._json(400, {"error": "bad image size"})
+                return
+            fname = save_item_pic(pid, raw_img)
+            if not fname:
+                self._json(422, {"error": "sips could not decode image"})
+                return
+            self._json(200, {"id": pid, "file": fname, **write_pics_json()})
+            return
         self._json(404, {"error": "not found"})
 
     def do_PATCH(self):
@@ -696,11 +769,20 @@ class Handler(SimpleHTTPRequestHandler):
             write_members(members)
             self._json(200, {"deleted": mid, **family_state()})
             return
+        m = re.fullmatch(r"/api/pics/([a-z0-9-]+)", path)
+        if m:
+            pid = m.group(1)
+            if PICS_IMG.is_dir():
+                for f in list(PICS_IMG.iterdir()):
+                    if IMG_RE.match(f.name) and f.name.split("~", 1)[0] == pid:
+                        f.unlink()
+            self._json(200, {"deleted": pid, **write_pics_json()})
+            return
         self._json(404, {"error": "not found"})
 
 
 # ---------- publish (push to live) ----------
-PUBLISH_PATHS = ["public/audio/voices", "public/family"]
+PUBLISH_PATHS = ["public/audio/voices", "public/family", "public/pics"]
 PUB_STEPS = ["Check changes", "Save (commit)", "Sync", "Upload (push)",
              "Build", "Go live", "Done"]
 DRYRUN = os.environ.get("STUDIO_PUBLISH_DRYRUN") == "1"
@@ -720,7 +802,7 @@ def pub_pending():
     """List changed files under the publish paths and count them by kind."""
     out = subprocess.run(["git", "status", "--porcelain", "-uall", "--"] + PUBLISH_PATHS,
                          cwd=ROOT, capture_output=True, text=True)
-    files, voices, family = [], 0, 0
+    files, voices, family, pics = [], 0, 0, 0
     for line in out.stdout.splitlines():
         if not line.strip():
             continue
@@ -730,7 +812,9 @@ def pub_pending():
             voices += 1
         elif "/family/" in f or f.startswith("family/"):
             family += 1
-    return {"files": files, "voices": voices, "family": family}
+        elif "/pics/" in f or f.startswith("pics/"):
+            pics += 1
+    return {"files": files, "voices": voices, "family": family, "pics": pics}
 
 
 def pub_run(cmd, step_i, check=True, env=None):
@@ -798,7 +882,7 @@ def publish_worker():
             pub_log("nothing changed — already live")
             return
         pub_log(f"{len(pend['files'])} file(s) to publish "
-                f"({pend['voices']} voice, {pend['family']} family)")
+                f"({pend['voices']} voice, {pend['family']} family, {pend.get('pics', 0)} pic)")
         done_step(0)
 
         if dry:
@@ -882,12 +966,14 @@ def publish_worker():
         step(PUB_STEPS[5], 5)
         local_v = (VOICES_DIR / "manifest.json").read_text()
         local_f = (FAMILY_DIR / "family.json").read_text()
+        local_p = PICS_JSON.read_text() if PICS_JSON.exists() else None
         t0 = time.time()
         while time.time() - t0 < 360:
             rv, _ = pub_http_text(f"https://ab12.ezypath.in/audio/voices/manifest.json?v={time.time()}")
             rf, _ = pub_http_text(f"https://ab12.ezypath.in/family/family.json?v={time.time()}")
+            rp, _ = pub_http_text(f"https://ab12.ezypath.in/pics/pics.json?v={time.time()}")
             pub_log("polling live…")
-            if rv == local_v and rf == local_f:
+            if rv == local_v and rf == local_f and (local_p is None or rp == local_p):
                 pub_log("live content matches the commit")
                 break
             time.sleep(10)
@@ -932,8 +1018,9 @@ def main():
         m = write_manifest()
         total = sum(len(v) for v in m["voices"].values())
         f = write_family_json()
+        p = write_pics_json()
         print(f"voice manifest rebuilt: {total} clip keys, {len(m['packs'])} packs; "
-              f"family.json: {len(f['members'])} members")
+              f"family.json: {len(f['members'])} members; pics.json: {len(p['pics'])} pics")
         return
     if "--retrim" in sys.argv:
         i = sys.argv.index("--retrim")
@@ -945,6 +1032,7 @@ def main():
     srv = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     write_manifest()
     write_family_json()
+    write_pics_json()
     url = f"http://127.0.0.1:{port}/studio"
     print(f"AB12 Studio -> {url}   (run the app with `npm run dev`)")
     if "--no-browser" not in sys.argv:

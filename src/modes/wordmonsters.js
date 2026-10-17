@@ -2,6 +2,7 @@ import { WM_WORDS, LETTER_SOUNDS } from '../content.js';
 import { loadFamily, familyMembers, playLine } from '../core/family.js';
 import { makeDraggable, flyFromDrop } from '../core/drag.js';
 import { rand, rnd } from '../core/util.js';
+import { setArt } from '../core/art.js';
 
 // ---------- word monsters ----------
 const PASTELS = ['#ffb3c6', '#ffd6a5', '#fdffb6', '#caffbf', '#9bf6ff', '#a0c4ff', '#bdb2ff', '#ffc6ff'];
@@ -97,7 +98,7 @@ export default {
       banner.classList.remove('show');
       const w = words[wi % words.length];
       curWord = w;
-      emojiEl.textContent = w.emoji;
+      setArt(emojiEl, w.emoji);
       emojiEl.className = 'wm-emoji';
       wordEl.textContent = w.w;
       countEl.textContent = `${wi % words.length + 1} / ${words.length}`;
@@ -140,7 +141,9 @@ export default {
         const rx = fre.left + (fre.width - rowW) / 2 + col * (mw + gap);
         m.style.left = (rx + rnd(-jx, jx)) + 'px';
         m.style.top = (yOff + row * (mh + gap) + rnd(-jx / 2, jx / 2)) + 'px';
-        m.innerHTML = `<span class="eye e1"><i></i></span><span class="eye e2"><i></i></span>
+        m.innerHTML = `<span class="horn h1"></span><span class="horn h2"></span>
+          <span class="eye e1"><i></i></span><span class="eye e2"><i></i></span>
+          <span class="wm-mouth"></span>
           <span class="foot f1"></span><span class="foot f2"></span>
           <span class="letter">${ch.toUpperCase()}</span>`;
         // tap = squeak (only when not dragged — pointerup without move fires click)
@@ -238,7 +241,7 @@ export default {
         confettiBurst(el, r.left - el.getBoundingClientRect().left + r.width / 2, r.top - el.getBoundingClientRect().top);
         sparkleBurst(r.left + r.width / 2, r.top + r.height / 2, 10);
         playSfx('fanfare');
-        bannerEmoji.textContent = curWord.emoji;
+        setArt(bannerEmoji, curWord.emoji);
         bannerName.textContent = curWord.member ? curWord.member.name + '!' : curWord.w + '!';
         bannerTitle.textContent = curWord.line || '';
         bannerTitle.style.display = curWord.line ? '' : 'none';

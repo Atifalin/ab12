@@ -1,5 +1,6 @@
 import { COLORS } from '../content.js';
 import { rand, rnd } from './util.js';
+import { artHtml } from './art.js';
 
 // DOM caps keep iOS GPU/memory pressure bounded during long sessions.
 const sparkLive = document.getElementsByClassName('spark');
@@ -8,7 +9,7 @@ export function sparkleBurst(cx, cy, n = 5) {
   for (let i = 0; i < n; i++) {
     const s = document.createElement('div');
     s.className = 'spark';
-    s.textContent = rand(['✨', '⭐', '💫']);
+    s.innerHTML = artHtml(rand(['✨', '⭐', '💫']));
     s.style.left = cx + 'px';
     s.style.top = cy + 'px';
     s.style.fontSize = rnd(2.5, 5) + 'vmin';

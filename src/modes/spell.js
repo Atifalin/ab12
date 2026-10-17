@@ -1,5 +1,6 @@
 import { LETTERS, NUMBER_WORDS, PHON, COUNT_EMOJI, slug } from '../content.js';
 import { rand } from '../core/util.js';
+import { artHtml } from '../core/art.js';
 
 // ---------- spell it! mode ----------
 const SPELL_TRACKS = {
@@ -21,11 +22,13 @@ export default {
     el.innerHTML = `
       <div class="spell-picker" id="spell-picker">
         <button class="spell-track" data-track="az">
-          <span class="st-big">🔤 A to Z</span>
+          <span class="st-icon">${artHtml('🔤')}</span>
+          <span class="st-big">A to Z</span>
           <span class="st-prog" id="spell-prog-az"></span>
         </button>
         <button class="spell-track" data-track="num">
-          <span class="st-big">🔢 1 to 10</span>
+          <span class="st-icon">${artHtml('🔢')}</span>
+          <span class="st-big">1 to 10</span>
           <span class="st-prog" id="spell-prog-num"></span>
         </button>
       </div>
@@ -108,9 +111,10 @@ export default {
       spellCount.textContent = `${spellProg[spellTrack].done.length} / ${list.length}`;
       if (spellTrack === 'num') {
         const n = item.n;
-        spellPic.innerHTML = `<span class="sp-digit">${n}</span><span class="sp-emoji${n > 3 ? ' many' : ''}">${rand(COUNT_EMOJI).repeat(n)}</span>`;
+        const em = rand(COUNT_EMOJI).repeat(n);
+        spellPic.innerHTML = `<span class="sp-digit">${n}</span><span class="sp-emoji${n > 3 ? ' many' : ''}" data-art="${em}">${artHtml(em)}</span>`;
       } else {
-        spellPic.innerHTML = `<span class="sp-emoji">${item.pic}</span>`;
+        spellPic.innerHTML = `<span class="sp-emoji" data-art="${item.pic}">${artHtml(item.pic)}</span>`;
       }
       spellWord.innerHTML = '';
       spellWord.style.setProperty('--slots', item.word.length);

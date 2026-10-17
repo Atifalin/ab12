@@ -1,5 +1,6 @@
 import { NUMBER_WORDS, PHON, CHEERS } from '../content.js';
 import { rand } from '../core/util.js';
+import { setArt, artHtml } from '../core/art.js';
 
 // ---------- find it! mode ----------
 const STEP = [3, 4, 6]; // choice-count ladder: start setting picks the first rung
@@ -18,7 +19,7 @@ export default {
     el.innerHTML = `
       <div class="find-stars" id="find-stars"></div>
       <button class="find-prompt" id="find-prompt" aria-label="Hear it again">
-        <span class="find-big">🔊</span><span class="find-target" id="find-target"></span>
+        <span class="find-big">${artHtml('speaker')}</span><span class="find-target" id="find-target"></span>
       </button>
       <div class="find-bubbles" id="find-bubbles"></div>`;
     const findStars = el.querySelector('#find-stars');
@@ -48,7 +49,7 @@ export default {
       return STEP[Math.max(i0, lvl)];
     };
     const findSpoken = (ch) => (/[0-9]/.test(ch) ? NUMBER_WORDS[+ch] : PHON[ch]);
-    function renderStars() { findStars.textContent = '⭐'.repeat(findStreak % 10); }
+    function renderStars() { setArt(findStars, '⭐'.repeat(findStreak % 10)); }
     function findRound(queuePrompt = false) {
       clearTimeout(findTimer);
       findLocked = false;

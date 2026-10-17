@@ -4,6 +4,7 @@ import {
 import { rand, rnd } from '../core/util.js';
 import { SILLY } from '../core/audio.js';
 import { playLine } from '../core/family.js';
+import { setArt, artHtml } from '../core/art.js';
 
 // ---------- learn mode ----------
 export default {
@@ -21,7 +22,7 @@ export default {
         <div id="word-banner" class="word-banner"><span class="wb-emoji"></span><span class="wb-text"></span></div>
         <div class="hero" id="hero">
           <div class="glyph" id="glyph">A</div>
-          <div class="pic" id="pic">🍎</div>
+          <div class="pic" id="pic" data-art="🍎">${artHtml('🍎')}</div>
           <div class="word" id="word">Apple</div>
         </div>
         <div class="idle" id="learn-idle">Press any letter or number!</div>
@@ -49,8 +50,8 @@ export default {
     const { sparkleBurst } = effects;
 
     function showWordBanner(entry) {
-      wbEmoji.textContent = entry.emoji;
-      wbText.textContent = entry.display === 'Ezdan' ? 'Ezdan! 💖' : entry.display + '!';
+      setArt(wbEmoji, entry.emoji);
+      wbText.textContent = entry.display === 'Ezdan' ? 'Ezdan!' : entry.display + '!';
       wordBanner.classList.toggle('family', entry.family);
       wordBanner.classList.remove('show');
       void wordBanner.offsetWidth;
@@ -176,7 +177,7 @@ export default {
       hero.classList.add('show');
       glyphEl.textContent = display;
       glyphEl.style.color = '#fff';
-      picEl.textContent = pic;
+      setArt(picEl, pic);
       wordEl.textContent = word;
       const hr = hero.getBoundingClientRect();
       sparkleBurst(hr.left + hr.width / 2, hr.top + hr.height / 2);
@@ -232,7 +233,7 @@ export default {
         void hero.offsetWidth;
         hero.classList.add('show');
         glyphEl.textContent = d.display;
-        picEl.textContent = d.pic;
+        setArt(picEl, d.pic);
         wordEl.textContent = d.word;
         picEl.classList.toggle('many', d.many);
         lastGlyph = d.display;

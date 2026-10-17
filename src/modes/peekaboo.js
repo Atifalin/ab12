@@ -1,15 +1,16 @@
 import { loadFamily, familyMembers, playLine } from '../core/family.js';
 import { rand, rnd } from '../core/util.js';
 import { CHEERS } from '../content.js';
+import { setArt, artHtml } from '../core/art.js';
 
 // ---------- peekaboo mode ----------
 // three.js is dynamically imported so it stays a separate chunk and only
 // loads when the mode is opened. WebGL failure falls back to a DOM game.
 const SPOT_EMOJI = ['🌳', '🎁', '🎪', '🌲'];
 const PLACEHOLDERS = [
-  { id: '_daddy', name: 'Daddy', title: '', emoji: '👨', color: '#5c7cfa' },
-  { id: '_mommy', name: 'Mommy', title: '', emoji: '👩', color: '#ff5c8a' },
-  { id: '_ezdan', name: 'Ezdan', title: '', emoji: '🧒', color: '#2fb8ff' },
+  { id: '_daddy', name: 'Daddy', title: 'the Tickle Champion', emoji: '👨', color: '#5c7cfa' },
+  { id: '_mommy', name: 'Mommy', title: 'the Hug Queen', emoji: '👩', color: '#ff5c8a' },
+  { id: '_ezdan', name: 'Ezdan', title: 'the Little Superstar', emoji: '🧒', color: '#2fb8ff' },
 ];
 
 export default {
@@ -28,7 +29,7 @@ export default {
     el.innerHTML = `
       <div class="pk-stage" id="pk-stage"></div>
       <button class="pk-prompt" id="pk-prompt" hidden aria-label="Hear it again">
-        <span class="pk-big">🔊</span><span class="pk-who" id="pk-who"></span>
+        <span class="pk-big">${artHtml('speaker')}</span><span class="pk-who" id="pk-who"></span>
       </button>
       <div class="pk-banner" id="pk-banner">
         <span class="pk-emoji"></span>
@@ -55,7 +56,7 @@ export default {
     let destroyed = false;
 
     function showBanner(member) {
-      bannerEmoji.textContent = member.emoji || '💖';
+      setArt(bannerEmoji, member.emoji || '💖');
       bannerName.textContent = member.name + '!';
       bannerTitle.textContent = member.title || '';
       bannerTitle.style.display = member.title ? '' : 'none';
@@ -199,37 +200,50 @@ export default {
       fill.position.set(-6, 4, 5);
       scene.add(fill);
 
-      // sky gradient backdrop
+      // storybook sky backdrop with soft rainbow + distant rolling hills
       const skyCv = document.createElement('canvas');
-      skyCv.width = 4; skyCv.height = 256;
+      skyCv.width = 512; skyCv.height = 256;
       const sc = skyCv.getContext('2d');
       const sg = sc.createLinearGradient(0, 0, 0, 256);
-      sg.addColorStop(0, '#63c1ff'); sg.addColorStop(0.55, '#a8e0ff'); sg.addColorStop(1, '#eafbe0');
-      sc.fillStyle = sg; sc.fillRect(0, 0, 4, 256);
+      sg.addColorStop(0, '#4cc9f0'); sg.addColorStop(0.52, '#a8e6ff'); sg.addColorStop(0.82, '#e9ffdb'); sg.addColorStop(1, '#7ae582');
+      sc.fillStyle = sg; sc.fillRect(0, 0, 512, 256);
+      // soft rainbow arc in the sky
+      for (const [ri, col] of [[86, 'rgba(255,92,138,.28)'], [79, 'rgba(255,210,63,.28)'], [72, 'rgba(76,217,100,.28)'], [65, 'rgba(47,184,255,.28)']]) {
+        sc.strokeStyle = col; sc.lineWidth = 6;
+        sc.beginPath(); sc.arc(370, 210, ri, Math.PI * 1.08, Math.PI * 1.92); sc.stroke();
+      }
+      // distant pastel hills on the backdrop canvas
+      sc.fillStyle = '#95d5b2';
+      sc.beginPath(); sc.moveTo(0, 256); sc.quadraticCurveTo(130, 165, 290, 220); sc.quadraticCurveTo(410, 170, 512, 215); sc.lineTo(512, 256); sc.fill();
+      sc.fillStyle = '#74c69d';
+      sc.beginPath(); sc.moveTo(0, 256); sc.quadraticCurveTo(90, 195, 220, 232); sc.quadraticCurveTo(360, 185, 512, 230); sc.lineTo(512, 256); sc.fill();
       const sky = new THREE.Mesh(geo(new THREE.PlaneGeometry(80, 40)),
         basicMat({ map: track(new THREE.CanvasTexture(skyCv)), fog: false }));
       sky.position.set(0, 10, -16);
       scene.add(sky);
 
-      // soft sun disc
-      const sunDisc = new THREE.Mesh(geo(new THREE.CircleGeometry(1.6, 32)),
-        basicMat({ color: '#fff3b0', fog: false }));
+      // warm sun with outer glow halo
+      const sunHalo = new THREE.Mesh(geo(new THREE.CircleGeometry(2.35, 32)),
+        basicMat({ color: '#fff8cc', transparent: true, opacity: 0.45, fog: false }));
+      sunHalo.position.set(-8, 9.5, -14.6);
+      const sunDisc = new THREE.Mesh(geo(new THREE.CircleGeometry(1.55, 32)),
+        basicMat({ color: '#ffe14d', fog: false }));
       sunDisc.position.set(-8, 9.5, -14.5);
-      scene.add(sunDisc);
+      scene.add(sunHalo, sunDisc);
 
       // drifting puffy clouds (flattened sphere clusters)
       const clouds = [];
       for (let i = 0; i < 3; i++) {
         const cl = new THREE.Group();
         const cm = basicMat({ color: '#ffffff', fog: false });
-        for (const [dx, dy, s] of [[0, 0, 1], [-0.8, -0.15, 0.7], [0.8, -0.1, 0.75]]) {
+        for (const [dx, dy, s] of [[0, 0.08, 1.05], [-0.85, -0.12, 0.78], [0.85, -0.1, 0.82], [-0.4, 0.25, 0.7], [0.45, 0.22, 0.72]]) {
           const b = new THREE.Mesh(geo(new THREE.SphereGeometry(s * 0.55, 16, 12)), cm);
           b.position.set(dx, dy, 0);
           b.scale.z = 0.5;
           cl.add(b);
         }
-        cl.position.set(rnd(-9, 9), rnd(5.5, 8.5), -13 + i * 0.5);
-        cl.userData.speed = rnd(0.15, 0.4);
+        cl.position.set(rnd(-9, 9), rnd(5.8, 8.6), -13 + i * 0.5);
+        cl.userData.speed = rnd(0.15, 0.36);
         scene.add(cl);
         clouds.push(cl);
       }
@@ -239,12 +253,12 @@ export default {
         const g = geo(new THREE.PlaneGeometry(80, 30, 80, 30));
         const pos = g.attributes.position;
         const cols = [];
-        const c1 = new THREE.Color('#57b83f'), c2 = new THREE.Color('#8fdc63');
+        const c1 = new THREE.Color('#4eb83b'), c2 = new THREE.Color('#95e06c');
         for (let i = 0; i < pos.count; i++) {
           const x = pos.getX(i), y = pos.getY(i);
-          const h = Math.max(0, Math.sin(x * 0.16) * 0.5 + Math.cos(x * 0.07 + y * 0.3) * 0.4 - (y + 15) * 0.03);
+          const h = Math.max(0, Math.sin(x * 0.16) * 0.42 + Math.cos(x * 0.07 + y * 0.3) * 0.32 - (y + 15) * 0.025);
           pos.setZ(i, h);
-          const c = c1.clone().lerp(c2, Math.min(1, h * 1.4 + (y + 15) / 30 * 0.4));
+          const c = c1.clone().lerp(c2, Math.min(1, h * 1.4 + (y + 15) / 30 * 0.45));
           cols.push(c.r, c.g, c.b);
         }
         g.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
@@ -256,33 +270,46 @@ export default {
         scene.add(ground);
       }
 
-      // scattered flowers + grass tufts
+      // white garden picket fence along the back + stepping stones + daisies
       {
-        const stemG = geo(new THREE.CylinderGeometry(0.025, 0.035, 0.35, 5));
-        const headG = geo(new THREE.SphereGeometry(0.11, 10, 8));
-        const leafG = geo(new THREE.ConeGeometry(0.09, 0.35, 5));
-        const stemM = mat('#3d9e46');
-        const petals = ['#ff77b9', '#ffe94d', '#ffffff', '#ff9f1c', '#b197fc'].map(mat);
-        for (let i = 0; i < 10; i++) {
-          const x = rnd(-6.5, 6.5), z = rnd(-1.5, 1.8);
-          if (Math.abs(x) < 1.2 && z > -0.5) continue;
+        const fenceG = new THREE.Group();
+        const fenceM = mat('#fffdf7');
+        const picketG = geo(new RoundedBoxGeometry(0.24, 1.05, 0.08, 2, 0.04));
+        const railG = geo(new THREE.BoxGeometry(18, 0.12, 0.06));
+        const r1 = new THREE.Mesh(railG, fenceM); r1.position.set(0, 0.35, -6.2);
+        const r2 = new THREE.Mesh(railG, fenceM); r2.position.set(0, 0.72, -6.2);
+        fenceG.add(r1, r2);
+        for (let x = -8.5; x <= 8.5; x += 0.68) {
+          const p = new THREE.Mesh(picketG, fenceM);
+          p.position.set(x, 0.52, -6.16);
+          fenceG.add(p);
+        }
+        scene.add(fenceG);
+
+        // 5-petal daisies on the lawn (no spiky cones)
+        const centerG = geo(new THREE.SphereGeometry(0.09, 10, 8));
+        const petalG = geo(new THREE.SphereGeometry(0.085, 8, 6));
+        const centerM = mat('#ffe14d');
+        const petalMats = ['#ffffff', '#ff85a1', '#b197fc', '#74c0fc'].map(mat);
+        const flowerSpots = [[-5.2, 1.4], [-3.8, 2.2], [-2.1, 1.9], [2.2, 2.0], [3.9, 1.6], [5.4, 2.1], [-4.6, -1.6], [4.7, -1.5], [-1.5, -2.0], [1.6, -1.9]];
+        flowerSpots.forEach(([x, z], i) => {
           const f = new THREE.Group();
-          const st = new THREE.Mesh(stemG, stemM);
-          st.position.y = 0.17;
-          const hd = new THREE.Mesh(headG, petals[i % petals.length]);
-          hd.position.y = 0.4;
-          f.add(st, hd);
-          f.position.set(x, 0, z);
-          f.scale.setScalar(rnd(0.7, 1.2));
+          const pm = petalMats[i % petalMats.length];
+          for (let a = 0; a < 5; a++) {
+            const ang = (a / 5) * Math.PI * 2;
+            const pet = new THREE.Mesh(petalG, pm);
+            pet.position.set(Math.cos(ang) * 0.12, 0.08, Math.sin(ang) * 0.12);
+            pet.scale.y = 0.55;
+            f.add(pet);
+          }
+          const c = new THREE.Mesh(centerG, centerM);
+          c.position.y = 0.11;
+          c.scale.y = 0.65;
+          f.add(c);
+          f.position.set(x, 0.02, z);
+          f.scale.setScalar(0.85 + (i % 3) * 0.2);
           scene.add(f);
-        }
-        for (let i = 0; i < 8; i++) {
-          const t = new THREE.Mesh(leafG, stemM);
-          t.position.set(rnd(-7, 7), 0.16, rnd(-2, 2));
-          t.rotation.z = rnd(-0.3, 0.3);
-          t.scale.setScalar(rnd(0.8, 1.5));
-          scene.add(t);
-        }
+        });
       }
 
       const blobTex = (() => {
@@ -318,26 +345,80 @@ export default {
         const c = document.createElement('canvas');
         c.width = c.height = 256;
         const g = c.getContext('2d');
-        g.fillStyle = m.color || '#8a63ff';
-        g.beginPath(); g.arc(128, 128, 120, 0, Math.PI * 2); g.fill();
-        g.fillStyle = '#fff';
-        g.beginPath(); g.arc(128, 128, 104, 0, Math.PI * 2); g.fill();
-        g.fillStyle = m.color || '#8a63ff';
-        g.beginPath(); g.arc(128, 128, 92, 0, Math.PI * 2); g.fill();
+        const palette = ['#5c7cfa', '#ff5c8a', '#2fb8ff', '#8a63ff', '#20c997', '#ff9f1c'];
+        let hash = 0;
+        for (const ch of (m.id || m.name || 'a')) hash = (hash * 31 + ch.charCodeAt(0)) | 0;
+        const col = m.color || palette[Math.abs(hash) % palette.length];
+        // soft circular badge background
+        const bg = g.createLinearGradient(0, 16, 0, 240);
+        bg.addColorStop(0, col); bg.addColorStop(1, '#2b1b3d');
+        g.fillStyle = col;
+        g.beginPath(); g.arc(128, 128, 114, 0, Math.PI * 2); g.fill();
+        g.save();
+        g.beginPath(); g.arc(128, 128, 106, 0, Math.PI * 2); g.clip();
+        g.fillStyle = '#fff5fa';
+        g.fillRect(0, 0, 256, 256);
+        // cute chibi shoulders
+        g.fillStyle = col;
+        g.beginPath(); g.ellipse(128, 224, 68, 44, 0, 0, Math.PI * 2); g.fill();
+        g.lineWidth = 7; g.strokeStyle = '#2b1b3d'; g.stroke();
+        // ears + chibi face
+        g.fillStyle = '#ffcdb2';
+        g.beginPath(); g.arc(68, 126, 14, 0, Math.PI * 2); g.arc(188, 126, 14, 0, Math.PI * 2); g.fill(); g.stroke();
+        g.beginPath(); g.arc(128, 122, 58, 0, Math.PI * 2); g.fill(); g.stroke();
+        // hair cap + tuft
+        const fem = /mom|nani|dadi|khala|phupho|aunt|sis|heena|salma|tahreen|ayat|ayzal|noor/i.test(m.name || '');
+        const kid = /ezdan|zohaan|ahad|baby|kid/i.test(m.name || '');
+        g.fillStyle = '#3b2847';
+        if (fem) {
+          g.beginPath(); g.arc(128, 56, 22, 0, Math.PI * 2); g.fill(); g.stroke();
+        }
+        g.beginPath();
+        g.arc(128, 112, 60, Math.PI * 1.08, Math.PI * 1.92);
+        g.quadraticCurveTo(155, 86, 128, 92);
+        g.quadraticCurveTo(100, 86, 70, 102);
+        g.closePath(); g.fill(); g.stroke();
+        if (kid) {
+          // cute propeller/star cap badge
+          g.fillStyle = '#ffd23f';
+          g.beginPath(); g.arc(128, 66, 10, 0, Math.PI * 2); g.fill(); g.stroke();
+        }
+        // rosy cheeks
+        g.fillStyle = 'rgba(255, 110, 155, 0.55)';
+        g.beginPath(); g.ellipse(92, 136, 11, 7, 0, 0, Math.PI * 2); g.ellipse(164, 136, 11, 7, 0, 0, Math.PI * 2); g.fill();
+        // sparkly kawaii eyes
+        for (const ex of [102, 154]) {
+          g.fillStyle = '#2b1b3d';
+          g.beginPath(); g.arc(ex, 122, 9.5, 0, Math.PI * 2); g.fill();
+          g.fillStyle = '#ffffff';
+          g.beginPath(); g.arc(ex - 3, 118, 3.8, 0, Math.PI * 2); g.fill();
+          g.beginPath(); g.arc(ex + 3, 125, 1.8, 0, Math.PI * 2); g.fill();
+        }
+        // happy smile
+        g.strokeStyle = '#2b1b3d'; g.lineWidth = 6; g.lineCap = 'round';
+        g.beginPath(); g.arc(128, 132, 16, 0.2 * Math.PI, 0.8 * Math.PI); g.stroke();
+        g.restore();
+        // outer white sticker ring + name pill
+        g.strokeStyle = '#ffffff'; g.lineWidth = 10;
+        g.beginPath(); g.arc(128, 128, 112, 0, Math.PI * 2); g.stroke();
+        g.fillStyle = '#2b1b3d';
+        g.beginPath(); g.roundRect(38, 202, 180, 40, 20); g.fill();
+        g.fillStyle = '#ffffff';
+        g.font = '700 26px Fredoka, sans-serif';
         g.textAlign = 'center'; g.textBaseline = 'middle';
-        g.font = '110px Fredoka, sans-serif';
-        g.fillStyle = '#fff';
-        g.fillText(m.emoji || (m.name || '?')[0].toUpperCase(), 128, 140);
+        g.fillText((m.name || '?').slice(0, 10), 128, 223);
         return track(new THREE.CanvasTexture(c));
       }
       const backTex = (() => {
         const c = document.createElement('canvas');
         c.width = c.height = 256;
         const g = c.getContext('2d');
-        g.fillStyle = '#fff';
-        g.beginPath();
-        g.roundRect(10, 10, 236, 236, 70);
-        g.fill();
+        g.fillStyle = 'rgba(43,27,61,.22)';
+        g.beginPath(); g.roundRect(14, 18, 232, 232, 68); g.fill();
+        g.fillStyle = '#ffffff';
+        g.beginPath(); g.roundRect(10, 10, 236, 236, 68); g.fill();
+        g.strokeStyle = '#ffe14d'; g.lineWidth = 6;
+        g.beginPath(); g.roundRect(18, 18, 220, 220, 60); g.stroke();
         return track(new THREE.CanvasTexture(c));
       })();
       function makeMember(tex) {
@@ -358,100 +439,139 @@ export default {
       // ---------- spots ----------
       function makeBush() {
         const g = new THREE.Group();
-        const greens = ['#3d9e46', '#4cb355', '#2f8f3e', '#59c465', '#45a84e'];
-        const blobs = [[-0.55, 0.55, 0, 0.62], [0.45, 0.6, 0.1, 0.68], [0, 0.95, -0.1, 0.6], [-0.9, 0.3, 0.15, 0.42], [0.95, 0.32, 0, 0.45]];
+        const greens = ['#38b000', '#52b788', '#2d6a4f', '#70e000', '#40916c'];
+        const blobs = [[-0.58, 0.56, 0, 0.64], [0.5, 0.6, 0.1, 0.68], [0, 0.98, -0.08, 0.64], [-0.95, 0.34, 0.15, 0.45], [0.98, 0.34, 0, 0.46], [-0.28, 0.42, 0.35, 0.5], [0.32, 0.44, 0.35, 0.5]];
+        const parts = [];
         for (let i = 0; i < blobs.length; i++) {
           const [x, y, z, r] = blobs[i];
           const s = new THREE.Mesh(geo(new THREE.SphereGeometry(r, 20, 14)), mat(greens[i % greens.length]));
           s.position.set(x, y, z);
           g.add(s);
           outline(s, 1.07);
+          parts.push(s);
         }
-        // berries
-        const berryM = mat('#ff5c8a');
-        for (const [x, y, z] of [[-0.35, 0.85, 0.55], [0.55, 0.5, 0.6], [0.1, 0.45, 0.7]]) {
-          const b = new THREE.Mesh(geo(new THREE.SphereGeometry(0.09, 10, 8)), berryM);
+        // berries + blossoms on the bush
+        const berryM = mat('#ff4d6d');
+        const centerM = mat('#ffe14d');
+        const blossomM = mat('#ffffff');
+        for (const [x, y, z] of [[-0.45, 0.88, 0.56], [0.58, 0.54, 0.62], [0.08, 0.46, 0.78], [-0.72, 0.48, 0.48], [0.32, 0.95, 0.48]]) {
+          const b = new THREE.Mesh(geo(new THREE.SphereGeometry(0.1, 10, 8)), berryM);
           b.position.set(x, y, z);
           g.add(b);
         }
-        return { group: g, kind: 'bush', height: 1.6, parts: g.children.filter((c) => c.geometry && c.geometry.type === 'SphereGeometry' && c.geometry.parameters.radius > 0.3) };
-        // (berry spheres have radius 0.09 and stay put)
+        for (const [x, y, z] of [[-0.12, 1.15, 0.48], [0.68, 0.78, 0.45]]) {
+          const fl = new THREE.Mesh(geo(new THREE.SphereGeometry(0.14, 10, 8)), blossomM);
+          fl.position.set(x, y, z); fl.scale.z = 0.5;
+          const fc = new THREE.Mesh(geo(new THREE.SphereGeometry(0.07, 8, 6)), centerM);
+          fc.position.set(x, y, z + 0.06);
+          g.add(fl, fc);
+        }
+        return { group: g, kind: 'bush', height: 1.65, parts };
       }
       function makeGift() {
         const g = new THREE.Group();
-        const body = new THREE.Mesh(geo(new RoundedBoxGeometry(1.5, 1.1, 1.2, 4, 0.12)), mat('#ff5c8a'));
-        body.position.y = 0.55;
+        const body = new THREE.Mesh(geo(new RoundedBoxGeometry(1.54, 1.12, 1.24, 4, 0.14)), mat('#ff5c8a'));
+        body.position.y = 0.56;
         outline(body, 1.05);
-        const ribbonV = new THREE.Mesh(geo(new THREE.BoxGeometry(0.24, 1.12, 1.22)), mat('#ffe94d'));
-        ribbonV.position.y = 0.55;
-        const ribbonH = new THREE.Mesh(geo(new THREE.BoxGeometry(1.52, 1.12, 0.24)), mat('#ffe94d'));
-        ribbonH.position.y = 0.55;
-        const lid = new THREE.Mesh(geo(new RoundedBoxGeometry(1.66, 0.34, 1.32, 4, 0.1)), mat('#e63946'));
-        lid.position.y = 1.24;
+        const ribbonM = mat('#ffe14d');
+        const ribbonV = new THREE.Mesh(geo(new THREE.BoxGeometry(0.28, 1.15, 1.28)), ribbonM);
+        ribbonV.position.y = 0.56;
+        const ribbonH = new THREE.Mesh(geo(new THREE.BoxGeometry(1.58, 1.15, 0.28)), ribbonM);
+        ribbonH.position.y = 0.56;
+        // polka dots on the front face
+        const dotG = geo(new THREE.CircleGeometry(0.09, 12));
+        const dotM = mat('#ffc6ff');
+        for (const [dx, dy] of [[-0.46, 0.32], [0.46, 0.32], [-0.46, 0.82], [0.46, 0.82]]) {
+          const d = new THREE.Mesh(dotG, dotM);
+          d.position.set(dx, dy, 0.63);
+          g.add(d);
+        }
+        const lid = new THREE.Mesh(geo(new RoundedBoxGeometry(1.7, 0.36, 1.36, 4, 0.11)), mat('#e63946'));
+        lid.position.y = 1.25;
         outline(lid, 1.05);
-        // bow: two torus loops + knot
+        const lidRib = new THREE.Mesh(geo(new THREE.BoxGeometry(0.3, 0.38, 1.39)), ribbonM);
+        lid.add(lidRib);
+        // plump bow: 2 torus loops + center knot
         const bow = new THREE.Group();
-        const bl = new THREE.Mesh(geo(new THREE.TorusGeometry(0.16, 0.055, 10, 18)), mat('#ffe94d'));
-        bl.rotation.y = 0.6; bl.position.x = -0.16;
-        const br = bl.clone(); br.rotation.y = -0.6; br.position.x = 0.16;
-        const knot = new THREE.Mesh(geo(new THREE.SphereGeometry(0.09, 10, 8)), mat('#f0c020'));
+        const bl = new THREE.Mesh(geo(new THREE.TorusGeometry(0.2, 0.065, 10, 18)), ribbonM);
+        bl.rotation.y = 0.5; bl.position.x = -0.19;
+        const br = bl.clone(); br.rotation.y = -0.5; br.position.x = 0.19;
+        const knot = new THREE.Mesh(geo(new THREE.SphereGeometry(0.11, 10, 8)), mat('#ff9f1c'));
         bow.add(bl, br, knot);
-        bow.position.y = 0.22;
+        bow.position.y = 0.25;
         lid.add(bow);
         g.add(body, ribbonV, ribbonH, lid);
-        return { group: g, kind: 'gift', height: 1.75, lid };
+        return { group: g, kind: 'gift', height: 1.8, lid };
       }
       function makeCurtain() {
         const g = new THREE.Group();
         const frameM = mat('#8a5a2b');
-        const post = geo(new RoundedBoxGeometry(0.22, 2.7, 0.24, 3, 0.07));
-        const pl = new THREE.Mesh(post, frameM); pl.position.set(-1.05, 1.35, 0);
-        const pr = new THREE.Mesh(post, frameM); pr.position.set(1.05, 1.35, 0);
-        const beam = new THREE.Mesh(geo(new RoundedBoxGeometry(2.4, 0.3, 0.3, 3, 0.08)), frameM);
-        beam.position.y = 2.75;
-        g.add(pl, pr, beam);
+        const goldM = mat('#ffe14d');
+        const post = geo(new RoundedBoxGeometry(0.24, 2.7, 0.26, 3, 0.07));
+        const pl = new THREE.Mesh(post, frameM); pl.position.set(-1.08, 1.35, 0); outline(pl, 1.05);
+        const pr = new THREE.Mesh(post, frameM); pr.position.set(1.08, 1.35, 0); outline(pr, 1.05);
+        const stageBase = new THREE.Mesh(geo(new RoundedBoxGeometry(2.45, 0.24, 0.5, 3, 0.06)), frameM);
+        stageBase.position.set(0, 0.12, 0.08);
+        const beam = new THREE.Mesh(geo(new RoundedBoxGeometry(2.5, 0.34, 0.34, 3, 0.09)), frameM);
+        beam.position.y = 2.75; outline(beam, 1.04);
+        // golden star crest on top of the puppet theatre
+        const crest = new THREE.Mesh(geo(new THREE.CylinderGeometry(0.28, 0.28, 0.12, 16)), goldM);
+        crest.rotation.x = Math.PI / 2; crest.position.set(0, 2.82, 0.2);
+        g.add(pl, pr, stageBase, beam, crest);
         // scalloped valance: row of flattened spheres along the beam
         const valM = mat('#c92a42');
         for (let i = 0; i < 5; i++) {
-          const s = new THREE.Mesh(geo(new THREE.SphereGeometry(0.28, 14, 10)), valM);
-          s.position.set(-0.8 + i * 0.4, 2.62, 0.1);
-          s.scale.set(1, 0.72, 0.4);
-          g.add(s);
+          const s = new THREE.Mesh(geo(new THREE.SphereGeometry(0.29, 14, 10)), valM);
+          s.position.set(-0.8 + i * 0.4, 2.6, 0.12);
+          s.scale.set(1, 0.74, 0.42);
+          const tassel = new THREE.Mesh(geo(new THREE.SphereGeometry(0.06, 8, 6)), goldM);
+          tassel.position.set(-0.8 + i * 0.4, 2.38, 0.18);
+          g.add(s, tassel);
         }
         // curtains with wave folds (displaced plane)
         const mkCurtain = (side) => {
-          const cg = geo(new THREE.PlaneGeometry(0.72, 2.4, 8, 1));
+          const cg = geo(new THREE.PlaneGeometry(0.76, 2.4, 8, 1));
           const p = cg.attributes.position;
           for (let i = 0; i < p.count; i++)
             p.setZ(i, Math.sin((p.getX(i) + 0.36) * 9) * 0.09);
           cg.computeVertexNormals();
           const m = new THREE.Mesh(cg, mat('#e63946'));
-          m.position.set(side * 0.62, 1.25, 0.12);
+          m.position.set(side * 0.62, 1.32, 0.12);
           return m;
         };
         const left = mkCurtain(-1), right = mkCurtain(1);
         g.add(left, right);
-        return { group: g, kind: 'curtain', height: 2.9, left, right };
+        return { group: g, kind: 'curtain', height: 2.95, left, right };
       }
       function makeTree() {
         const g = new THREE.Group();
-        const trunk = new THREE.Mesh(geo(new THREE.CylinderGeometry(0.26, 0.42, 1.7, 10)), mat('#8a5a2b'));
+        const trunk = new THREE.Mesh(geo(new THREE.CylinderGeometry(0.28, 0.46, 1.75, 12)), mat('#8a5a2b'));
         trunk.position.y = 0.85;
         outline(trunk, 1.06);
-        const greens = ['#3d9e46', '#4cb355', '#2f8f3e'];
+        const greens = ['#38b000', '#52b788', '#2d6a4f', '#70e000'];
         const crown = new THREE.Group();
-        [[0, 2.2, 0, 1.0], [-0.7, 1.95, 0.1, 0.62], [0.65, 2.0, -0.05, 0.66]].forEach(([x, y, z, r], i) => {
-          const s = new THREE.Mesh(geo(new THREE.SphereGeometry(r, 20, 14)), mat(greens[i % 3]));
+        [[0, 2.25, 0, 1.02], [-0.72, 1.96, 0.1, 0.66], [0.7, 2.0, -0.05, 0.68], [0, 2.75, -0.08, 0.68]].forEach(([x, y, z, r], i) => {
+          const s = new THREE.Mesh(geo(new THREE.SphereGeometry(r, 20, 14)), mat(greens[i % greens.length]));
           s.position.set(x, y, z);
           crown.add(s);
           outline(s, 1.07);
         });
-        // little hollow in the trunk
-        const hole = new THREE.Mesh(geo(new THREE.SphereGeometry(0.14, 10, 8)), mat('#5d3a1a'));
-        hole.position.set(0.12, 0.8, 0.3);
-        hole.scale.z = 0.4;
-        g.add(trunk, crown, hole);
-        return { group: g, kind: 'tree', height: 3.3, crown };
+        // little red apples in the tree crown
+        const appleM = mat('#ff4d6d');
+        for (const [ax, ay, az] of [[-0.45, 2.05, 0.62], [0.48, 2.2, 0.58], [0.05, 2.6, 0.55]]) {
+          const ap = new THREE.Mesh(geo(new THREE.SphereGeometry(0.11, 10, 8)), appleM);
+          ap.position.set(ax, ay, az);
+          crown.add(ap);
+        }
+        // cozy arched hollow in the trunk
+        const holeFrame = new THREE.Mesh(geo(new THREE.SphereGeometry(0.24, 12, 10)), mat('#b07d4f'));
+        holeFrame.position.set(0.05, 0.78, 0.3);
+        holeFrame.scale.set(0.95, 1.2, 0.35);
+        const hole = new THREE.Mesh(geo(new THREE.SphereGeometry(0.18, 10, 8)), mat('#3d2510'));
+        hole.position.set(0.05, 0.78, 0.34);
+        hole.scale.set(0.9, 1.15, 0.35);
+        g.add(trunk, crown, holeFrame, hole);
+        return { group: g, kind: 'tree', height: 3.35, crown };
       }
       const BUILDERS = [makeBush, makeGift, makeCurtain, makeTree];
 
@@ -804,7 +924,7 @@ export default {
         b.style.left = x + '%';
         const e = document.createElement('span');
         e.className = 'pk-emoji-spot';
-        e.textContent = SPOT_EMOJI[i % 4];
+        setArt(e, SPOT_EMOJI[i % 4]);
         const mm = document.createElement('span');
         mm.className = 'pk-member';
         b.append(e, mm);
@@ -814,13 +934,13 @@ export default {
       });
       return {
         open(spot, member) {
-          spot.mm.textContent = member.emoji || '🙂';
+          setArt(spot.mm, member.emoji || '🙂');
           spot.el.classList.add('open');
         },
         close(spot) { spot.el.classList.remove('open', 'peeking'); },
         peek(spot) {
           const m = assigned[spot.i];
-          spot.mm.textContent = (m && m.emoji) || '🙂';
+          setArt(spot.mm, (m && m.emoji) || '🙂');
           spot.el.classList.add('peeking');
           setTimeout(() => spot.el.classList.remove('peeking'), 900);
         },
