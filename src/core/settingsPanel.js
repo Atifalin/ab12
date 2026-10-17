@@ -166,6 +166,34 @@ export function initSettingsPanel(modes) {
   allModes = modes;
   const card = $('#settings .settings-card');
 
+  // Top tab bar inside settings so mobile screens stay compact and organized
+  const tabBar = document.createElement('div');
+  tabBar.className = 'set-tabs';
+  const panes = {};
+  const tabDefs = [
+    ['general', '🔊 Sound & Voice'],
+    ['modes', '🎮 Games'],
+    ['look', '🎨 Look & Parent'],
+  ];
+  for (const [id, label] of tabDefs) {
+    const p = document.createElement('div');
+    p.className = 'set-pane';
+    p.dataset.pane = id;
+    if (id !== 'general') p.hidden = true;
+    panes[id] = p;
+    const tb = document.createElement('button');
+    tb.className = 'set-tab' + (id === 'general' ? ' on' : '');
+    tb.dataset.tab = id;
+    tb.textContent = label;
+    tb.addEventListener('click', () => {
+      tabBar.querySelectorAll('.set-tab').forEach((x) => x.classList.toggle('on', x === tb));
+      Object.entries(panes).forEach(([k, el]) => { el.hidden = k !== id; });
+      playSfx('pop');
+    });
+    tabBar.appendChild(tb);
+  }
+  card.appendChild(tabBar);
+
   // Sound
   const snd = section('🔊 Sound');
   snd.appendChild(pillRow('🔔 Sound effects', () => settings.sfx, (v) => {
@@ -174,7 +202,7 @@ export function initSettingsPanel(modes) {
   }));
   snd.appendChild(rangeRow('🔉 Volume', () => settings.volume,
     (v) => { setVolume(v); saveSettings(); }, () => playSfx('ding')));
-  card.appendChild(snd);
+  panes.general.appendChild(snd);
 
   // Voice
   const voc = section('🗣️ Voice');
@@ -204,7 +232,7 @@ export function initSettingsPanel(modes) {
   packNote = document.createElement('p');
   packNote.className = 'seg-note';
   voc.appendChild(packNote);
-  card.appendChild(voc);
+  panes.general.appendChild(voc);
 
   // Look
   const look = section('🎨 Look');
@@ -212,7 +240,7 @@ export function initSettingsPanel(modes) {
     [['auto', '🌈 Mix'], ['candy', '🍬'], ['ocean', '🌊'], ['forest', '🌿']],
     () => settings.theme,
     (v) => { settings.theme = v; applyTheme(); playSfx('pop'); })));
-  card.appendChild(look);
+  panes.look.appendChild(look);
 
   // Home
   const hom = section('🏠 Home');
@@ -221,14 +249,23 @@ export function initSettingsPanel(modes) {
     renderHome();
     playSfx('pop');
   }));
-  card.appendChild(hom);
+  panes.look.appendChild(hom);
+
+  // Parent
+  const par = section('🔒 Parent');
+  par.appendChild(pillRow('🔐 Parent lock (hold ⚙️ 2s)', () => settings.parentLock, (v) => {
+    settings.parentLock = v;
+    playSfx('pop');
+  }));
+  panes.look.appendChild(par);
 
   // Modes: shelf + per-mode schema sections
-  const mod = section('🎛️ Modes');
+  const mod = section('🎛️ Active Games');
   shelfEl = document.createElement('div');
   shelfEl.className = 'mode-shelf';
   renderShelf();
   mod.appendChild(shelfEl);
+  const rulesSec = section('⚙️ Game Rules');
   for (const m of allModes) {
     if (!m.settings || !m.settings.length) continue;
     const sub = document.createElement('div');
@@ -237,17 +274,11 @@ export function initSettingsPanel(modes) {
     h.textContent = `${m.emoji} ${m.title}`;
     sub.appendChild(h);
     for (const s of m.settings) sub.appendChild(schemaControl(m, s));
-    mod.appendChild(sub);
+    rulesSec.appendChild(sub);
   }
-  card.appendChild(mod);
+  panes.modes.append(mod, rulesSec);
 
-  // Parent
-  const par = section('🔒 Parent');
-  par.appendChild(pillRow('🔐 Parent lock (hold ⚙️ 2s)', () => settings.parentLock, (v) => {
-    settings.parentLock = v;
-    playSfx('pop');
-  }));
-  card.appendChild(par);
+  card.append(panes.general, panes.modes, panes.look);
 
   const done = document.createElement('button');
   done.className = 'set-close';

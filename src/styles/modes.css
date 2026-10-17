@@ -908,6 +908,10 @@ body.shake #smash-layer { animation: shake .18s linear; }
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
   width: 82%; height: 82%; object-fit: cover; border-radius: 20%; border: .6vmin solid #fff;
 }
+.puz-sc-full { width: 100%; height: 100%; object-fit: cover; display: block; }
+.bg-slice-wrap { position: relative; width: 100%; height: 100%; overflow: hidden; border-radius: 1.5vmin; }
+.bg-slice-img { position: absolute; left: 0; width: 100%; height: 300%; object-fit: contain; pointer-events: none; }
+.bg-part-img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
 
 .puz-tray {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
@@ -1030,3 +1034,14 @@ body.shake #smash-layer { animation: shake .18s linear; }
 }
 @keyframes bgTargetFly { to { transform: translateX(-125vw) rotate(-25deg); } }
 .bg-banner { top: 20%; }
+
+@media (orientation: portrait) {
+  .puz-board { width: min(80vw, 44vh); height: min(80vw, 44vh); }
+  .puz-piece { width: min(21vw, 84px); height: min(21vw, 84px); }
+  .puz-title-pill { font-size: 4.4vw; padding: 1.4vw 4vw; }
+  .bg-craft { width: min(64vw, 34vh); }
+  .bg-slot { height: min(19vw, 10.5vh); }
+  .bg-part { width: min(26vw, 96px); height: min(19vw, 72px); }
+  .bg-go-btn { font-size: 7.5vw; padding: 2.5vw 9vw; }
+  .af-mode-btn { font-size: 3.6vw; padding: 1.2vw 3vw; }
+}

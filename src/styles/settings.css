@@ -11,7 +11,19 @@
   max-height: 90vh; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain;
 }
 @keyframes chipIn { from { transform: scale(0) rotate(-20deg); opacity: 0 } }
-.settings-card h2 { margin: 0 0 1vmin; font-size: 6vmin; color: var(--ink); text-align: center; }
+.settings-card h2 { margin: 0 0 .4vmin; font-size: 5.4vmin; color: var(--ink); text-align: center; }
+
+.set-tabs {
+  display: flex; gap: 1vmin; background: #ede9fe; padding: .8vmin; border-radius: 2.6vmin;
+}
+.set-tab {
+  flex: 1; font: inherit; font-size: 2.7vmin; font-weight: 700; border: 0; border-radius: 2vmin;
+  padding: 1.2vmin 1.4vmin; background: transparent; color: var(--ink); cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.set-tab.on { background: #8a63ff; color: #fff; box-shadow: 0 .4vmin 1vmin rgba(138,99,255,.35); }
+.set-pane { display: flex; flex-direction: column; gap: 1.6vmin; }
+.set-pane[hidden] { display: none; }
 
 .set-section { display: flex; flex-direction: column; gap: 1.4vmin; }
 .set-section h3 {
@@ -68,9 +80,10 @@ div.set-row { cursor: default; }
 .set-close:active { transform: translateY(.6vmin); box-shadow: 0 .2vmin 0 rgba(0,0,0,.15); }
 
 @media (orientation: portrait) {
-  .settings-card { width: min(92vw, 80vw); padding: 6vw; gap: 3vw; border-radius: 6vw; max-height: 88vh; }
-  .settings-card h2 { font-size: 8vw; }
-  .set-section h3 { font-size: 4.6vw; }
+  .settings-card { width: 92vw; padding: 5vw; gap: 2.6vw; border-radius: 6vw; max-height: 88vh; }
+  .settings-card h2 { font-size: 7vw; }
+  .set-tab { font-size: 3.5vw; padding: 2vw 1.6vw; }
+  .set-section h3 { font-size: 4.2vw; }
   .set-subsection h4 { font-size: 4.4vw; }
   .set-label { font-size: 5vw; }
   .set-row { padding: 3vw 3.5vw; border-radius: 3.5vw; }

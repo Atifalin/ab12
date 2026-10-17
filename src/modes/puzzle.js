@@ -1,11 +1,19 @@
 import { PUZZLES } from '../content.js';
 import { loadFamily, familyMembers, playLine } from '../core/family.js';
+import { sayUrls } from '../core/voice.js';
 import { makeDraggable, flyFromDrop } from '../core/drag.js';
 import { rand } from '../core/util.js';
 import { artHtml, setArt } from '../core/art.js';
 
 // ---------- picture puzzle mode ----------
 const PUZ_KEY = 'ab12-puzzle';
+let customPuzzles = [];
+function loadCustomPuzzles() {
+  return fetch(`puzzles/puzzles.json?v=${Date.now()}`, { cache: 'no-store' })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((j) => { if (j && Array.isArray(j.puzzles)) customPuzzles = j.puzzles; })
+    .catch(() => {});
+}
 
 export default {
   id: 'puzzle',
@@ -77,6 +85,16 @@ export default {
       let arr = s === 'mix' ? [...PUZZLES] : PUZZLES.filter((p) => p.set === s);
       if (!arr.length) arr = [...PUZZLES];
       if (s === 'mix' || s === 'fun') {
+        const customMapped = customPuzzles.map((cp) => ({
+          id: 'cust_' + cp.id,
+          rawId: cp.id,
+          title: cp.title,
+          emoji: '🧩',
+          customImg: cp.image ? `puzzles/img/${cp.image}` : null,
+          takes: cp.takes || [],
+          bg1: '#e0f2fe', bg2: '#bae6fd', ground: '#38bdf8', deco: [],
+        }));
+        arr = [...customMapped, ...arr];
         for (const m of familyMembers()) {
           if (m.image) {
             arr.push({
@@ -101,6 +119,9 @@ export default {
 
     // Build the full illustrated scene markup (sliced inside each piece & ghost board)
     function sceneMarkup(p) {
+      if (p.customImg) {
+        return `<div class="puz-scene"><img class="puz-sc-full" src="${p.customImg}" alt="" draggable="false"/></div>`;
+      }
       const d1 = p.deco && p.deco[0] ? `<span class="puz-sc-d1">${artHtml(p.deco[0])}</span>` : '';
       const d2 = p.deco && p.deco[1] ? `<span class="puz-sc-d2">${artHtml(p.deco[1])}</span>` : '';
       const hero = p.member && mImg(p.member)
@@ -110,6 +131,17 @@ export default {
         <i class="puz-sc-hill h1"></i><i class="puz-sc-hill h2"></i>
         ${d1}${d2}${hero}
       </div>`;
+    }
+    function speakPuzzle(p) {
+      if (p.member) { playLine(p.member, 'peekaboo'); return; }
+      if (p.rawId) {
+        const urls = [];
+        if (p.takes && p.takes.length) urls.push(`puzzles/audio/${p.rawId}/${rand(p.takes)}`);
+        urls.push(`puzzles/audio/${p.rawId}/tara_done.m4a`);
+        sayUrls(`Hooray! You made ${p.title}!`, urls);
+        return;
+      }
+      say(`Hooray! You made the ${p.title}!`, { clip: 'puz_' + p.id });
     }
     function mImg(m) { return m && m.image ? `family/img/${m.image}` : null; }
 
@@ -251,7 +283,7 @@ export default {
       banner.classList.remove('show'); void banner.offsetWidth; banner.classList.add('show');
 
       if (curPuz.member) playLine(curPuz.member, 'peekaboo');
-      else say(`Hooray! You made the ${curPuz.title}!`, { clip: 'puz_' + curPuz.id });
+      else speakPuzzle(curPuz);
 
       T(() => {
         idx = (idx + 1) % list.length;
@@ -274,8 +306,7 @@ export default {
       if (!curPuz) return;
       audio();
       playSfx('pop');
-      if (curPuz.member) playLine(curPuz.member, 'name');
-      else say(`You made the ${curPuz.title}!`, { clip: 'puz_' + curPuz.id });
+      speakPuzzle(curPuz);
     });
 
     el.querySelector('#puz-prev').addEventListener('click', () => {
@@ -290,7 +321,7 @@ export default {
     });
 
     this._start = async () => {
-      await loadFamily();
+      await Promise.all([loadFamily(), loadCustomPuzzles()]);
       try {
         const j = JSON.parse(localStorage.getItem(PUZ_KEY) || '{}');
         idx = j.idx | 0;

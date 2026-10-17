@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="60%" stop-color="#bae6fd"/>
+      <stop offset="100%" stop-color="#bbf7d0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#sky)"/>
+  <circle cx="150" cy="120" r="65" fill="#fde047"/>
+  <path d="M0 500 Q300 410 600 490 T1200 470 L1200 630 L0 630 Z" fill="#4ade80"/>
+  <rect x="210" y="90" width="780" height="440" rx="56" fill="#ffffff" fill-opacity="0.88" stroke="#2b1b3d" stroke-width="10"/>
+  <g font-family="Fredoka, Arial Rounded MT Bold, sans-serif" font-weight="700" text-anchor="middle">
+    <text x="600" y="255" font-size="145" stroke="#2b1b3d" stroke-width="14" paint-order="stroke fill">
+      <tspan fill="#ff5c8a">A</tspan><tspan fill="#ff9f1c">B</tspan><tspan fill="#4cd964">1</tspan><tspan fill="#2fb8ff">2</tspan>
+    </text>
+    <text x="600" y="345" font-size="44" fill="#2b1b3d">Joyful Toddler Learning Games</text>
+    <text x="600" y="415" font-size="28" fill="#475569">ABCs · 123s · Phonics · Puzzles · Animals · Build &amp; Go</text>
+  </g>
+</svg>

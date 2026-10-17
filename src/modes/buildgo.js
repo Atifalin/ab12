@@ -1,10 +1,18 @@
 import { BUILD_VEHICLES } from '../content.js';
 import { loadFamily, familyMembers, playLine } from '../core/family.js';
+import { sayUrls } from '../core/voice.js';
 import { makeDraggable, flyFromDrop } from '../core/drag.js';
 import { rand, rnd } from '../core/util.js';
 import { artHtml, setArt } from '../core/art.js';
 
 // ---------- build & go! (toddler garage + interactive launch ride) ----------
+let customRecipes = [];
+function loadCustomRecipes() {
+  return fetch(`recipes/recipes.json?v=${Date.now()}`, { cache: 'no-store' })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((j) => { if (j && Array.isArray(j.recipes)) customRecipes = j.recipes; })
+    .catch(() => {});
+}
 const INK = '#2b1b3d';
 const O = `stroke="${INK}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"`;
 
@@ -137,10 +145,54 @@ export default {
       });
     }
 
+    function allVehicles() {
+      const custom = customRecipes.map((r) => ({
+        id: 'rc_' + r.id,
+        rawId: r.id,
+        name: r.name,
+        emoji: '🚀',
+        sfx: r.sfx || 'vroom',
+        go: r.go || `Go ${r.name}!`,
+        env: r.env || 'road',
+        targets: ['⭐', '🎈', '☁️', '🫧'],
+        customImg: r.image ? `recipes/img/${r.image}` : null,
+        customParts: (r.parts || []).map((p) => `recipes/img/${p}`),
+        lines: r.lines || {},
+      }));
+      return [...custom, ...BUILD_VEHICLES];
+    }
+
+    function speakVehicle(v, kind) {
+      if (v.rawId) {
+        const line = kind === 'go' ? 'go' : 'name';
+        const text = kind === 'go' ? v.go : `${v.name}!`;
+        const urls = [];
+        const takes = (v.lines || {})[line] || [];
+        if (takes.length) urls.push(`recipes/audio/${v.rawId}/${rand(takes)}`);
+        urls.push(`recipes/audio/${v.rawId}/tara_${line}.m4a`);
+        sayUrls(text, urls);
+        return;
+      }
+      if (kind === 'go') say(v.go, { clip: 'bg_go_' + v.id });
+      else say(v.name + '!', { clip: 'bg_v_' + v.id });
+    }
+
+    function partHtmlFor(v, pi) {
+      if (v.customParts && v.customParts[pi]) {
+        return `<img class="bg-part-img" src="${v.customParts[pi]}" alt="" draggable="false"/>`;
+      }
+      if (v.customImg) {
+        return `<div class="bg-slice-wrap"><img class="bg-slice-img" style="top:${-pi * 100}%" src="${v.customImg}" alt="" draggable="false"/></div>`;
+      }
+      const partsSvg = VEHICLE_PARTS_SVG[v.id] || VEHICLE_PARTS_SVG.rocket;
+      return partsSvg[pi];
+    }
+
     function renderVTabs() {
-      vtabs.innerHTML = BUILD_VEHICLES.map((v, i) => `
+      const list = allVehicles();
+      vtabs.innerHTML = list.map((v, i) => `
         <button class="bg-vtab ${i === vIdx ? 'on' : ''}" data-vi="${i}" title="${v.name}">
-          ${artHtml(v.emoji)}
+          ${v.customImg ? `<img src="${v.customImg}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt=""/>` : artHtml(v.emoji)}
         </button>`).join('');
       vtabs.querySelectorAll('.bg-vtab').forEach((b) => {
         b.addEventListener('pointerdown', (e) => {
@@ -156,7 +208,8 @@ export default {
     function buildGarage() {
       clearT();
       riding = false;
-      const v = BUILD_VEHICLES[vIdx % BUILD_VEHICLES.length];
+      const list = allVehicles();
+      const v = list[vIdx % list.length];
       el.className = `screen active bg-env-${v.env}`;
       goBtn.hidden = true;
       tray.hidden = false;
@@ -167,9 +220,8 @@ export default {
       renderVTabs();
       renderDrivers();
 
-      say(v.name + '!', { clip: 'bg_v_' + v.id });
+      speakVehicle(v, 'name');
 
-      const partsSvg = VEHICLE_PARTS_SVG[v.id] || VEHICLE_PARTS_SVG.rocket;
       const easy2 = ctx.modeSettings.parts === '2';
       craft.innerHTML = '';
       tray.innerHTML = '';
@@ -178,8 +230,7 @@ export default {
         const s = document.createElement('div');
         s.className = 'bg-slot bg-slot-' + pi;
         s.dataset.pi = pi;
-        s.innerHTML = `<div class="bg-slot-art">${partsSvg[pi]}</div>${pi === 1 ? `<div class="bg-cockpit">${driverHtml(curDriver)}</div>` : ''}`;
-        // In 2-part easy mode, the middle cabin starts already snapped in!
+        s.innerHTML = `<div class="bg-slot-art">${partHtmlFor(v, pi)}</div>${pi === 1 ? `<div class="bg-cockpit">${driverHtml(curDriver)}</div>` : ''}`;
         if (easy2 && pi === 1) s.classList.add('filled');
         craft.appendChild(s);
         return s;
@@ -190,7 +241,7 @@ export default {
         const p = document.createElement('div');
         p.className = 'bg-part';
         p.dataset.pi = pi;
-        p.innerHTML = partsSvg[pi];
+        p.innerHTML = partHtmlFor(v, pi);
 
         // Tap OR drag a part to snap it right onto the blueprint!
         p.addEventListener('click', () => {
@@ -250,10 +301,11 @@ export default {
       audio();
       goBtn.hidden = true;
       driversEl.hidden = true;
-      const v = BUILD_VEHICLES[vIdx % BUILD_VEHICLES.length];
+      const list = allVehicles();
+      const v = list[vIdx % list.length];
       craft.classList.add('riding', 'ride-' + v.env);
       playSfx(v.sfx || 'vroom');
-      say(v.go, { clip: 'bg_go_' + v.id });
+      speakVehicle(v, 'go');
 
       setArt(bEmoji, v.emoji);
       bName.textContent = v.name + '!';
@@ -295,7 +347,8 @@ export default {
       }, 4200);
 
       T(() => {
-        vIdx = (vIdx + 1) % BUILD_VEHICLES.length;
+        const list = allVehicles();
+        vIdx = (vIdx + 1) % list.length;
         buildGarage();
       }, 5800);
     }
@@ -306,7 +359,8 @@ export default {
       e.preventDefault();
       audio();
       craft.classList.remove('stunt'); void craft.offsetWidth; craft.classList.add('stunt');
-      const v = BUILD_VEHICLES[vIdx % BUILD_VEHICLES.length];
+      const list = allVehicles();
+      const v = list[vIdx % list.length];
       const cr = craft.getBoundingClientRect();
       sparkleBurst(cr.left + cr.width / 2, cr.top + cr.height / 2, 8);
       playSfx(v.sfx || 'honk');
@@ -320,17 +374,19 @@ export default {
 
     el.querySelector('#bg-prev').addEventListener('click', () => {
       audio(); playSfx('pop');
-      vIdx = (vIdx - 1 + BUILD_VEHICLES.length) % BUILD_VEHICLES.length;
+      const list = allVehicles();
+      vIdx = (vIdx - 1 + list.length) % list.length;
       buildGarage();
     });
     el.querySelector('#bg-next').addEventListener('click', () => {
       audio(); playSfx('pop');
-      vIdx = (vIdx + 1) % BUILD_VEHICLES.length;
+      const list = allVehicles();
+      vIdx = (vIdx + 1) % list.length;
       buildGarage();
     });
 
     this._start = async () => {
-      await loadFamily();
+      await Promise.all([loadFamily(), loadCustomRecipes()]);
       say('', { clip: 'bg_intro' });
       buildGarage();
     };

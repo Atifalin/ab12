@@ -3,232 +3,471 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>AB12 Studio</title>
+<title>AB12 Studio — Content & Voice Manager</title>
 <style>
-  :root { --ink: #2b1b3d; --font: 'Fredoka','Nunito','Arial Rounded MT Bold',ui-rounded,system-ui,sans-serif; }
+  :root {
+    --bg: #f8fafc;
+    --panel: #ffffff;
+    --sidebar: #0f172a;
+    --sidebar-hover: #1e293b;
+    --ink: #0f172a;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --accent: #4f46e5;
+    --accent-hover: #4338ca;
+    --green: #16a34a;
+    --danger: #dc2626;
+    --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', system-ui, sans-serif;
+  }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body { margin:0; min-height:100vh; font-family:var(--font); color:var(--ink);
-         background: linear-gradient(160deg,#3aa7ff,#8fd8ff 55%,#c9ffe9); }
-  .wrap { max-width: 860px; margin: 0 auto; padding: 2vmin 3vmin 6vmin; }
-  h1 { text-align:center; color:#fff; font-size:6vmin; text-shadow:0 .5vmin 0 rgba(0,0,0,.2); margin:1vmin 0 2vmin; }
-  .pubbar { display:flex; gap:1.5vmin; justify-content:center; margin-bottom:1.5vmin; }
-  #pub-btn { font:inherit; border:0; border-radius:3vmin; padding:1.2vmin 3.5vmin; font-size:3.2vmin;
-             font-weight:700; background:linear-gradient(180deg,#ff9d4a,#ff5c8a); color:#fff; cursor:pointer;
-             box-shadow:0 .4vmin 1vmin rgba(0,0,0,.15); }
-  #pub-btn:disabled { opacity:.55; cursor:default; }
-  #pub-badge { display:inline-block; background:#fff; color:#ff5c8a; border-radius:2vmin;
-               padding:0 1.4vmin; margin-left:.8vmin; font-size:2.8vmin; }
-  #stop-btn { font:inherit; border:0; border-radius:3vmin; padding:1.2vmin 2.5vmin; font-size:2.6vmin;
-              background:rgba(255,255,255,.25); color:#fff; cursor:pointer; }
-  #pub-panel { background:#fff; border-radius:2.5vmin; padding:2.5vmin 3vmin; margin-bottom:2vmin;
-               color:var(--ink,#2b1b3d); text-align:left; box-shadow:0 .8vmin 2.4vmin rgba(0,0,0,.18); }
-  .pub-head { display:flex; justify-content:space-between; align-items:center; font-weight:700;
-              font-size:3.4vmin; margin-bottom:1vmin; }
-  #pub-close,#pub-retry { font:inherit; border:0; border-radius:2vmin; padding:.4vmin 1.6vmin; cursor:pointer;
-              background:#eee; font-size:2.6vmin; }
-  .pub-bar { height:1.2vmin; background:#eee; border-radius:1vmin; overflow:hidden; margin-bottom:1.5vmin; }
-  #pub-fill { display:block; height:100%; width:0; background:linear-gradient(90deg,#8a63ff,#ff5c8a);
-              transition:width .4s; }
-  #pub-steps { list-style:none; margin:0 0 1vmin 0; padding:0; }
-  #pub-steps li { padding:.5vmin 0; font-size:3vmin; color:#666; }
-  #pub-steps li.done { color:#2e9e44; } #pub-steps li.running { color:var(--ink,#2b1b3d); font-weight:700; }
-  #pub-steps li.error { color:#d33; font-weight:700; } #pub-steps li.skipped { color:#aaa; }
-  #pub-msg { font-size:3vmin; min-height:1em; margin:.5vmin 0; }
-  #pub-msg.err { color:#d33; } #pub-links { font-size:2.8vmin; }
-  #pub-links a { color:#8a63ff; margin-right:2vmin; }
-  #pub-logbox summary { cursor:pointer; font-size:2.8vmin; color:#666; }
-  #pub-log { background:#1e1e2e; color:#c8e6c9; border-radius:1.5vmin; padding:1.5vmin;
-             max-height:30vh; overflow:auto; font-size:2vmin; text-align:left; white-space:pre-wrap; }
-  .top-tabs { display:flex; gap:1.5vmin; justify-content:center; margin-bottom:2.5vmin; }
-  .top-tab { font:inherit; border:0; border-radius:3vmin; padding:1.6vmin 5vmin; font-size:4vmin;
-             background:rgba(255,255,255,.35); color:var(--ink); cursor:pointer; }
-  .top-tab.on { background:#ff5c8a; color:#fff; }
-  .tabs { display:flex; gap:1.5vmin; justify-content:center; margin-bottom:1vmin; flex-wrap:wrap; }
-  .tab { font:inherit; border:0; border-radius:3vmin; padding:1.4vmin 4vmin; font-size:3.4vmin;
-         background:rgba(255,255,255,.35); color:var(--ink); cursor:pointer; }
-  .tab.on { background:#8a63ff; color:#fff; }
-  .pack-tools { display:flex; gap:1.5vmin; justify-content:center; margin-bottom:2vmin; min-height:4vmin; }
-  .pack-tools button { font:inherit; border:0; border-radius:2vmin; padding:.8vmin 2.4vmin; font-size:2.6vmin;
-                       background:rgba(255,255,255,.45); color:var(--ink); cursor:pointer; }
-  .chips { display:flex; flex-wrap:wrap; gap:1vmin; justify-content:center; margin-bottom:2vmin; }
-  .chip { font:inherit; border:0; border-radius:2vmin; padding:1vmin 2vmin; font-size:2.6vmin;
-          background:rgba(255,255,255,.5); cursor:pointer; }
-  .chip.on { background:#ff5c8a; color:#fff; }
-  .chip small { opacity:.75; margin-left:.6vmin; }
-  .card { background:rgba(255,255,255,.92); border-radius:4vmin; padding:3vmin; text-align:center;
-          box-shadow:0 1.5vmin 4vmin rgba(0,0,0,.15); }
-  .prompt { font-size:4.6vmin; font-weight:700; margin:1vmin 0 .5vmin; min-height:6vmin; }
-  .sub { font-size:2.6vmin; opacity:.7; min-height:3.5vmin; }
-  .key-name { font-size:2.2vmin; opacity:.5; }
-  .nav { display:flex; gap:1.5vmin; justify-content:center; margin:2vmin 0; flex-wrap:wrap; }
-  .nav button { font:inherit; border:0; border-radius:2.4vmin; padding:1.4vmin 3vmin; font-size:3vmin;
-                background:#e3e0f2; color:var(--ink); cursor:pointer; }
-  .nav button.primary { background:#8a63ff; color:#fff; }
-  .rec-row { display:flex; align-items:center; justify-content:center; gap:2.5vmin; margin:2vmin 0; }
-  #rec-btn { width:16vmin; height:16vmin; min-width:80px; min-height:80px; border-radius:50%; border:0; cursor:pointer;
-             font-size:7vmin; background:#ff5c8a; color:#fff; box-shadow:0 1vmin 0 rgba(0,0,0,.2);
-             transition:transform .1s; }
-  #rec-btn:active { transform:scale(.92); }
-  #rec-btn.rec { background:#e63946; animation:pulse 1s infinite; }
-  @keyframes pulse { 50% { transform:scale(1.07); } }
-  #timer { font-size:4vmin; min-width:14vmin; color:var(--ink); }
-  .takes { margin-top:2vmin; text-align:left; }
-  .takes h3 { margin:.5vmin 0 1vmin; font-size:3vmin; }
-  .take { display:flex; align-items:center; gap:1.5vmin; background:rgba(255,255,255,.6);
-          border-radius:2vmin; padding:1vmin 2vmin; margin-bottom:1vmin; font-size:2.6vmin; }
-  .take .fname { flex:1; opacity:.75; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .take button { font:inherit; border:0; border-radius:1.6vmin; padding:.8vmin 2vmin; cursor:pointer; font-size:2.6vmin; }
-  .take .play { background:#4cd964; color:#fff; }
-  .take .play.playing { background:#e63946; }
-  .take .del { background:#ff6b6b; color:#fff; }
-  .post { display:flex; gap:1.5vmin; justify-content:center; margin:1.5vmin 0; flex-wrap:wrap; }
-  .post button { font:inherit; border:0; border-radius:2.4vmin; padding:1.4vmin 3.4vmin; font-size:3.2vmin; cursor:pointer; }
-  #save-btn { background:#4cd964; color:#fff; }
-  #redo-btn { background:#e3e0f2; }
-  #play-btn { background:#2fb8ff; color:#fff; }
-  #play-btn.playing { background:#e63946; }
-  #status { text-align:center; font-size:2.8vmin; min-height:4vmin; color:#7a1f3d; }
-  .overall { text-align:center; font-size:2.8vmin; color:#fff; text-shadow:0 .3vmin 0 rgba(0,0,0,.2); margin-bottom:2vmin; }
-  .hintline { text-align:center; font-size:2.4vmin; color:rgba(255,255,255,.9); margin-top:2vmin; }
+  body { margin: 0; min-height: 100vh; font-family: var(--font); color: var(--ink); background: var(--bg); font-size: 14px; line-height: 1.45; }
+  button, input, select { font: inherit; }
 
-  /* family */
-  #fam-grid { display:flex; flex-wrap:wrap; gap:2vmin; justify-content:center; margin-bottom:2vmin; }
-  .mem-card { font:inherit; border:0; cursor:pointer; background:rgba(255,255,255,.92); border-radius:3vmin;
-              padding:2vmin; width:22vmin; min-width:120px; display:flex; flex-direction:column; align-items:center;
-              gap:1vmin; box-shadow:0 .8vmin 2vmin rgba(0,0,0,.12); }
-  .mem-card.on { outline:.6vmin solid #8a63ff; }
-  .mem-card img, .mem-avatar { width:14vmin; height:14vmin; min-width:64px; min-height:64px; border-radius:50%;
-              object-fit:cover; background:#8a63ff; color:#fff; display:flex; align-items:center;
-              justify-content:center; font-size:7vmin; }
-  .mem-card .mname { font-size:3vmin; }
-  .mem-card .mtitle { font-size:2.2vmin; opacity:.6; }
-  .mem-card.add { background:rgba(255,255,255,.5); border:.5vmin dashed rgba(255,255,255,.9); font-size:2.6vmin; }
-  #fam-edit { background:rgba(255,255,255,.92); border-radius:3vmin; padding:2.5vmin; margin-bottom:2vmin;
-              display:flex; flex-direction:column; gap:1.5vmin; align-items:center; }
-  #fam-edit input[type=text] { font:inherit; font-size:3vmin; padding:1vmin 2vmin; border-radius:2vmin;
-              border:.3vmin solid #cfcbe0; width:min(60vmin,80%); }
-  #fam-edit .imgprev { width:12vmin; height:12vmin; border-radius:50%; object-fit:cover; background:#e3e0f2; }
-  #fam-edit .row { display:flex; gap:1.5vmin; flex-wrap:wrap; justify-content:center; }
-  #fam-edit button { font:inherit; border:0; border-radius:2vmin; padding:1.2vmin 3vmin; font-size:2.8vmin; cursor:pointer; }
-  .fam-lines { display:flex; flex-wrap:wrap; gap:1vmin; justify-content:center; margin-bottom:2vmin; }
-  /* pictures tab */
-  #pics-toolbar { display:flex; gap:1.5vmin; justify-content:center; align-items:center; flex-wrap:wrap; margin-bottom:1.5vmin; }
-  #pic-search { font:inherit; font-size:2.8vmin; padding:1vmin 2.2vmin; border-radius:2.5vmin; border:0;
-                background:rgba(255,255,255,.92); color:var(--ink); width:min(52vmin,75vw);
-                box-shadow:0 .4vmin 1.2vmin rgba(0,0,0,.1); }
-  #pics-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(155px, 1fr)); gap:2vmin; margin-top:1.5vmin; }
-  .pic-card { background:rgba(255,255,255,.94); border-radius:3vmin; padding:2vmin; text-align:center;
-              display:flex; flex-direction:column; align-items:center; gap:1vmin; position:relative;
-              box-shadow:0 .8vmin 2vmin rgba(0,0,0,.12); border:.4vmin solid transparent; transition:transform .12s; }
-  .pic-card.custom { border-color:#4cd964; }
-  .pic-card.dragover { border-color:#8a63ff; transform:scale(1.04); }
-  .pic-art { width:92px; height:92px; border-radius:2.2vmin; background:#f5f4ff; display:flex;
-             align-items:center; justify-content:center; overflow:hidden; padding:6px; }
-  .pic-art svg, .pic-art img { width:100%; height:100%; object-fit:contain; display:block; }
-  .pic-badge { position:absolute; top:1.2vmin; right:1.2vmin; font-size:1.8vmin; padding:.2vmin 1vmin;
-               border-radius:1.2vmin; background:#e3e0f2; color:var(--ink); }
-  .pic-card.custom .pic-badge { background:#4cd964; color:#fff; }
-  .pic-emoji-tag { position:absolute; top:1.2vmin; left:1.2vmin; font-size:2.6vmin; opacity:.75; }
-  .pic-title { font-size:2.8vmin; font-weight:700; line-height:1.15; }
-  .pic-btns { display:flex; gap:1vmin; flex-wrap:wrap; justify-content:center; margin-top:auto; }
-  .pic-btns button { font:inherit; border:0; border-radius:1.8vmin; padding:.7vmin 1.8vmin; font-size:2.3vmin; cursor:pointer; }
-  .pic-btns .up { background:#8a63ff; color:#fff; }
-  .pic-btns .rst { background:#ff6b6b; color:#fff; }
-  @media (orientation:portrait) {
-    .prompt { font-size:6.5vw; } .sub { font-size:4vw; }
-    .chip { font-size:3.6vw; } .nav button { font-size:4.2vw; }
-    .post button { font-size:4.4vw; } #timer { font-size:6vw; }
-    .tab { font-size:4.6vw; } .top-tab { font-size:5vw; }
-    .mem-card { width:34vw; } .mem-card .mname { font-size:4.4vw; }
+  .app-shell { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+  .sidebar {
+    background: var(--sidebar); color: #f8fafc; padding: 20px 14px;
+    display: flex; flex-direction: column; gap: 6px; position: sticky; top: 0; height: 100vh;
+  }
+  .brand { padding: 4px 10px 16px; border-bottom: 1px solid #1e293b; margin-bottom: 8px; }
+  .brand h1 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; }
+  .brand span { display: block; font-size: 12px; color: #94a3b8; font-weight: 400; margin-top: 2px; }
+
+  .nav-btn {
+    border: 0; background: transparent; color: #cbd5e1; padding: 10px 12px; border-radius: 8px;
+    text-align: left; cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+    font-weight: 500; font-size: 13.5px; transition: background .12s, color .12s;
+  }
+  .nav-btn:hover { background: var(--sidebar-hover); color: #fff; }
+  .nav-btn.on { background: var(--accent); color: #fff; font-weight: 600; }
+  .nav-count { font-size: 11px; background: rgba(255,255,255,.14); padding: 1px 7px; border-radius: 99px; }
+
+  .sidebar-foot { margin-top: auto; display: flex; flex-direction: column; gap: 8px; padding-top: 14px; border-top: 1px solid #1e293b; }
+  #pub-btn {
+    border: 0; border-radius: 8px; padding: 10px 12px; font-weight: 600; font-size: 13.5px;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff; cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  #pub-btn:disabled { opacity: .55; cursor: default; }
+  #pub-badge { background: #fff; color: #4f46e5; border-radius: 99px; padding: 1px 8px; font-size: 11.5px; font-weight: 700; }
+  #stop-btn {
+    border: 1px solid #334155; border-radius: 8px; padding: 8px 12px; font-size: 12.5px;
+    background: transparent; color: #94a3b8; cursor: pointer;
+  }
+  #stop-btn:hover { color: #fff; border-color: #475569; }
+
+  .main-area { padding: 24px 28px 60px; max-width: 1280px; width: 100%; margin: 0 auto; }
+  .workspace { display: grid; grid-template-columns: 1fr 360px; gap: 24px; align-items: start; }
+  .workspace.full { grid-template-columns: 1fr; }
+
+  .section-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .section-head h2 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+  .section-sub { color: var(--muted); font-size: 13px; margin: 2px 0 0; }
+
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 18px; box-shadow: 0 1px 2px rgba(15,23,42,.04); }
+  .panel h3 { margin: 0 0 12px; font-size: 15px; font-weight: 600; }
+
+  .btn {
+    border: 1px solid var(--border); background: #fff; color: var(--ink);
+    padding: 7px 13px; border-radius: 8px; font-size: 13px; font-weight: 500;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background .12s;
+  }
+  .btn:hover { background: #f1f5f9; }
+  .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn.primary:hover { background: var(--accent-hover); }
+  .btn.success { background: var(--green); color: #fff; border-color: var(--green); }
+  .btn.danger { background: #fef2f2; color: var(--danger); border-color: #fecaca; }
+  .btn.danger:hover { background: var(--danger); color: #fff; }
+  .btn.sm { padding: 4px 9px; font-size: 12px; border-radius: 6px; }
+
+  /* Publish drawer */
+  #pub-panel { border-left: 4px solid var(--accent); }
+  .pub-head { display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 15px; margin-bottom: 8px; }
+  .pub-bar { height: 6px; background: #e2e8f0; border-radius: 99px; overflow: hidden; margin-bottom: 10px; }
+  #pub-fill { display: block; height: 100%; width: 0; background: var(--accent); transition: width .35s; }
+  #pub-steps { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+  #pub-steps li { font-size: 12.5px; color: var(--muted); background: #f1f5f9; padding: 3px 9px; border-radius: 6px; }
+  #pub-steps li.done { color: var(--green); background: #dcfce7; }
+  #pub-steps li.running { color: var(--accent); background: #e0e7ff; font-weight: 600; }
+  #pub-steps li.error { color: var(--danger); background: #fee2e2; font-weight: 600; }
+  #pub-msg { font-size: 13px; margin: 6px 0; }
+  #pub-msg.err { color: var(--danger); font-weight: 600; }
+  #pub-links a { color: var(--accent); margin-right: 12px; font-size: 13px; }
+  #pub-log { background: #0f172a; color: #cbd5e1; border-radius: 8px; padding: 10px; max-height: 180px; overflow: auto; font-size: 11.5px; white-space: pre-wrap; margin-top: 8px; }
+
+  /* Tabs & Chips */
+  .tabs, .chips, .fam-lines { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .tab, .chip {
+    border: 1px solid var(--border); background: #fff; color: var(--ink);
+    padding: 6px 12px; border-radius: 8px; font-size: 12.5px; font-weight: 500; cursor: pointer;
+  }
+  .tab:hover, .chip:hover { background: #f1f5f9; }
+  .tab.on, .chip.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .chip small { opacity: .75; margin-left: 5px; font-size: 11px; }
+  .pack-tools { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+
+  /* Cards Grid (Family, Puzzles, Recipes, Pictures) */
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(195px, 1fr)); gap: 14px; }
+  .item-card {
+    background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 14px;
+    display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px;
+    position: relative; transition: border-color .12s, box-shadow .12s;
+  }
+  .item-card:hover { border-color: #cbd5e1; }
+  .item-card.on { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(79,70,229,.18); }
+  .item-card.custom { border-color: #86efac; }
+  .item-card.dragover { border-color: var(--accent); background: #eef2ff; }
+  .item-thumb {
+    width: 88px; height: 88px; border-radius: 10px; background: #f8fafc; border: 1px solid #f1f5f9;
+    display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;
+  }
+  .item-thumb.round { border-radius: 50%; }
+  .item-thumb img, .item-thumb svg { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .item-thumb.contain img, .item-thumb.contain svg { object-fit: contain; padding: 6px; }
+  .mem-avatar {
+    width: 100%; height: 100%; background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 700;
+  }
+  .item-title { font-weight: 600; font-size: 14px; color: var(--ink); }
+  .item-sub { font-size: 12px; color: var(--muted); margin-top: -4px; }
+  .item-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: auto; width: 100%; padding-top: 6px; }
+
+  /* Jigsaw & 3-part slice preview overlays */
+  .jigsaw-overlay {
+    position: absolute; inset: 0; pointer-events: none;
+    display: grid; grid-template-columns: repeat(var(--cols, 2), 1fr); grid-template-rows: repeat(var(--rows, 2), 1fr);
+  }
+  .jigsaw-overlay i { border: 1px dashed rgba(255,255,255,.9); box-shadow: inset 0 0 0 1px rgba(15,23,42,.35); }
+  .slice3-overlay {
+    position: absolute; inset: 0; pointer-events: none;
+    display: grid; grid-template-rows: repeat(3, 1fr);
+  }
+  .slice3-overlay i { border-bottom: 1.5px dashed rgba(255,255,255,.9); box-shadow: inset 0 -1px 0 rgba(15,23,42,.4); }
+
+  /* Forms */
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; align-items: end; }
+  .field { display: flex; flex-direction: column; gap: 4px; text-align: left; }
+  .field label { font-size: 12px; font-weight: 600; color: var(--muted); }
+  .field input[type="text"], .field input[type="search"], .field select {
+    padding: 8px 11px; border: 1px solid var(--border); border-radius: 8px; font-size: 13.5px; background: #fff; color: var(--ink);
+  }
+  .field input:focus, .field select:focus { outline: 2px solid rgba(79,70,229,.25); border-color: var(--accent); }
+  .preview-box {
+    width: 110px; height: 110px; border-radius: 10px; border: 1px dashed #cbd5e1; background: #f8fafc;
+    display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; flex-shrink: 0;
+  }
+  .preview-box img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* Recorder Dock */
+  .rec-dock { position: sticky; top: 20px; }
+  .prompt { font-size: 17px; font-weight: 700; margin: 4px 0; color: var(--ink); }
+  .sub { font-size: 12.5px; color: var(--muted); min-height: 18px; }
+  .key-name { font-size: 11.5px; font-family: ui-monospace, monospace; color: var(--muted); background: #f1f5f9; display: inline-block; padding: 2px 7px; border-radius: 4px; margin-top: 4px; }
+  .rec-row { display: flex; align-items: center; gap: 14px; margin: 16px 0; }
+  #rec-btn {
+    width: 56px; height: 56px; border-radius: 50%; border: 0; cursor: pointer;
+    font-size: 22px; background: #ef4444; color: #fff; box-shadow: 0 3px 10px rgba(239,68,68,.3);
+    transition: transform .1s;
+  }
+  #rec-btn:active { transform: scale(.94); }
+  #rec-btn.rec { background: #dc2626; animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { transform: scale(1.08); } }
+  #timer { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .post { display: flex; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
+  .nav { display: flex; gap: 6px; align-items: center; margin: 12px 0; flex-wrap: wrap; }
+  .takes h4 { margin: 12px 0 8px; font-size: 12.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  .take {
+    display: flex; align-items: center; gap: 8px; background: #f8fafc; border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 10px; margin-bottom: 6px; font-size: 12.5px;
+  }
+  .take .fname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: ui-monospace, monospace; font-size: 12px; }
+  #status { font-size: 12.5px; min-height: 18px; margin-top: 8px; color: var(--muted); }
+  .kbd-hint { font-size: 11.5px; color: var(--muted); margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px; }
+
+  .pic-badge { position: absolute; top: 8px; right: 8px; font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 99px; background: #f1f5f9; color: var(--muted); }
+  .item-card.custom .pic-badge { background: #dcfce7; color: var(--green); }
+  .pic-emoji-tag { position: absolute; top: 8px; left: 8px; font-size: 15px; }
+
+  @media (max-width: 920px) {
+    .app-shell { grid-template-columns: 1fr; }
+    .sidebar { position: static; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; padding: 12px; }
+    .brand { border-bottom: 0; margin-bottom: 0; padding: 0 8px 0 0; }
+    .sidebar-foot { margin-top: 0; border-top: 0; padding-top: 0; flex-direction: row; margin-left: auto; }
+    .workspace { grid-template-columns: 1fr; }
+    .rec-dock { position: static; }
   }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>🎛️ AB12 Studio</h1>
-  <div class="pubbar">
-    <button id="pub-btn" title="Push to live">🚀 Push to live <span id="pub-badge" hidden></span></button>
-    <button id="stop-btn" title="Stop Studio">⏻ Stop Studio</button>
-  </div>
-  <div id="pub-panel" hidden>
-    <div class="pub-head"><span id="pub-status">…</span><span id="pub-timer"></span>
-      <button id="pub-close" title="Close">✕</button></div>
-    <div class="pub-bar"><i id="pub-fill"></i></div>
-    <ol id="pub-steps"></ol>
-    <p id="pub-msg"></p>
-    <p id="pub-links"><a id="pub-run" target="_blank" hidden>GitHub build ↗</a>
-      <a href="https://ab12.ezypath.in" target="_blank" id="pub-live" hidden>ab12.ezypath.in ↗</a>
-      <button id="pub-retry" hidden>Try again</button></p>
-    <details id="pub-logbox"><summary>Logs</summary><pre id="pub-log"></pre></details>
-  </div>
-  <div class="top-tabs">
-    <button class="top-tab on" data-view="voices">🎙️ Voices</button>
-    <button class="top-tab" data-view="family">💛 Family</button>
-    <button class="top-tab" data-view="pics">🖼️ Pictures</button>
-  </div>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <h1>🎛️ AB12 Studio</h1>
+      <span>Content, Voices &amp; Assets</span>
+    </div>
+    <button class="nav-btn on" data-view="voices"><span>🎙️ Voice Packs</span><span class="nav-count" id="nc-voices"></span></button>
+    <button class="nav-btn" data-view="family"><span>💛 Family Members</span><span class="nav-count" id="nc-family"></span></button>
+    <button class="nav-btn" data-view="puzzles"><span>🧩 Puzzle Maker</span><span class="nav-count" id="nc-puzzles"></span></button>
+    <button class="nav-btn" data-view="recipes"><span>🚀 Build &amp; Go</span><span class="nav-count" id="nc-recipes"></span></button>
+    <button class="nav-btn" data-view="pics"><span>🖼️ Item Pictures</span><span class="nav-count" id="nc-pics"></span></button>
 
-  <div id="voices-pane">
-    <div class="tabs" id="tabs"></div>
-    <div class="pack-tools" id="pack-tools"></div>
-    <div class="overall" id="overall"></div>
-    <div class="chips" id="chips"></div>
-  </div>
+    <div class="sidebar-foot">
+      <button id="pub-btn" title="Push changes to live site"><span>🚀 Push to live</span><span id="pub-badge" hidden>0</span></button>
+      <button id="stop-btn" title="Stop Studio server">⏻ Stop Studio</button>
+    </div>
+  </aside>
 
-  <div id="family-pane" style="display:none">
-    <div id="fam-grid"></div>
-    <div id="fam-edit" style="display:none">
-      <img class="imgprev" id="fe-img" alt="" />
-      <input type="file" id="fe-file" accept="image/*" style="display:none" />
-      <div class="row">
-        <button id="fe-pick">🖼 Pick image</button>
-        <button id="fe-clearimg">✕ No image</button>
+  <main class="main-area">
+    <div id="pub-panel" class="panel" hidden>
+      <div class="pub-head">
+        <span id="pub-status">Publishing…</span>
+        <div>
+          <span id="pub-timer" style="color:var(--muted);margin-right:10px;font-size:12.5px"></span>
+          <button id="pub-close" class="btn sm">✕ Close</button>
+        </div>
       </div>
-      <input type="text" id="fe-name" placeholder="Name (e.g. Nani)" maxlength="40" />
-      <input type="text" id="fe-title" placeholder="Fun title (e.g. the Cookie Queen)" maxlength="60" />
-      <div class="row">
-        <button id="fe-save" class="primary" style="background:#4cd964;color:#fff">✓ Save</button>
-        <button id="fe-del" style="background:#ff6b6b;color:#fff">🗑 Delete</button>
-        <button id="fe-cancel" style="background:#e3e0f2">Cancel</button>
+      <div class="pub-bar"><i id="pub-fill"></i></div>
+      <ol id="pub-steps"></ol>
+      <p id="pub-msg"></p>
+      <p id="pub-links">
+        <a id="pub-run" target="_blank" hidden>GitHub Actions build ↗</a>
+        <a href="https://ab12.ezypath.in" target="_blank" id="pub-live" hidden>Open ab12.ezypath.in ↗</a>
+        <button id="pub-retry" class="btn sm primary" hidden>Try again</button>
+      </p>
+      <details id="pub-logbox"><summary style="cursor:pointer;font-size:12px;color:var(--muted)">Build &amp; deploy logs</summary><pre id="pub-log"></pre></details>
+    </div>
+
+    <div class="workspace" id="workspace">
+      <div class="left-col">
+        <!-- 1. VOICES PANE -->
+        <div id="voices-pane">
+          <div class="section-head">
+            <div>
+              <h2>Voice Packs</h2>
+              <p class="section-sub" id="overall">Record family voices for any line in the game.</p>
+            </div>
+            <div class="pack-tools" id="pack-tools"></div>
+          </div>
+          <div class="panel">
+            <h3>Active Pack</h3>
+            <div class="tabs" id="tabs"></div>
+            <h3 style="margin-top:14px">Line Categories</h3>
+            <div class="chips" id="chips"></div>
+          </div>
+        </div>
+
+        <!-- 2. FAMILY PANE -->
+        <div id="family-pane" style="display:none">
+          <div class="section-head">
+            <div>
+              <h2>Family Members</h2>
+              <p class="section-sub">Used in Peekaboo, Word Celebrations, Picture Puzzles, and Build &amp; Go drivers.</p>
+            </div>
+            <button class="btn primary" id="add-mem-btn">＋ Add Family Member</button>
+          </div>
+
+          <div id="fam-edit" class="panel" style="display:none">
+            <h3 id="fe-heading">Add Family Member</h3>
+            <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+              <div class="preview-box" style="border-radius:50%">
+                <img id="fe-img" alt="" style="display:none" />
+              </div>
+              <input type="file" id="fe-file" accept="image/*" style="display:none" />
+              <div class="form-grid" style="flex:1">
+                <div class="field">
+                  <label>Name</label>
+                  <input type="text" id="fe-name" placeholder="e.g. Nani, Chacha, Ezdan" maxlength="40" />
+                </div>
+                <div class="field">
+                  <label>Fun Title (shown in Peekaboo)</label>
+                  <input type="text" id="fe-title" placeholder="e.g. the Cookie Queen" maxlength="60" />
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+              <button class="btn" id="fe-pick">🖼 Choose Photo / Chibi</button>
+              <button class="btn" id="fe-clearimg">✕ Clear Photo</button>
+              <div style="margin-left:auto;display:flex;gap:8px">
+                <button class="btn danger" id="fe-del" style="display:none">🗑 Delete Member</button>
+                <button class="btn" id="fe-cancel">Cancel</button>
+                <button class="btn success" id="fe-save">✓ Save Member</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div id="fam-grid" class="card-grid"></div>
+            <div id="fam-lines-wrap" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);display:none">
+              <h3 id="fam-rec-title">Voice Lines</h3>
+              <div class="fam-lines" id="fam-lines"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. PUZZLES PANE -->
+        <div id="puzzles-pane" style="display:none">
+          <div class="section-head">
+            <div>
+              <h2>Puzzle Maker</h2>
+              <p class="section-sub">Upload any photo or illustration—the game automatically slices it into 2, 4, or 6 jigsaw tiles.</p>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h3>Create New Picture Puzzle</h3>
+            <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+              <div class="preview-box" id="pz-prev-box">
+                <span id="pz-prev-empty" style="font-size:11px;color:var(--muted);padding:8px;text-align:center">Preview</span>
+                <img id="pz-prev-img" alt="" style="display:none" />
+                <div class="jigsaw-overlay" id="pz-grid-ov" style="--cols:2;--rows:2"><i></i><i></i><i></i><i></i></div>
+              </div>
+              <input type="file" id="pz-file" accept="image/*" style="display:none" />
+              <div style="flex:1;display:flex;flex-direction:column;gap:10px">
+                <div class="form-grid">
+                  <div class="field">
+                    <label>Puzzle Title (spoken when completed)</label>
+                    <input type="text" id="pz-title" placeholder="e.g. Ezdan's Toy Car" maxlength="40" />
+                  </div>
+                  <div class="field">
+                    <label>Preview Grid Cut</label>
+                    <select id="pz-cut">
+                      <option value="2">2 Pieces (2×1)</option>
+                      <option value="4" selected>4 Pieces (2×2)</option>
+                      <option value="6">6 Pieces (3×2)</option>
+                    </select>
+                  </div>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <button class="btn" id="pz-pick">🖼 Pick Picture…</button>
+                  <button class="btn primary" id="pz-create">＋ Add Puzzle to Game</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h3>Your Custom Puzzles</h3>
+            <div id="puzzles-grid" class="card-grid"></div>
+          </div>
+        </div>
+
+        <!-- 4. BUILD & GO RECIPES PANE -->
+        <div id="recipes-pane" style="display:none">
+          <div class="section-head">
+            <div>
+              <h2>Build &amp; Go! Recipes</h2>
+              <p class="section-sub">Upload a vehicle/character picture and Studio slices it into 3 snap-together parts (Top, Cabin, Wheels).</p>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h3>Create New Build &amp; Go Recipe</h3>
+            <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+              <div class="preview-box" id="rc-prev-box">
+                <span id="rc-prev-empty" style="font-size:11px;color:var(--muted);padding:8px;text-align:center">3-Part Slice</span>
+                <img id="rc-prev-img" alt="" style="display:none" />
+                <div class="slice3-overlay"><i></i><i></i><i></i></div>
+              </div>
+              <input type="file" id="rc-file" accept="image/*" style="display:none" />
+              <div style="flex:1;display:flex;flex-direction:column;gap:10px">
+                <div class="form-grid">
+                  <div class="field">
+                    <label>Vehicle / Recipe Name</label>
+                    <input type="text" id="rc-name" placeholder="e.g. Police Cruiser" maxlength="40" />
+                  </div>
+                  <div class="field">
+                    <label>Launch Phrase (spoken on GO!)</label>
+                    <input type="text" id="rc-go" placeholder="e.g. Wee-oo! Police car to the rescue!" maxlength="80" />
+                  </div>
+                  <div class="field">
+                    <label>World Backdrop</label>
+                    <select id="rc-env">
+                      <option value="road">Road</option>
+                      <option value="space">Deep Space</option>
+                      <option value="sky">Clouds &amp; Sky</option>
+                      <option value="sea">Underwater Sea</option>
+                      <option value="track">Train Track</option>
+                      <option value="hills">Green Hills</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label>Launch Sound</label>
+                    <select id="rc-sfx">
+                      <option value="vroom">Engine Vroom</option>
+                      <option value="siren">Emergency Siren</option>
+                      <option value="rocket">Rocket Thrusters</option>
+                      <option value="choo">Train Whistle</option>
+                      <option value="bubbles">Underwater Bubbles</option>
+                    </select>
+                  </div>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <button class="btn" id="rc-pick">🖼 Pick Vehicle Image…</button>
+                  <button class="btn primary" id="rc-create">＋ Add Recipe to Game</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h3>Your Custom Recipes</h3>
+            <div id="recipes-grid" class="card-grid"></div>
+          </div>
+        </div>
+
+        <!-- 5. ITEM PICTURES PANE -->
+        <div id="pics-pane" style="display:none">
+          <div class="section-head">
+            <div>
+              <h2>Item Pictures</h2>
+              <p class="section-sub" id="pics-overall">Replace any built-in SVG illustration with your own photo or custom art.</p>
+            </div>
+            <div class="field" style="min-width:240px">
+              <input type="search" id="pic-search" placeholder="🔍 Filter items (e.g. apple, cow, bus)…" />
+            </div>
+          </div>
+          <div class="panel">
+            <div class="chips" id="pic-cats"></div>
+            <input type="file" id="pic-file" accept="image/*" style="display:none" />
+            <div id="pics-grid" class="card-grid"></div>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="fam-lines" id="fam-lines"></div>
-    <div class="pack-tools" id="fam-tools"></div>
-  </div>
 
-  <div id="pics-pane" style="display:none">
-    <div class="overall" id="pics-overall"></div>
-    <div id="pics-toolbar">
-      <input type="search" id="pic-search" placeholder="🔍 Search items (e.g. apple, cow, bus)…" />
+      <!-- RIGHT COLUMN: PERSISTENT AUDIO RECORDER DOCK -->
+      <aside class="rec-dock panel" id="rec-card">
+        <h3>🎙️ Voice Recorder</h3>
+        <div class="prompt" id="prompt">…</div>
+        <div class="sub" id="sub"></div>
+        <div class="key-name" id="keyname"></div>
+        <div class="rec-row">
+          <button id="rec-btn" title="Record / stop (Space)">⏺</button>
+          <div>
+            <div id="timer">0.0s</div>
+            <div style="font-size:11.5px;color:var(--muted)">Auto-trims silence</div>
+          </div>
+        </div>
+        <div class="post" id="post" style="display:none">
+          <button class="btn primary" id="play-btn" title="Play (P)">▶ Preview</button>
+          <button class="btn success" id="save-btn" title="Save + next (Enter)">✓ Save Take</button>
+          <button class="btn" id="redo-btn" title="Redo (R)">↺ Discard</button>
+        </div>
+        <div class="nav">
+          <button class="btn sm" id="prev-btn" title="←">◀ Prev</button>
+          <button class="btn sm primary" id="missing-btn">Next missing ⏭</button>
+          <button class="btn sm" id="next-btn" title="→">Next ▶</button>
+          <span id="pos" style="font-size:12px;color:var(--muted);margin-left:auto"></span>
+        </div>
+        <div class="takes">
+          <h4>Saved Takes</h4>
+          <div id="takes"></div>
+        </div>
+        <div id="status"></div>
+        <div class="kbd-hint">Shortcuts: <b>Space</b> record/stop · <b>P</b> preview · <b>Enter</b> save · <b>←/→</b> prev/next</div>
+      </aside>
     </div>
-    <div class="chips" id="pic-cats"></div>
-    <input type="file" id="pic-file" accept="image/*" style="display:none" />
-    <div id="pics-grid"></div>
-  </div>
-
-  <div class="card" id="rec-card">
-    <div class="prompt" id="prompt">…</div>
-    <div class="sub" id="sub"></div>
-    <div class="key-name" id="keyname"></div>
-    <div class="rec-row">
-      <button id="rec-btn" title="Record / stop (Space)">⏺</button>
-      <div id="timer">0.0s</div>
-    </div>
-    <div class="post" id="post" style="display:none">
-      <button id="play-btn" title="Play (P)">▶ Play</button>
-      <button id="save-btn" title="Save + next (Enter)">✓ Save</button>
-      <button id="redo-btn" title="Redo (R)">↺ Redo</button>
-    </div>
-    <div class="nav">
-      <button id="prev-btn" title="←">◀ Prev</button>
-      <button id="missing-btn" class="primary">Next missing ⏭</button>
-      <button id="next-btn" title="→">Next ▶</button>
-      <span id="pos" style="align-self:center;font-size:2.6vmin;opacity:.7"></span>
-    </div>
-    <div class="takes"><h3>Takes</h3><div id="takes"></div></div>
-    <div id="status"></div>
-  </div>
-  <p class="hintline">Space = record/stop · P = play · Enter = save &amp; next · R = redo · ←/→ = navigate</p>
+  </main>
 </div>
+
 <audio id="player" preload="none"></audio>
 <script>
 'use strict';
@@ -260,17 +499,15 @@ const FAMILY_LINE_TEXT = {
 let view = 'voices';
 let clips = [], manifest = {packs:{}, voices:{}}, voice = '', group = 'cheer', idx = 0;
 let members = [], family = {members:[]}, curMember = '', curLine = 'name';
+let puzzlesList = [], puzzlesData = {puzzles:[]}, curPuzzle = '', pzImg64 = null;
+let recipesList = [], recipesData = {recipes:[]}, curRecipe = '', curRecipeLine = 'name', rcImg64 = null;
 let picsMap = {}, svgById = {}, picCat = 'all', picQuery = '', picTargetId = '';
+
 const PIC_CATS = [
-  ['all', 'All'],
-  ['letters', 'Letters A–Z'],
-  ['animals', 'Animals'],
-  ['foods', 'Foods & Drinks'],
-  ['vehicles', 'Vehicles'],
-  ['objects', 'Objects & Nature'],
+  ['all', 'All'], ['letters', 'Letters A–Z'], ['animals', 'Animals'],
+  ['foods', 'Foods & Drinks'], ['vehicles', 'Vehicles'], ['objects', 'Objects & Nature'],
 ];
 const PIC_ITEMS = [
-  // Letters A-Z primary items
   { id: 'apple', label: 'Apple (A)', emoji: '🍎', cat: 'letters' },
   { id: 'banana', label: 'Banana (B)', emoji: '🍌', cat: 'letters' },
   { id: 'cat', label: 'Cat (C)', emoji: '🐱', cat: 'letters' },
@@ -297,7 +534,6 @@ const PIC_ITEMS = [
   { id: 'xylophone', label: 'Xylophone (X)', emoji: '🎼', cat: 'letters' },
   { id: 'yoyo', label: 'Yo-yo (Y)', emoji: '🪀', cat: 'letters' },
   { id: 'zebra', label: 'Zebra (Z)', emoji: '🦓', cat: 'letters' },
-  // Animals
   { id: 'cow', label: 'Cow', emoji: '🐮', cat: 'animals' },
   { id: 'pig', label: 'Pig', emoji: '🐷', cat: 'animals' },
   { id: 'sheep', label: 'Sheep', emoji: '🐑', cat: 'animals' },
@@ -333,7 +569,6 @@ const PIC_ITEMS = [
   { id: 'unicorn', label: 'Unicorn', emoji: '🦄', cat: 'animals' },
   { id: 'dino', label: 'T-Rex Dino', emoji: '🦖', cat: 'animals' },
   { id: 'sauropod', label: 'Bronto Dino', emoji: '🦕', cat: 'animals' },
-  // Foods & Drinks
   { id: 'greenapple', label: 'Green Apple', emoji: '🍏', cat: 'foods' },
   { id: 'strawberry', label: 'Strawberry', emoji: '🍓', cat: 'foods' },
   { id: 'watermelon', label: 'Watermelon', emoji: '🍉', cat: 'foods' },
@@ -359,7 +594,6 @@ const PIC_ITEMS = [
   { id: 'honey', label: 'Honey', emoji: '🍯', cat: 'foods' },
   { id: 'milk', label: 'Milk', emoji: '🥛', cat: 'foods' },
   { id: 'cup', label: 'Cup', emoji: '🥤', cat: 'foods' },
-  // Vehicles
   { id: 'car', label: 'Car', emoji: '🚗', cat: 'vehicles' },
   { id: 'taxi', label: 'Taxi', emoji: '🚕', cat: 'vehicles' },
   { id: 'police', label: 'Police Car', emoji: '🚓', cat: 'vehicles' },
@@ -377,7 +611,6 @@ const PIC_ITEMS = [
   { id: 'bike', label: 'Bicycle', emoji: '🚲', cat: 'vehicles' },
   { id: 'scooter', label: 'Scooter', emoji: '🛵', cat: 'vehicles' },
   { id: 'boat', label: 'Sailboat', emoji: '⛵', cat: 'vehicles' },
-  // Objects & Nature
   { id: 'sun', label: 'Sun', emoji: '☀️', cat: 'objects' },
   { id: 'moon', label: 'Moon', emoji: '🌙', cat: 'objects' },
   { id: 'star', label: 'Star', emoji: '⭐', cat: 'objects' },
@@ -407,14 +640,16 @@ const PIC_ITEMS = [
   { id: 'robot', label: 'Robot', emoji: '🤖', cat: 'objects' },
   { id: 'monster', label: 'Monster', emoji: '👾', cat: 'objects' },
 ];
+
 let media = null, rec = null, starting = false, chunks = [], recStart = 0, recTimer = null, autoStop = null;
 let pendingBlob = null, pendingUrl = null, ac = null;
-let playBtn = null; // button currently marked as playing
+let playBtn = null;
 const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const player = $('#player');
 const takes = (v, k) => ((manifest.voices || {})[v] || {})[k] || [];
 const isPool = () => group === 'cheer' || group === 'try';
-const clipKey = () => isPool() ? group : clips[idx].key;
+const clipKey = () => isPool() ? group : (clips[idx] ? clips[idx].key : 'cheer');
 const member = () => members.find((m) => m.id === curMember) || null;
 const famMember = () => (family.members || []).find((m) => m.id === curMember) || null;
 const memTakes = (l) => ((famMember() || {}).lines || {})[l] || [];
@@ -443,31 +678,182 @@ function playUrl(url, btn) {
 player.addEventListener('ended', stopPlay);
 player.addEventListener('pause', () => { if (playBtn) { playBtn.classList.remove('playing'); playBtn.textContent = '▶'; playBtn = null; } });
 
-function setStatus(t, ok) { const s = $('#status'); s.textContent = t; s.style.color = ok ? '#1f7a3d' : '#7a1f3d'; }
+function setStatus(t, ok) { const s = $('#status'); s.textContent = t; s.style.color = ok ? '#16a34a' : '#dc2626'; }
 
-// ---------- shared card (prompt / takes / nav) ----------
+function updateNavCounts() {
+  $('#nc-voices').textContent = Object.keys(manifest.packs || {}).length;
+  $('#nc-family').textContent = members.length;
+  $('#nc-puzzles').textContent = puzzlesList.length;
+  $('#nc-recipes').textContent = recipesList.length;
+  $('#nc-pics').textContent = Object.keys(picsMap).length;
+}
+
 function drawCard({prompt, sub, keyname, pos, takeFiles, takeUrl}) {
   $('#prompt').textContent = prompt;
   $('#sub').textContent = sub;
   $('#keyname').textContent = keyname;
   $('#pos').textContent = pos;
   $('#takes').innerHTML = takeFiles.map((f) =>
-    `<div class="take"><button class="play" data-f="${f}">▶</button><span class="fname">${f}</span><button class="del" data-f="${f}">🗑</button></div>`
-  ).join('') || '<div style="opacity:.6">No takes yet — hit the big button!</div>';
+    `<div class="take"><button class="btn sm primary play" data-f="${esc(f)}">▶</button><span class="fname">${esc(f)}</span><button class="btn sm danger del" data-f="${esc(f)}">🗑</button></div>`
+  ).join('') || '<div style="color:var(--muted);font-size:12.5px">No recordings yet — click ⏺ to record.</div>';
   $('#takes').dataset.url = takeUrl;
   discardPending();
 }
 
 function draw() {
-  $('#rec-card').style.display = view === 'pics' ? 'none' : '';
+  updateNavCounts();
+  const showRec = view !== 'pics';
+  $('#rec-card').style.display = showRec ? '' : 'none';
+  $('#workspace').classList.toggle('full', !showRec);
   if (view === 'voices') drawVoices();
   else if (view === 'family') drawFamily();
+  else if (view === 'puzzles') drawPuzzles();
+  else if (view === 'recipes') drawRecipes();
   else drawPics();
+}
+
+function drawVoices() {
+  const packs = manifest.packs || {};
+  const slugs = Object.keys(packs);
+  if (!voice || !packs[voice]) voice = slugs[0] || '';
+  $('#tabs').innerHTML = slugs.map((s) =>
+    `<button class="tab ${s === voice ? 'on' : ''}" data-v="${esc(s)}">${esc(packs[s].name || s)}</button>`).join('') +
+    `<button class="tab" data-v="__new">＋ New pack</button>`;
+  const hasTakes = !!(manifest.voices || {})[voice];
+  $('#pack-tools').innerHTML = voice
+    ? `<button class="btn sm" id="rename-pack">✎ Rename “${esc(packs[voice].name || voice)}”</button>` +
+      (hasTakes ? '' : '<button class="btn sm danger" id="del-pack">🗑 Delete pack</button>')
+    : '';
+  $('#chips').innerHTML = GROUPS.map(([p, label]) => {
+    const items = groupItems(p);
+    const done = items.filter((c) => takes(voice, c.key).length).length;
+    return `<button class="chip ${p === group ? 'on' : ''}" data-g="${esc(p)}">${esc(label)}<small>${done}/${items.length}</small></button>`;
+  }).join('');
+  let d = 0, t = 0;
+  for (const [p] of GROUPS) for (const c of groupItems(p)) { t++; if (takes(voice, c.key).length) d++; }
+  $('#overall').textContent = `${d} of ${t} lines recorded in “${(packs[voice] || {}).name || voice}”`;
+  if (isPool()) {
+    drawCard({
+      prompt: GROUPS.find(([p]) => p === group)[1] + ' — record any phrase!',
+      sub: 'Ideas: ' + POOL_IDEAS[group].join(' · '),
+      keyname: `pool: ${group} (up to 30 takes)`, pos: '',
+      takeFiles: takes(voice, group), takeUrl: `/audio/voices/${voice}/`,
+    });
+  } else {
+    const c = clips[idx] || {key: '', text: ''};
+    drawCard({
+      prompt: c.text || c.key,
+      sub: takes(voice, c.key).length ? `✓ ${takes(voice, c.key).length} take(s) saved` : 'Uses Tara fallback until recorded',
+      keyname: c.key, pos: `${idx + 1} / ${clips.length}`,
+      takeFiles: takes(voice, c.key), takeUrl: `/audio/voices/${voice}/`,
+    });
+  }
+}
+
+function drawFamily() {
+  if (curMember && !members.find((m) => m.id === curMember)) curMember = '';
+  if (!curMember && members.length) curMember = members[0].id;
+  $('#fam-grid').innerHTML = members.map((m) => {
+    const img = m.image ? `<img src="/family/img/${esc(m.image)}" alt="">` : `<div class="mem-avatar">${esc(m.name[0].toUpperCase())}</div>`;
+    return `<div class="item-card ${m.id === curMember ? 'on' : ''}" data-m="${esc(m.id)}">
+      <div class="item-thumb round">${img}</div>
+      <div class="item-title">${esc(m.name)}</div>
+      <div class="item-sub">${esc(m.title || 'Family member')}</div>
+      <div class="item-actions">
+        <button class="btn sm" data-famedit="${esc(m.id)}">✎ Edit</button>
+        <button class="btn sm danger" data-famdel="${esc(m.id)}">🗑 Delete</button>
+      </div>
+    </div>`;
+  }).join('') || '<div style="color:var(--muted);padding:12px">No family members added yet. Click “＋ Add Family Member” above.</div>';
+
+  const m = member();
+  $('#fam-lines-wrap').style.display = m ? '' : 'none';
+  if (!m) {
+    drawCard({prompt: 'Select or add a family member', sub: 'Record their name, Peekaboo line, and fun lines.', keyname: '', pos: '', takeFiles: [], takeUrl: ''});
+    return;
+  }
+  $('#fam-rec-title').textContent = `Voice Lines for ${m.name}`;
+  $('#fam-lines').innerHTML = FAMILY_LINES.map(([l, label]) => {
+    const n = memTakes(l).length;
+    return `<button class="chip ${l === curLine ? 'on' : ''}" data-l="${l}">${label}<small>${n}</small></button>`;
+  }).join('');
+  const files = memTakes(curLine);
+  drawCard({
+    prompt: FAMILY_LINE_TEXT[curLine](m),
+    sub: files.length ? `✓ ${files.length} take(s)` : 'Tara fallback generated automatically',
+    keyname: `${m.id} · ${curLine}`,
+    pos: `${FAMILY_LINES.findIndex(([l]) => l === curLine) + 1} / ${FAMILY_LINES.length}`,
+    takeFiles: files, takeUrl: `/family/audio/${curMember}/`,
+  });
+}
+
+function drawPuzzles() {
+  if (curPuzzle && !puzzlesList.find((p) => p.id === curPuzzle)) curPuzzle = '';
+  if (!curPuzzle && puzzlesList.length) curPuzzle = puzzlesList[0].id;
+  const puzEntries = (puzzlesData.puzzles || []);
+  $('#puzzles-grid').innerHTML = puzEntries.map((p) => `
+    <div class="item-card ${p.id === curPuzzle ? 'on' : ''}" data-pz="${esc(p.id)}">
+      <div class="item-thumb">
+        <img src="/puzzles/img/${esc(p.image)}" alt="" />
+        <div class="jigsaw-overlay" style="--cols:2;--rows:2"><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="item-title">${esc(p.title)}</div>
+      <div class="item-sub">${(p.takes || []).length ? `${p.takes.length} custom voice take(s)` : 'Tara voice fallback'}</div>
+      <div class="item-actions">
+        <button class="btn sm" data-pzrec="${esc(p.id)}">🎙️ Voice</button>
+        <button class="btn sm danger" data-pzdel="${esc(p.id)}">🗑 Delete</button>
+      </div>
+    </div>`).join('') || '<div style="color:var(--muted);padding:8px">No custom puzzles yet — upload a picture above to create one! (12 built-in SVG puzzles are always included.)</div>';
+
+  const cur = puzEntries.find((p) => p.id === curPuzzle);
+  if (!cur) {
+    drawCard({prompt: 'Create or select a puzzle', sub: 'Record a custom celebration line for your puzzle!', keyname: '', pos: '', takeFiles: [], takeUrl: ''});
+    return;
+  }
+  drawCard({
+    prompt: `Hooray! You made ${cur.title}!`,
+    sub: (cur.takes || []).length ? `✓ ${cur.takes.length} take(s)` : 'Tara fallback ready — record your own to replace it!',
+    keyname: `puzzle: ${cur.id}`, pos: '',
+    takeFiles: cur.takes || [], takeUrl: `/puzzles/audio/${cur.id}/`,
+  });
+}
+
+function drawRecipes() {
+  if (curRecipe && !recipesList.find((r) => r.id === curRecipe)) curRecipe = '';
+  if (!curRecipe && recipesList.length) curRecipe = recipesList[0].id;
+  const recEntries = (recipesData.recipes || []);
+  $('#recipes-grid').innerHTML = recEntries.map((r) => `
+    <div class="item-card ${r.id === curRecipe ? 'on' : ''}" data-rc="${esc(r.id)}">
+      <div class="item-thumb">
+        ${r.image ? `<img src="/recipes/img/${esc(r.image)}" alt="" />` : ''}
+        <div class="slice3-overlay"><i></i><i></i><i></i></div>
+      </div>
+      <div class="item-title">${esc(r.name)}</div>
+      <div class="item-sub">${esc(r.env)} · ${esc(r.sfx)}</div>
+      <div class="item-actions">
+        <button class="btn sm ${curRecipe===r.id && curRecipeLine==='name'?'primary':''}" data-rcrec="${esc(r.id)}" data-rcline="name">🎙️ Name</button>
+        <button class="btn sm ${curRecipe===r.id && curRecipeLine==='go'?'primary':''}" data-rcrec="${esc(r.id)}" data-rcline="go">🎙️ Launch</button>
+        <button class="btn sm danger" data-rcdel="${esc(r.id)}">🗑</button>
+      </div>
+    </div>`).join('') || '<div style="color:var(--muted);padding:8px">No custom Build &amp; Go recipes yet — upload a vehicle picture above! (6 built-in SVG vehicles are always included.)</div>';
+
+  const cur = recEntries.find((r) => r.id === curRecipe);
+  if (!cur) {
+    drawCard({prompt: 'Create or select a Build & Go recipe', sub: 'Record vehicle name & launch lines here.', keyname: '', pos: '', takeFiles: [], takeUrl: ''});
+    return;
+  }
+  const files = ((cur.lines || {})[curRecipeLine]) || [];
+  drawCard({
+    prompt: curRecipeLine === 'name' ? `${cur.name}!` : cur.go,
+    sub: files.length ? `✓ ${files.length} take(s)` : 'Tara fallback ready',
+    keyname: `recipe: ${cur.id} · ${curRecipeLine}`, pos: '',
+    takeFiles: files, takeUrl: `/recipes/audio/${cur.id}/`,
+  });
 }
 
 function drawPics() {
   const customCount = Object.keys(picsMap).length;
-  $('#pics-overall').textContent = `${customCount} custom picture(s) uploaded · all others use original SVG art`;
+  $('#pics-overall').textContent = `${customCount} custom picture(s) uploaded · all other items use built-in vector SVG art.`;
   $('#pic-cats').innerHTML = PIC_CATS.map(([c, label]) =>
     `<button class="chip ${c === picCat ? 'on' : ''}" data-pc="${c}">${label}</button>`
   ).join('');
@@ -479,95 +865,28 @@ function drawPics() {
   $('#pics-grid').innerHTML = list.map((it) => {
     const custom = picsMap[it.id];
     const art = custom
-      ? `<img src="/pics/img/${custom}" alt="${it.label}" />`
+      ? `<img src="/pics/img/${esc(custom)}" alt="${esc(it.label)}" />`
       : (svgById[it.id] ? `<svg viewBox="0 0 100 100">${svgById[it.id]}</svg>` : it.emoji);
-    return `<div class="pic-card ${custom ? 'custom' : ''}" data-pid="${it.id}">
+    return `<div class="item-card ${custom ? 'custom' : ''}" data-pid="${esc(it.id)}">
       <span class="pic-emoji-tag">${it.emoji}</span>
       <span class="pic-badge">${custom ? 'Custom' : 'SVG'}</span>
-      <div class="pic-art">${art}</div>
-      <div class="pic-title">${it.label}</div>
-      <div class="pic-btns">
-        <button class="up" data-up="${it.id}">🖼 ${custom ? 'Change' : 'Replace'}</button>
-        ${custom ? `<button class="rst" data-rst="${it.id}">↺ SVG</button>` : ''}
+      <div class="item-thumb contain">${art}</div>
+      <div class="item-title">${esc(it.label)}</div>
+      <div class="item-actions">
+        <button class="btn sm primary" data-up="${esc(it.id)}">🖼 ${custom ? 'Change' : 'Replace'}</button>
+        ${custom ? `<button class="btn sm danger" data-rst="${esc(it.id)}">↺ SVG</button>` : ''}
       </div>
     </div>`;
   }).join('');
 }
 
-function drawVoices() {
-  const packs = manifest.packs || {};
-  const slugs = Object.keys(packs);
-  if (!voice || !packs[voice]) voice = slugs[0] || '';
-  $('#tabs').innerHTML = slugs.map((s) =>
-    `<button class="tab ${s === voice ? 'on' : ''}" data-v="${s}">${packs[s].name || s}</button>`).join('') +
-    `<button class="tab" data-v="__new">＋ New pack</button>`;
-  const hasTakes = !!(manifest.voices || {})[voice];
-  $('#pack-tools').innerHTML = voice
-    ? `<button id="rename-pack">✎ Rename “${packs[voice].name || voice}”</button>` +
-      (hasTakes ? '' : '<button id="del-pack">🗑 Delete pack</button>')
-    : '';
-  $('#chips').innerHTML = GROUPS.map(([p, label]) => {
-    const items = groupItems(p);
-    const done = items.filter((c) => takes(voice, c.key).length).length;
-    return `<button class="chip ${p === group ? 'on' : ''}" data-g="${p}">${label}<small>${done}/${items.length}</small></button>`;
-  }).join('');
-  let d = 0, t = 0;
-  for (const [p] of GROUPS) for (const c of groupItems(p)) { t++; if (takes(voice, c.key).length) d++; }
-  $('#overall').textContent = `${d} / ${t} recorded`;
-  if (isPool()) {
-    drawCard({
-      prompt: GROUPS.find(([p]) => p === group)[1] + ' — any phrase you like!',
-      sub: 'Ideas: ' + POOL_IDEAS[group].join(' · '),
-      keyname: `pool: ${group} (up to 30 takes)`, pos: '',
-      takeFiles: takes(voice, group), takeUrl: `/audio/voices/${voice}/`,
-    });
-  } else {
-    const c = clips[idx];
-    drawCard({
-      prompt: c.text || c.key,
-      sub: takes(voice, c.key).length ? `✓ ${takes(voice, c.key).length} take(s)` : '',
-      keyname: c.key, pos: `${idx + 1} / ${clips.length}`,
-      takeFiles: takes(voice, c.key), takeUrl: `/audio/voices/${voice}/`,
-    });
-  }
-}
-
-function drawFamily() {
-  if (curMember && !members.find((m) => m.id === curMember)) curMember = '';
-  if (!curMember && members.length) curMember = members[0].id;
-  $('#fam-grid').innerHTML = members.map((m) => {
-    const img = m.image ? `<img src="/family/img/${m.image}" alt="">` : `<div class="mem-avatar">${m.name[0].toUpperCase()}</div>`;
-    return `<button class="mem-card ${m.id === curMember ? 'on' : ''}" data-m="${m.id}">${img}` +
-      `<span class="mname">${m.name}</span><span class="mtitle">${m.title || ''}</span></button>`;
-  }).join('') + `<button class="mem-card add" data-m="__add">＋<span class="mname">Add family member</span></button>`;
-  const m = member();
-  $('#fam-tools').innerHTML = m
-    ? `<button id="edit-mem">✎ Edit “${m.name}”</button>` : '';
-  $('#fam-lines').innerHTML = m ? FAMILY_LINES.map(([l, label]) => {
-    const n = memTakes(l).length;
-    return `<button class="chip ${l === curLine ? 'on' : ''}" data-l="${l}">${label}<small>${n}</small></button>`;
-  }).join('') : '';
-  if (!m) {
-    drawCard({prompt: 'Add your family!', sub: 'Chibi images + their own voices → the Peekaboo game.',
-      keyname: '', pos: '', takeFiles: [], takeUrl: ''});
-    return;
-  }
-  const files = memTakes(curLine);
-  drawCard({
-    prompt: FAMILY_LINE_TEXT[curLine](m),
-    sub: files.length ? `✓ ${files.length} take(s)` :
-      (curLine !== 'fun' ? 'A Tara fallback exists — record your own to replace it!' : ''),
-    keyname: `${m.id} · ${curLine} (max ${curLine === 'fun' ? 10 : 5})`,
-    pos: `${FAMILY_LINES.findIndex(([l]) => l === curLine) + 1} / ${FAMILY_LINES.length}`,
-    takeFiles: files, takeUrl: `/family/audio/${curMember}/`,
-  });
-}
-
-// ---------- recording engine (shared) ----------
+// ---------- recording engine ----------
 async function startRec() {
   if (rec || starting) return;
-  if (view === 'family' && !member()) { setStatus('Add a family member first'); return; }
-  starting = true; // set synchronously — double clicks/Space can't race the getUserMedia await
+  if (view === 'family' && !member()) { setStatus('Select or add a family member first'); return; }
+  if (view === 'puzzles' && !curPuzzle) { setStatus('Create or select a puzzle first'); return; }
+  if (view === 'recipes' && !curRecipe) { setStatus('Create or select a recipe first'); return; }
+  starting = true;
   stopPlay();
   try {
     media = await navigator.mediaDevices.getUserMedia(
@@ -616,22 +935,18 @@ async function finishRec() {
     pendingBlob = wav;
     pendingUrl = URL.createObjectURL(wav);
     $('#post').style.display = 'flex';
-    setStatus('Ready — play it back, then Save.');
+    setStatus('Ready — preview or save.');
   } catch (e) { setStatus('Could not process audio: ' + e.message); }
 }
-// decode -> mono -> trim silence (-45dBFS, 40ms lead / 80ms tail pad) -> peak normalize -> WAV 16-bit
 async function processAudio(blob) {
   ac = ac || new (window.AudioContext || window.webkitAudioContext)();
   const buf = await ac.decodeAudioData(await blob.arrayBuffer());
-  const sr = buf.sampleRate;
-  const n = buf.length;
+  const sr = buf.sampleRate, n = buf.length;
   const mono = new Float32Array(n);
   for (let c = 0; c < buf.numberOfChannels; c++) {
     const d = buf.getChannelData(c);
     for (let i = 0; i < n; i++) mono[i] += d[i] / buf.numberOfChannels;
   }
-  // silence = 20ms window RMS below -45dBFS (a per-sample peak test misses
-  // quiet noise tails with sparse breath/mic bumps above -45)
   const TH2 = Math.pow(10, -45 / 10), WIN = Math.max(1, Math.round(sr * 0.02));
   const LEAD = Math.round(sr * 0.04), TAIL = Math.round(sr * 0.08);
   const loud = (i) => {
@@ -660,52 +975,67 @@ async function processAudio(blob) {
   for (let i = 0; i < len; i++) dv.setInt16(44 + i * 2, Math.round(out[i] * 32767), true);
   return new Blob([bytes], {type: 'audio/wav'});
 }
+
+function recEndpoint() {
+  if (view === 'voices') return `/api/save?voice=${voice}&clip=${encodeURIComponent(clipKey())}`;
+  if (view === 'family') return `/api/family/${curMember}/lines/${curLine}`;
+  if (view === 'puzzles') return `/api/puzzles/${curPuzzle}/takes`;
+  if (view === 'recipes') return `/api/recipes/${curRecipe}/lines/${curRecipeLine}`;
+  return '';
+}
+function delTakeEndpoint(f) {
+  if (view === 'voices') return `/api/take?voice=${voice}&file=${encodeURIComponent(f)}`;
+  if (view === 'family') return `/api/family/${curMember}/lines/${curLine}/${encodeURIComponent(f)}`;
+  if (view === 'puzzles') return `/api/puzzles/${curPuzzle}/takes/${encodeURIComponent(f)}`;
+  if (view === 'recipes') return `/api/recipes/${curRecipe}/lines/${curRecipeLine}/${encodeURIComponent(f)}`;
+  return '';
+}
+
 async function save() {
   if (!pendingBlob) return;
-  const url = view === 'voices'
-    ? `/api/save?voice=${voice}&clip=${encodeURIComponent(clipKey())}`
-    : `/api/family/${curMember}/lines/${curLine}`;
-  const r = await fetch(url, {method: 'POST', body: pendingBlob});
+  const r = await fetch(recEndpoint(), {method: 'POST', body: pendingBlob});
   const j = await r.json().catch(() => ({}));
   if (!r.ok) { setStatus('Save failed: ' + (j.error || r.status)); return; }
-  if (view === 'voices') { manifest = j.manifest; } else { members = j.members; family = j.family; }
+  if (view === 'voices') manifest = j.manifest;
+  else if (view === 'family') { members = j.members; family = j.family; }
+  else if (view === 'puzzles') { puzzlesList = j.items; puzzlesData = j.puzzles; }
+  else if (view === 'recipes') { recipesList = j.items; recipesData = j.recipes; }
   setStatus('Saved ' + j.file, true);
+  refreshBadge();
   const wasPool = view === 'voices' && isPool();
   draw();
-  if (!wasPool) nextMissing();
+  if (view === 'voices' && !wasPool) nextMissing();
 }
 async function delTake(f) {
   stopPlay();
-  const url = view === 'voices'
-    ? `/api/take?voice=${voice}&file=${encodeURIComponent(f)}`
-    : `/api/family/${curMember}/lines/${curLine}/${encodeURIComponent(f)}`;
-  const r = await fetch(url, {method: 'DELETE'});
+  const r = await fetch(delTakeEndpoint(f), {method: 'DELETE'});
   const j = await r.json().catch(() => ({}));
   if (!r.ok) { setStatus('Delete failed: ' + (j.error || r.status)); return; }
-  if (view === 'voices') { manifest = j.manifest; } else { members = j.members; family = j.family; }
+  if (view === 'voices') manifest = j.manifest;
+  else if (view === 'family') { members = j.members; family = j.family; }
+  else if (view === 'puzzles') { puzzlesList = j.items; puzzlesData = j.puzzles; }
+  else if (view === 'recipes') { recipesList = j.items; recipesData = j.recipes; }
+  refreshBadge();
   draw();
 }
 function nav(d) {
   if (view === 'family') {
     const i = FAMILY_LINES.findIndex(([l]) => l === curLine);
     curLine = FAMILY_LINES[(i + d + FAMILY_LINES.length) % FAMILY_LINES.length][0];
-    stopPlay();
-    draw();
-    return;
+    stopPlay(); draw(); return;
   }
+  if (view !== 'voices') return;
   if (isPool()) group = '';
   idx = (idx + d + clips.length) % clips.length;
   group = groupOf(clips[idx].key);
-  stopPlay();
-  draw();
+  stopPlay(); draw();
 }
 function nextMissing() {
   if (view === 'family') {
-    for (const [l] of FAMILY_LINES) {
-      if (!memTakes(l).length) { curLine = l; draw(); return; }
-    }
+    for (const [l] of FAMILY_LINES) if (!memTakes(l).length) { curLine = l; draw(); return; }
     return;
   }
+  if (view !== 'voices') return;
   for (let i = 0; i < clips.length; i++) {
     const j = (idx + i) % clips.length;
     if (!takes(voice, clips[j].key).length && groupOf(clips[j].key) === group) { idx = j; draw(); return; }
@@ -715,38 +1045,39 @@ function nextMissing() {
     if (!takes(voice, clips[j].key).length) { idx = j; group = groupOf(clips[j].key); draw(); return; }
   }
 }
+
+// ---------- voice packs ----------
 async function newPack() {
   const name = prompt('Name for the new voice pack (e.g. Nani):');
   if (!name) return;
-  const r = await fetch('/api/packs', {method: 'POST', headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({name})});
+  const r = await fetch('/api/packs', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({name})});
   const j = await r.json().catch(() => ({}));
   if (!r.ok) { setStatus('Could not create pack: ' + (j.error || r.status)); return; }
-  manifest = j.manifest; voice = j.slug; draw();
+  manifest = j.manifest; voice = j.slug; refreshBadge(); draw();
 }
 async function renamePack() {
   const cur = (manifest.packs[voice] || {}).name || voice;
   const name = prompt('Rename pack:', cur);
   if (!name || name === cur) return;
-  const r = await fetch(`/api/packs/${voice}`, {method: 'PATCH', headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({name})});
+  const r = await fetch(`/api/packs/${voice}`, {method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({name})});
   const j = await r.json().catch(() => ({}));
   if (!r.ok) { setStatus('Rename failed: ' + (j.error || r.status)); return; }
-  manifest = j.manifest; draw();
+  manifest = j.manifest; refreshBadge(); draw();
 }
 async function delPack() {
   if (!confirm(`Delete the empty pack “${(manifest.packs[voice] || {}).name || voice}”?`)) return;
   const r = await fetch(`/api/packs/${voice}`, {method: 'DELETE'});
   const j = await r.json().catch(() => ({}));
   if (!r.ok) { setStatus('Delete failed: ' + (j.error || r.status)); return; }
-  manifest = j.manifest; voice = ''; draw();
+  manifest = j.manifest; voice = ''; refreshBadge(); draw();
 }
 
-// ---------- family add/edit ----------
-let feImage = null; // base64 for the edit form
+// ---------- family add/edit/delete ----------
+let feImage = null;
 function openEdit(m) {
   feImage = null;
-  $('#fam-edit').style.display = 'flex';
+  $('#fam-edit').style.display = 'block';
+  $('#fe-heading').textContent = m ? `Edit ${m.name}` : 'Add Family Member';
   $('#fe-name').value = m ? m.name : '';
   $('#fe-title').value = m ? (m.title || '') : '';
   $('#fe-img').src = m && m.image ? `/family/img/${m.image}` : '';
@@ -766,18 +1097,19 @@ async function saveMember() {
   if (!r.ok) { setStatus('Save failed: ' + (j.error || r.status)); return; }
   members = j.members; family = j.family;
   curMember = j.member.id;
-  closeEdit(); draw();
+  closeEdit(); refreshBadge(); draw();
 }
-async function delMember() {
-  const id = $('#fe-save').dataset.id;
+async function deleteMemberById(id) {
   const m = members.find((x) => x.id === id);
-  if (!m || !confirm(`Delete ${m.name} and all their files?`)) return;
+  if (!m || !confirm(`Delete “${m.name}” and all their recordings/photos?`)) return;
   const r = await fetch(`/api/family/${id}`, {method: 'DELETE'});
   const j = await r.json().catch(() => ({}));
   if (!r.ok) { setStatus('Delete failed: ' + (j.error || r.status)); return; }
-  members = j.members; family = j.family; curMember = '';
-  closeEdit(); draw();
+  members = j.members; family = j.family;
+  if (curMember === id) curMember = '';
+  closeEdit(); refreshBadge(); draw();
 }
+$('#add-mem-btn').addEventListener('click', () => openEdit(null));
 $('#fe-pick').addEventListener('click', () => $('#fe-file').click());
 $('#fe-file').addEventListener('change', () => {
   const f = $('#fe-file').files[0];
@@ -793,17 +1125,119 @@ $('#fe-file').addEventListener('change', () => {
 });
 $('#fe-clearimg').addEventListener('click', () => { feImage = null; $('#fe-img').style.display = 'none'; });
 $('#fe-save').addEventListener('click', saveMember);
-$('#fe-del').addEventListener('click', delMember);
+$('#fe-del').addEventListener('click', () => deleteMemberById($('#fe-save').dataset.id));
 $('#fe-cancel').addEventListener('click', closeEdit);
 
+// ---------- puzzle maker ----------
+$('#pz-cut').addEventListener('change', (e) => {
+  const v = e.target.value;
+  const ov = $('#pz-grid-ov');
+  const cols = v === '6' ? 3 : 2;
+  const rows = v === '2' ? 1 : 2;
+  ov.style.setProperty('--cols', cols);
+  ov.style.setProperty('--rows', rows);
+  ov.innerHTML = '<i></i>'.repeat(cols * rows);
+});
+$('#pz-pick').addEventListener('click', () => $('#pz-file').click());
+$('#pz-file').addEventListener('change', () => {
+  const f = $('#pz-file').files[0];
+  if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    pzImg64 = rd.result.split(',')[1];
+    $('#pz-prev-img').src = rd.result;
+    $('#pz-prev-img').style.display = '';
+    $('#pz-prev-empty').style.display = 'none';
+  };
+  rd.readAsDataURL(f);
+});
+$('#pz-create').addEventListener('click', async () => {
+  const title = $('#pz-title').value.trim();
+  if (!title || !pzImg64) { alert('Please enter a puzzle title and pick an image.'); return; }
+  const r = await fetch('/api/puzzles', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({title, image: pzImg64}),
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) { alert('Failed: ' + (j.error || r.status)); return; }
+  puzzlesList = j.items; puzzlesData = j.puzzles; curPuzzle = j.item.id;
+  $('#pz-title').value = ''; pzImg64 = null;
+  $('#pz-prev-img').style.display = 'none'; $('#pz-prev-empty').style.display = '';
+  refreshBadge(); draw();
+});
+$('#puzzles-grid').addEventListener('click', async (e) => {
+  const del = e.target.closest('[data-pzdel]');
+  if (del) {
+    const id = del.dataset.pzdel;
+    if (!confirm('Delete this puzzle?')) return;
+    const r = await fetch(`/api/puzzles/${id}`, {method: 'DELETE'});
+    const j = await r.json().catch(() => ({}));
+    if (r.ok) { puzzlesList = j.items; puzzlesData = j.puzzles; refreshBadge(); draw(); }
+    return;
+  }
+  const card = e.target.closest('[data-pz]');
+  if (card) { curPuzzle = card.dataset.pz; draw(); }
+});
+
+// ---------- build & go recipes ----------
+$('#rc-pick').addEventListener('click', () => $('#rc-file').click());
+$('#rc-file').addEventListener('change', () => {
+  const f = $('#rc-file').files[0];
+  if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    rcImg64 = rd.result.split(',')[1];
+    $('#rc-prev-img').src = rd.result;
+    $('#rc-prev-img').style.display = '';
+    $('#rc-prev-empty').style.display = 'none';
+  };
+  rd.readAsDataURL(f);
+});
+$('#rc-create').addEventListener('click', async () => {
+  const name = $('#rc-name').value.trim();
+  const go = $('#rc-go').value.trim() || `Go ${name}!`;
+  const env = $('#rc-env').value;
+  const sfx = $('#rc-sfx').value;
+  if (!name || !rcImg64) { alert('Please enter a vehicle name and pick an image.'); return; }
+  const r = await fetch('/api/recipes', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({name, go, env, sfx, image: rcImg64}),
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) { alert('Failed: ' + (j.error || r.status)); return; }
+  recipesList = j.items; recipesData = j.recipes; curRecipe = j.item.id;
+  $('#rc-name').value = ''; $('#rc-go').value = ''; rcImg64 = null;
+  $('#rc-prev-img').style.display = 'none'; $('#rc-prev-empty').style.display = '';
+  refreshBadge(); draw();
+});
+$('#recipes-grid').addEventListener('click', async (e) => {
+  const del = e.target.closest('[data-rcdel]');
+  if (del) {
+    const id = del.dataset.rcdel;
+    if (!confirm('Delete this recipe?')) return;
+    const r = await fetch(`/api/recipes/${id}`, {method: 'DELETE'});
+    const j = await r.json().catch(() => ({}));
+    if (r.ok) { recipesList = j.items; recipesData = j.recipes; refreshBadge(); draw(); }
+    return;
+  }
+  const recBtn = e.target.closest('[data-rcrec]');
+  if (recBtn) {
+    curRecipe = recBtn.dataset.rcrec;
+    curRecipeLine = recBtn.dataset.rcline || 'name';
+    draw();
+    return;
+  }
+  const card = e.target.closest('[data-rc]');
+  if (card) { curRecipe = card.dataset.rc; draw(); }
+});
+
 // ---------- wiring ----------
-document.querySelectorAll('.top-tab').forEach((b) => b.addEventListener('click', (e) => {
-  e.target.blur();
-  view = e.target.dataset.view;
-  document.querySelectorAll('.top-tab').forEach((x) => x.classList.toggle('on', x === b));
-  $('#voices-pane').style.display = view === 'voices' ? '' : 'none';
-  $('#family-pane').style.display = view === 'family' ? '' : 'none';
-  $('#pics-pane').style.display = view === 'pics' ? '' : 'none';
+document.querySelectorAll('.nav-btn').forEach((b) => b.addEventListener('click', () => {
+  view = b.dataset.view;
+  document.querySelectorAll('.nav-btn').forEach((x) => x.classList.toggle('on', x === b));
+  ['voices', 'family', 'puzzles', 'recipes', 'pics'].forEach((v) => {
+    $(`#${v}-pane`).style.display = view === v ? '' : 'none';
+  });
   stopPlay(); discardPending();
   draw();
 }));
@@ -823,34 +1257,23 @@ async function uploadPicFile(pid, file) {
   const j = await r.json().catch(() => ({}));
   if (!r.ok) { alert('Upload failed: ' + (j.error || r.status)); return; }
   picsMap = j.pics || {};
-  refreshBadge();
-  draw();
+  refreshBadge(); draw();
 }
 async function resetPic(pid) {
   const r = await fetch(`/api/pics/${pid}`, {method: 'DELETE'});
   const j = await r.json().catch(() => ({}));
   if (!r.ok) { alert('Reset failed: ' + (j.error || r.status)); return; }
   picsMap = j.pics || {};
-  refreshBadge();
-  draw();
+  refreshBadge(); draw();
 }
 $('#pic-cats').addEventListener('click', (e) => {
   const c = e.target.closest('.chip'); if (!c) return;
-  picCat = c.dataset.pc;
-  drawPics();
+  picCat = c.dataset.pc; drawPics();
 });
-$('#pic-search').addEventListener('input', (e) => {
-  picQuery = e.target.value;
-  drawPics();
-});
+$('#pic-search').addEventListener('input', (e) => { picQuery = e.target.value; drawPics(); });
 $('#pics-grid').addEventListener('click', (e) => {
   const up = e.target.closest('[data-up]');
-  if (up) {
-    picTargetId = up.dataset.up;
-    $('#pic-file').value = '';
-    $('#pic-file').click();
-    return;
-  }
+  if (up) { picTargetId = up.dataset.up; $('#pic-file').value = ''; $('#pic-file').click(); return; }
   const rst = e.target.closest('[data-rst]');
   if (rst) resetPic(rst.dataset.rst);
 });
@@ -859,26 +1282,24 @@ $('#pic-file').addEventListener('change', () => {
   if (f && picTargetId) uploadPicFile(picTargetId, f);
 });
 $('#pics-grid').addEventListener('dragover', (e) => {
-  const card = e.target.closest('.pic-card');
+  const card = e.target.closest('.item-card');
   if (!card) return;
-  e.preventDefault();
-  card.classList.add('dragover');
+  e.preventDefault(); card.classList.add('dragover');
 });
 $('#pics-grid').addEventListener('dragleave', (e) => {
-  const card = e.target.closest('.pic-card');
+  const card = e.target.closest('.item-card');
   if (card) card.classList.remove('dragover');
 });
 $('#pics-grid').addEventListener('drop', (e) => {
-  const card = e.target.closest('.pic-card');
+  const card = e.target.closest('.item-card');
   if (!card) return;
-  e.preventDefault();
-  card.classList.remove('dragover');
+  e.preventDefault(); card.classList.remove('dragover');
   const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
   if (f) uploadPicFile(card.dataset.pid, f);
 });
+
 $('#tabs').addEventListener('click', (e) => {
   const v = e.target.dataset.v; if (!v) return;
-  e.target.blur();
   if (v === '__new') newPack(); else { voice = v; draw(); }
 });
 $('#pack-tools').addEventListener('click', (e) => {
@@ -887,27 +1308,29 @@ $('#pack-tools').addEventListener('click', (e) => {
 });
 $('#chips').addEventListener('click', (e) => {
   const g = e.target.closest('.chip'); if (!g) return;
-  e.target.blur();
   group = g.dataset.g;
-  if (!isPool()) { const first = groupItems(group)[0]; idx = clips.findIndex((c) => c.key === first.key); }
+  if (!isPool()) { const first = groupItems(group)[0]; if (first) idx = clips.findIndex((c) => c.key === first.key); }
   draw();
 });
 $('#fam-grid').addEventListener('click', (e) => {
-  const card = e.target.closest('.mem-card'); if (!card) return;
-  e.target.blur && e.target.blur();
-  if (card.dataset.m === '__add') { openEdit(null); return; }
-  if (card.dataset.m === curMember && !$('#fam-edit').style.display) closeEdit();
-  curMember = card.dataset.m;
-  draw();
-});
-$('#fam-tools').addEventListener('click', (e) => {
-  if (e.target.id === 'edit-mem') openEdit(member());
+  const editBtn = e.target.closest('[data-famedit]');
+  if (editBtn) {
+    curMember = editBtn.dataset.famedit;
+    openEdit(member());
+    draw();
+    return;
+  }
+  const delBtn = e.target.closest('[data-famdel]');
+  if (delBtn) {
+    deleteMemberById(delBtn.dataset.famdel);
+    return;
+  }
+  const card = e.target.closest('[data-m]');
+  if (card) { curMember = card.dataset.m; draw(); }
 });
 $('#fam-lines').addEventListener('click', (e) => {
   const c = e.target.closest('.chip'); if (!c) return;
-  e.target.blur();
-  curLine = c.dataset.l;
-  draw();
+  curLine = c.dataset.l; draw();
 });
 $('#rec-btn').addEventListener('click', (e) => { e.target.blur(); rec ? stopRec() : startRec(); });
 $('#play-btn').addEventListener('click', (e) => { e.target.blur(); if (pendingUrl) playUrl(pendingUrl, e.target); });
@@ -918,12 +1341,11 @@ $('#next-btn').addEventListener('click', () => nav(1));
 $('#missing-btn').addEventListener('click', nextMissing);
 $('#takes').addEventListener('click', (e) => {
   const f = e.target.dataset.f; if (!f) return;
-  e.target.blur();
   if (e.target.classList.contains('play')) playUrl($('#takes').dataset.url + f, e.target);
   else if (e.target.classList.contains('del') && confirm('Delete ' + f + '?')) delTake(f);
 });
 document.addEventListener('keydown', (e) => {
-  if (e.target.tagName === 'INPUT' || e.repeat) return;
+  if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName) || e.repeat) return;
   if (e.code === 'Space') { e.preventDefault(); rec ? stopRec() : startRec(); }
   else if (e.key === 'p' || e.key === 'P') { if (pendingUrl) playUrl(pendingUrl, $('#play-btn')); }
   else if (e.key === 'Enter') { if ($('#fam-edit').style.display === 'none') save(); }
@@ -957,7 +1379,7 @@ function renderPub(st) {
     `<li class="${s.status}">${ICONS[s.status] || '·'} ${s.name}</li>`).join('');
   const done = steps.filter((s) => s.status === 'done' || s.status === 'skipped').length;
   $('#pub-fill').style.width = (st.state === 'done' ? 100 : done / Math.max(1, steps.length) * 100) + '%';
-  const labels = { running: 'Working…', done: 'Finished', error: 'Something went wrong', idle: '' };
+  const labels = { running: 'Publishing to live…', done: 'Published!', error: 'Publish failed', idle: '' };
   const secs = Math.max(0, Math.round(((st.finishedAt || Date.now() / 1000) - (st.startedAt || 0))));
   $('#pub-status').textContent = labels[st.state] || st.state;
   $('#pub-timer').textContent = st.startedAt ? secs + 's' : '';
@@ -981,13 +1403,14 @@ async function pollPub() {
 pubBtn.onclick = async () => {
   const j = await (await fetch('/api/publish/pending')).json();
   const bits = [];
-  if (j.voices) bits.push(`${j.voices} voice take file${j.voices > 1 ? 's' : ''}`);
-  if (j.family) bits.push(`${j.family} family file${j.family > 1 ? 's' : ''}`);
-  if (j.pics) bits.push(`${j.pics} picture file${j.pics > 1 ? 's' : ''}`);
+  if (j.voices) bits.push(`${j.voices} voice file(s)`);
+  if (j.family) bits.push(`${j.family} family file(s)`);
+  if (j.pics) bits.push(`${j.pics} picture file(s)`);
+  if (j.puzzles) bits.push(`${j.puzzles} puzzle file(s)`);
+  if (j.recipes) bits.push(`${j.recipes} recipe file(s)`);
   if (!(j.files || []).length) { renderPub(await (await fetch('/api/publish/status')).json()); return; }
   if (!confirm('Push to live?\n\n' + bits.join(', ') + '\n' + j.files.length + ' file(s) total')) return;
-  const r = await fetch('/api/publish', { method: 'POST', headers: { 'X-Studio': '1' } });
-  if (r.status === 409) { /* already running — just open the panel */ }
+  await fetch('/api/publish', { method: 'POST', headers: { 'X-Studio': '1' } });
   pollPub();
 };
 $('#pub-retry').onclick = () => pubBtn.onclick();
@@ -995,7 +1418,7 @@ $('#pub-close').onclick = () => { pubPanel.hidden = true; if (pubPoll) { clearIn
 $('#stop-btn').onclick = async () => {
   if (!confirm('Stop the Studio server?')) return;
   await fetch('/api/shutdown', { method: 'POST', headers: { 'X-Studio': '1' } }).catch(() => {});
-  document.body.innerHTML = '<div class="wrap" style="color:#fff;padding:10vmin"><h1>Studio stopped</h1><p>You can close this tab.</p></div>';
+  document.body.innerHTML = '<div style="padding:60px;text-align:center"><h2>Studio stopped</h2><p style="color:#64748b">You can close this tab.</p></div>';
 };
 
 refreshBadge();
@@ -1004,15 +1427,18 @@ pollPub();
 
 (async () => {
   import('/src/core/svgArt.js').then((m) => { svgById = m.SVG_BY_ID || {}; if (view === 'pics') drawPics(); }).catch(() => {});
-  const r = await fetch('/api/clips');
-  const j = await r.json();
-  clips = j.clips; manifest = j.manifest;
-  const fr = await fetch('/api/family');
-  const fj = await fr.json().catch(() => ({}));
-  members = fj.members || []; family = fj.family || {members: []};
-  const pr = await fetch('/api/pics');
-  const pj = await pr.json().catch(() => ({}));
-  picsMap = pj.pics || {};
+  const [cr, fr, pr, pzr, rcr] = await Promise.all([
+    fetch('/api/clips').then((r) => r.json()).catch(() => ({})),
+    fetch('/api/family').then((r) => r.json()).catch(() => ({})),
+    fetch('/api/pics').then((r) => r.json()).catch(() => ({})),
+    fetch('/api/puzzles').then((r) => r.json()).catch(() => ({})),
+    fetch('/api/recipes').then((r) => r.json()).catch(() => ({})),
+  ]);
+  clips = cr.clips || []; manifest = cr.manifest || {packs:{}, voices:{}};
+  members = fr.members || []; family = fr.family || {members: []};
+  picsMap = pr.pics || {};
+  puzzlesList = pzr.items || []; puzzlesData = pzr.puzzles || {puzzles: []};
+  recipesList = rcr.items || []; recipesData = rcr.recipes || {recipes: []};
   draw();
 })();
 </script>

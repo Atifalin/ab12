@@ -47,6 +47,16 @@ MEMBERS_JSON = FAMILY_DIR / "members.json"
 PICS_DIR = PUBLIC_DIR / "pics"
 PICS_IMG = PICS_DIR / "img"
 PICS_JSON = PICS_DIR / "pics.json"
+PUZZLES_DIR = PUBLIC_DIR / "puzzles"
+PUZZLES_IMG = PUZZLES_DIR / "img"
+PUZZLES_AUDIO = PUZZLES_DIR / "audio"
+PUZZLES_ITEMS = PUZZLES_DIR / "items.json"
+PUZZLES_JSON = PUZZLES_DIR / "puzzles.json"
+RECIPES_DIR = PUBLIC_DIR / "recipes"
+RECIPES_IMG = RECIPES_DIR / "img"
+RECIPES_AUDIO = RECIPES_DIR / "audio"
+RECIPES_ITEMS = RECIPES_DIR / "items.json"
+RECIPES_JSON = RECIPES_DIR / "recipes.json"
 STUDIO_HTML = ROOT / "tools" / "studio.html"
 POOLS = {"cheer", "try"}
 MAX_BODY = 8 * 1024 * 1024
@@ -192,6 +202,150 @@ def save_item_pic(pid, raw):
         if old.name != out.name and IMG_RE.match(old.name) and old.name.split("~", 1)[0] == pid:
             old.unlink()
     return out.name
+
+
+# ---------- custom picture puzzles ----------
+
+def load_puzzle_items():
+    try:
+        return json.loads(PUZZLES_ITEMS.read_text()).get("items", [])
+    except Exception:
+        return []
+
+
+def write_puzzle_items(items):
+    PUZZLES_DIR.mkdir(parents=True, exist_ok=True)
+    tmp = PUZZLES_DIR / ".items.json.tmp"
+    tmp.write_text(json.dumps({"items": items}, separators=(",", ":")))
+    tmp.replace(PUZZLES_ITEMS)
+
+
+def puzzle_takes(pid):
+    adir = PUZZLES_AUDIO / pid
+    if not adir.is_dir():
+        return []
+    return sorted(f.name for f in adir.iterdir()
+                  if FILE_RE.match(f.name) and f.name.startswith("done~"))
+
+
+def build_puzzles_json():
+    puzzles = []
+    for it in load_puzzle_items():
+        pid = it["id"]
+        puzzles.append({
+            "id": pid,
+            "title": it["title"],
+            "image": it.get("image"),
+            "takes": puzzle_takes(pid),
+        })
+    return {"version": int(time.time() * 1000), "puzzles": puzzles}
+
+
+def write_puzzles_json():
+    PUZZLES_DIR.mkdir(parents=True, exist_ok=True)
+    j = build_puzzles_json()
+    if _same_content(PUZZLES_JSON, j):
+        try:
+            return json.loads(PUZZLES_JSON.read_text())
+        except Exception:
+            return j
+    tmp = PUZZLES_DIR / ".puzzles.json.tmp"
+    tmp.write_text(json.dumps(j, separators=(",", ":")))
+    tmp.replace(PUZZLES_JSON)
+    return j
+
+
+def puzzles_state():
+    return {"items": load_puzzle_items(), "puzzles": write_puzzles_json()}
+
+
+def save_scaled_png(folder, prefix, raw, max_px=640):
+    folder.mkdir(parents=True, exist_ok=True)
+    out = folder / f"{prefix}~{secrets.token_hex(3)}.png"
+    with tempfile.TemporaryDirectory() as td:
+        src = Path(td) / "in.img"
+        src.write_bytes(raw)
+        proc = subprocess.run(
+            ["sips", "-s", "format", "png", "-Z", str(max_px), str(src), "--out", str(out)],
+            capture_output=True, timeout=60)
+        if proc.returncode != 0 or not out.exists() or out.stat().st_size == 0:
+            return None
+    return out.name
+
+
+def gen_tara_text(adir, fname, text):
+    adir.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory() as td:
+        wav = Path(td) / "t.wav"
+        m4a = Path(td) / fname
+        r = subprocess.run(["say", "-v", "Tara", "-o", str(wav),
+                            "--data-format=LEI16@44100", text],
+                           capture_output=True)
+        if r.returncode == 0 and wav.exists() and afconvert_m4a(wav, m4a):
+            (adir / fname).write_bytes(m4a.read_bytes())
+
+
+# ---------- custom build & go recipes ----------
+
+def load_recipe_items():
+    try:
+        return json.loads(RECIPES_ITEMS.read_text()).get("items", [])
+    except Exception:
+        return []
+
+
+def write_recipe_items(items):
+    RECIPES_DIR.mkdir(parents=True, exist_ok=True)
+    tmp = RECIPES_DIR / ".items.json.tmp"
+    tmp.write_text(json.dumps({"items": items}, separators=(",", ":")))
+    tmp.replace(RECIPES_ITEMS)
+
+
+def recipe_lines(rid):
+    adir = RECIPES_AUDIO / rid
+    lines = {"name": [], "go": []}
+    if adir.is_dir():
+        for f in sorted(adir.iterdir()):
+            if FILE_RE.match(f.name):
+                k = f.name.split("~", 1)[0]
+                if k in lines:
+                    lines[k].append(f.name)
+    return {k: v for k, v in lines.items() if v}
+
+
+def build_recipes_json():
+    recipes = []
+    for it in load_recipe_items():
+        rid = it["id"]
+        recipes.append({
+            "id": rid,
+            "name": it["name"],
+            "go": it.get("go", f"Go {it['name']}!"),
+            "env": it.get("env", "road"),
+            "sfx": it.get("sfx", "vroom"),
+            "image": it.get("image"),
+            "parts": it.get("parts") or [],
+            "lines": recipe_lines(rid),
+        })
+    return {"version": int(time.time() * 1000), "recipes": recipes}
+
+
+def write_recipes_json():
+    RECIPES_DIR.mkdir(parents=True, exist_ok=True)
+    j = build_recipes_json()
+    if _same_content(RECIPES_JSON, j):
+        try:
+            return json.loads(RECIPES_JSON.read_text())
+        except Exception:
+            return j
+    tmp = RECIPES_DIR / ".recipes.json.tmp"
+    tmp.write_text(json.dumps(j, separators=(",", ":")))
+    tmp.replace(RECIPES_JSON)
+    return j
+
+
+def recipes_state():
+    return {"items": load_recipe_items(), "recipes": write_recipes_json()}
 
 
 # ---------- family members ----------
@@ -507,6 +661,10 @@ class Handler(SimpleHTTPRequestHandler):
             self._json(200, family_state())
         elif path == "/api/pics":
             self._json(200, write_pics_json())
+        elif path == "/api/puzzles":
+            self._json(200, puzzles_state())
+        elif path == "/api/recipes":
+            self._json(200, recipes_state())
         elif path in ("/rec", "/recorder", "/recorder.html"):
             self.send_response(302)
             self.send_header("Location", "/studio")
@@ -660,6 +818,146 @@ class Handler(SimpleHTTPRequestHandler):
                 return
             self._json(200, {"id": pid, "file": fname, **write_pics_json()})
             return
+        if path == "/api/puzzles":
+            j = self._body_json()
+            title = ((j or {}).get("title") or "").strip()
+            img64 = (j or {}).get("image")
+            if not self._valid_name(title) or not img64:
+                self._json(400, {"error": "title and image required"})
+                return
+            try:
+                raw_img = base64.b64decode(img64, validate=True)
+            except (binascii.Error, ValueError):
+                self._json(400, {"error": "bad image data"})
+                return
+            if not (0 < len(raw_img) <= MAX_BODY):
+                self._json(400, {"error": "bad image size"})
+                return
+            slug = slugify(title) or "puzzle"
+            items = load_puzzle_items()
+            base, n = slug, 2
+            while any(x["id"] == slug for x in items):
+                slug = f"{base}-{n}"
+                n += 1
+            image = save_scaled_png(PUZZLES_IMG, slug, raw_img, 640)
+            if not image:
+                self._json(422, {"error": "sips could not decode image"})
+                return
+            item = {"id": slug, "title": title, "image": image}
+            items.append(item)
+            write_puzzle_items(items)
+            gen_tara_text(PUZZLES_AUDIO / slug, "tara_done.m4a", f"Hooray! You made {title}!")
+            self._json(200, {"item": item, **puzzles_state()})
+            return
+        m = re.fullmatch(r"/api/puzzles/([a-z0-9-]+)/takes", path)
+        if m:
+            pid = m.group(1)
+            items = load_puzzle_items()
+            if not any(x["id"] == pid for x in items):
+                self._json(404, {"error": "unknown puzzle"})
+                return
+            if len(puzzle_takes(pid)) >= MAX_CLIP_TAKES:
+                self._json(409, {"error": f"max {MAX_CLIP_TAKES} takes"})
+                return
+            blob = self._raw_body()
+            if blob is None:
+                self._json(413, {"error": "bad size"})
+                return
+            adir = PUZZLES_AUDIO / pid
+            adir.mkdir(parents=True, exist_ok=True)
+            take = f"done~{secrets.token_hex(3)}.m4a"
+            with tempfile.TemporaryDirectory() as td:
+                src = Path(td) / "in.wav"
+                dst = Path(td) / take
+                src.write_bytes(blob)
+                if not afconvert_m4a(src, dst):
+                    self._json(422, {"error": "afconvert failed"})
+                    return
+                (adir / take).write_bytes(dst.read_bytes())
+            self._json(200, {"file": take, **puzzles_state()})
+            return
+        if path == "/api/recipes":
+            j = self._body_json()
+            name = ((j or {}).get("name") or "").strip()
+            go_text = ((j or {}).get("go") or f"Go {name}!").strip()
+            env_name = ((j or {}).get("env") or "road").strip()
+            sfx_name = ((j or {}).get("sfx") or "vroom").strip()
+            img64 = (j or {}).get("image")
+            parts64 = (j or {}).get("parts") or []
+            if not self._valid_name(name) or len(go_text) > 80:
+                self._json(400, {"error": "bad name or launch text"})
+                return
+            if not img64 and len(parts64) != 3:
+                self._json(400, {"error": "upload 1 full image or 3 part images"})
+                return
+            slug = slugify(name) or "vehicle"
+            items = load_recipe_items()
+            base, n = slug, 2
+            while any(x["id"] == slug for x in items):
+                slug = f"{base}-{n}"
+                n += 1
+            image = None
+            if img64:
+                try:
+                    raw = base64.b64decode(img64, validate=True)
+                except (binascii.Error, ValueError):
+                    self._json(400, {"error": "bad image data"})
+                    return
+                image = save_scaled_png(RECIPES_IMG, slug, raw, 512)
+                if not image:
+                    self._json(422, {"error": "sips could not decode image"})
+                    return
+            part_files = []
+            for pi, p64 in enumerate(parts64[:3]):
+                if not p64:
+                    continue
+                try:
+                    praw = base64.b64decode(p64, validate=True)
+                except (binascii.Error, ValueError):
+                    self._json(400, {"error": "bad part image"})
+                    return
+                pf = save_scaled_png(RECIPES_IMG, f"{slug}-p{pi}", praw, 512)
+                if pf:
+                    part_files.append(pf)
+            item = {
+                "id": slug, "name": name, "go": go_text,
+                "env": env_name if env_name in ("road", "space", "sky", "sea", "track", "hills") else "road",
+                "sfx": sfx_name if sfx_name in ("vroom", "siren", "rocket", "choo", "bubbles") else "vroom",
+                "image": image, "parts": part_files,
+            }
+            items.append(item)
+            write_recipe_items(items)
+            gen_tara_text(RECIPES_AUDIO / slug, "tara_name.m4a", f"{name}!")
+            gen_tara_text(RECIPES_AUDIO / slug, "tara_go.m4a", go_text)
+            self._json(200, {"item": item, **recipes_state()})
+            return
+        m = re.fullmatch(r"/api/recipes/([a-z0-9-]+)/lines/(name|go)", path)
+        if m:
+            rid, line = m.group(1), m.group(2)
+            items = load_recipe_items()
+            if not any(x["id"] == rid for x in items):
+                self._json(404, {"error": "unknown recipe"})
+                return
+            if len(recipe_lines(rid).get(line, [])) >= MAX_CLIP_TAKES:
+                self._json(409, {"error": f"max {MAX_CLIP_TAKES} takes"})
+                return
+            blob = self._raw_body()
+            if blob is None:
+                self._json(413, {"error": "bad size"})
+                return
+            adir = RECIPES_AUDIO / rid
+            adir.mkdir(parents=True, exist_ok=True)
+            take = f"{line}~{secrets.token_hex(3)}.m4a"
+            with tempfile.TemporaryDirectory() as td:
+                src = Path(td) / "in.wav"
+                dst = Path(td) / take
+                src.write_bytes(blob)
+                if not afconvert_m4a(src, dst):
+                    self._json(422, {"error": "afconvert failed"})
+                    return
+                (adir / take).write_bytes(dst.read_bytes())
+            self._json(200, {"file": take, **recipes_state()})
+            return
         self._json(404, {"error": "not found"})
 
     def do_PATCH(self):
@@ -778,11 +1076,77 @@ class Handler(SimpleHTTPRequestHandler):
                         f.unlink()
             self._json(200, {"deleted": pid, **write_pics_json()})
             return
+        m = re.fullmatch(r"/api/puzzles/([a-z0-9-]+)/takes/(.+)", path)
+        if m:
+            pid, fname = m.group(1), m.group(2)
+            if not FILE_RE.match(fname) or not fname.startswith("done~"):
+                self._json(400, {"error": "bad path"})
+                return
+            target = (PUZZLES_AUDIO / pid / fname).resolve()
+            if target.parent == (PUZZLES_AUDIO / pid).resolve() and target.exists():
+                target.unlink()
+            self._json(200, {"deleted": fname, **puzzles_state()})
+            return
+        m = re.fullmatch(r"/api/puzzles/([a-z0-9-]+)", path)
+        if m:
+            pid = m.group(1)
+            items = load_puzzle_items()
+            kept = [x for x in items if x["id"] != pid]
+            if len(kept) == len(items):
+                self._json(404, {"error": "not found"})
+                return
+            for x in items:
+                if x["id"] == pid and x.get("image"):
+                    p = PUZZLES_IMG / x["image"]
+                    if IMG_RE.match(p.name) and p.exists():
+                        p.unlink()
+            adir = PUZZLES_AUDIO / pid
+            if adir.is_dir():
+                for f in adir.iterdir():
+                    f.unlink()
+                adir.rmdir()
+            write_puzzle_items(kept)
+            self._json(200, {"deleted": pid, **puzzles_state()})
+            return
+        m = re.fullmatch(r"/api/recipes/([a-z0-9-]+)/lines/(name|go)/(.+)", path)
+        if m:
+            rid, line, fname = m.group(1), m.group(2), m.group(3)
+            if not FILE_RE.match(fname) or not fname.startswith(line + "~"):
+                self._json(400, {"error": "bad path"})
+                return
+            target = (RECIPES_AUDIO / rid / fname).resolve()
+            if target.parent == (RECIPES_AUDIO / rid).resolve() and target.exists():
+                target.unlink()
+            self._json(200, {"deleted": fname, **recipes_state()})
+            return
+        m = re.fullmatch(r"/api/recipes/([a-z0-9-]+)", path)
+        if m:
+            rid = m.group(1)
+            items = load_recipe_items()
+            kept = [x for x in items if x["id"] != rid]
+            if len(kept) == len(items):
+                self._json(404, {"error": "not found"})
+                return
+            for x in items:
+                if x["id"] == rid:
+                    for fn in ([x.get("image")] + (x.get("parts") or [])):
+                        if fn:
+                            p = RECIPES_IMG / fn
+                            if IMG_RE.match(p.name) and p.exists():
+                                p.unlink()
+            adir = RECIPES_AUDIO / rid
+            if adir.is_dir():
+                for f in adir.iterdir():
+                    f.unlink()
+                adir.rmdir()
+            write_recipe_items(kept)
+            self._json(200, {"deleted": rid, **recipes_state()})
+            return
         self._json(404, {"error": "not found"})
 
 
 # ---------- publish (push to live) ----------
-PUBLISH_PATHS = ["public/audio/voices", "public/family", "public/pics"]
+PUBLISH_PATHS = ["public/audio/voices", "public/family", "public/pics", "public/puzzles", "public/recipes"]
 PUB_STEPS = ["Check changes", "Save (commit)", "Sync", "Upload (push)",
              "Build", "Go live", "Done"]
 DRYRUN = os.environ.get("STUDIO_PUBLISH_DRYRUN") == "1"
@@ -802,7 +1166,7 @@ def pub_pending():
     """List changed files under the publish paths and count them by kind."""
     out = subprocess.run(["git", "status", "--porcelain", "-uall", "--"] + PUBLISH_PATHS,
                          cwd=ROOT, capture_output=True, text=True)
-    files, voices, family, pics = [], 0, 0, 0
+    files, voices, family, pics, puzzles, recipes = [], 0, 0, 0, 0, 0
     for line in out.stdout.splitlines():
         if not line.strip():
             continue
@@ -814,7 +1178,12 @@ def pub_pending():
             family += 1
         elif "/pics/" in f or f.startswith("pics/"):
             pics += 1
-    return {"files": files, "voices": voices, "family": family, "pics": pics}
+        elif "/puzzles/" in f or f.startswith("puzzles/"):
+            puzzles += 1
+        elif "/recipes/" in f or f.startswith("recipes/"):
+            recipes += 1
+    return {"files": files, "voices": voices, "family": family, "pics": pics,
+            "puzzles": puzzles, "recipes": recipes}
 
 
 def pub_run(cmd, step_i, check=True, env=None):
@@ -1033,6 +1402,8 @@ def main():
     write_manifest()
     write_family_json()
     write_pics_json()
+    write_puzzles_json()
+    write_recipes_json()
     url = f"http://127.0.0.1:{port}/studio"
     print(f"AB12 Studio -> {url}   (run the app with `npm run dev`)")
     if "--no-browser" not in sys.argv:
