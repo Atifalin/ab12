@@ -4,6 +4,7 @@ import { say, stopAllAudio, stopVoice } from './voice.js';
 import * as effects from './effects.js';
 import { isTouch, nextColor } from './util.js';
 import { buildPad } from './keyboard.js';
+import { trackModeOpen, trackModeClose } from './analytics.js';
 
 // ---------- screens ----------
 // One <section class="screen"> per mode, created at init and filled lazily by
@@ -29,6 +30,7 @@ function ctxFor(m) {
 
 export function show(next) {
   const prev = modes.get(mode);
+  if (prev) trackModeClose(prev.id);
   if (prev && prev.exit) prev.exit();
   stopAllAudio();
   if (next !== 'home' && modes.has(next)) {
@@ -43,6 +45,7 @@ export function show(next) {
   homeBtn().classList.toggle('visible', next !== 'home');
   document.body.style.background = next === 'home' ? '' : pickBg();
   const m = modes.get(next);
+  if (m) trackModeOpen(m.id);
   if (m && m.enter) m.enter(ctxFor(m));
 }
 

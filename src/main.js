@@ -8,9 +8,11 @@ import { initScreens, show } from './core/screens.js';
 import { initKeyboard } from './core/keyboard.js';
 import { initHome } from './core/home.js';
 import { initSettingsPanel } from './core/settingsPanel.js';
+import { trackSession } from './core/analytics.js';
 
 initScreens(MODES);
 initKeyboard();
 initHome(MODES);
 initSettingsPanel(MODES);
 show('home');
+trackSession();
