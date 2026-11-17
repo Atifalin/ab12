@@ -1,0 +1,22 @@
+# AB12
+
+> AB12 is a free, ad-free web app of 11 learning games for toddlers and preschoolers (ages 1–5): alphabet and number practice, phonics, spelling, picture puzzles, sorting, animal sounds, vehicles and family peekaboo. It runs in any modern browser on phones, tablets and desktops, and can be installed to the home screen.
+
+## Pages
+
+- [Home](https://ab12.ezypath.in/): the game app and full game list
+- [Privacy policy](https://ab12.ezypath.in/privacy.html): no ads, no accounts, no personal data collection; anonymous usage stats only
+
+## Games
+
+- Learn: Letters & Numbers, Word Monsters (phonics), Spell it!
+- Think: Picture Puzzle, Sort it!, Feed the Monster
+- Play: Smash!, Animal Farm, Build & Go!
+- Family: Peekaboo!
+
+## Facts
+
+- Price: free, no ads, no in-app purchases, no sign-up
+- Platform: web app (PWA), works offline-capable after load on iOS, Android, macOS, Windows
+- Languages: English
+- Contact: via https://ab12.ezypath.in/

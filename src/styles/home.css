@@ -113,6 +113,40 @@ body.theme-forest #home { background: linear-gradient(180deg, #57cc8a, #a8ecbe 5
   color: #fff; text-shadow: 0 .2vmin .6vmin rgba(0,0,0,.25); text-align: center;
 }
 
+/* ---------- SEO about / FAQ (collapsible, pinned to bottom) ---------- */
+.seo-about {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: max(1.2vmin, env(safe-area-inset-bottom));
+  width: min(94vw, 680px); z-index: 20; font-family: inherit;
+}
+.seo-about summary {
+  cursor: pointer; list-style: none; text-align: center;
+  font-size: 2vmin; color: var(--ink);
+  background: rgba(255,255,255,.55); padding: .8vmin 2.4vmin; border-radius: 3vmin;
+  box-shadow: 0 .4vmin 1vmin rgba(0,0,0,.12);
+}
+.seo-about summary::-webkit-details-marker { display: none; }
+.seo-about summary::after { content: ' ▾'; }
+.seo-about[open] summary::after { content: ' ▴'; }
+.seo-about-body {
+  margin-top: .6vmin; max-height: 46vh; overflow-y: auto; overscroll-behavior: contain;
+  background: rgba(255,255,255,.92); border-radius: 2.4vmin; padding: 1.6vmin 2.4vmin;
+  font-size: 1.9vmin; line-height: 1.5; text-align: left; color: var(--ink);
+  box-shadow: 0 .6vmin 1.6vmin rgba(0,0,0,.18);
+}
+.seo-about-body h2 { font-size: 2.3vmin; margin: 1.2vmin 0 .4vmin; }
+.seo-about-body h3 { font-size: 2vmin; margin: 1vmin 0 .2vmin; }
+.seo-about-body p, .seo-about-body li { margin: .3vmin 0; }
+.seo-about-body ul { padding-left: 2.6vmin; margin: .4vmin 0; }
+.seo-about-body a { color: #2b6fd6; }
+.noscript-note {
+  position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 2vmin; padding: 4vmin; text-align: center;
+  background: linear-gradient(180deg, #4fd1ff 0%, #a8f0ff 55%, #c9ff9e 100%);
+  color: var(--ink); font-family: 'Fredoka', 'Comic Sans MS', sans-serif;
+}
+.noscript-note h1 { font-size: 8vmin; margin: 0; }
+.noscript-note p { font-size: 2.6vmin; max-width: 70vmin; line-height: 1.5; }
+
 /* ---------- SETTINGS GEAR ---------- */
 .settings-btn {
   position: fixed; left: max(2vmin, env(safe-area-inset-left)); top: max(2vmin, env(safe-area-inset-top));

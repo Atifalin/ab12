@@ -1,6 +1,7 @@
 {
-  "name": "AB12",
+  "name": "AB12 — Toddler Learning Games",
   "short_name": "AB12",
+  "description": "Free ad-free learning games for toddlers and preschoolers: ABCs, 123s, phonics, spelling, puzzles and animals.",
   "start_url": "./",
   "display": "fullscreen",
   "orientation": "any",
